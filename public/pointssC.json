@@ -1,0 +1,138 @@
+[
+  {
+    "id": "1",
+    "name": "新C馆一层东墙南-CAM-1F-06-010",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.780843",  
+    "lon": "116.521386", 
+    "cameraIndexCode": "15fa47175ac249c0a22d6d525fd9441d",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },
+  {
+    "id": "2",
+    "name": "新C馆一层东墙北-CAM-1F-07-010",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.781316",  
+    "lon": "116.520984",
+    "cameraIndexCode": "ff9e24a69fcf4b85a17c4faf145f6c4b",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },
+  {
+    "id": "3",
+    "name": "新C馆一层东墙-CAM-07-013",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.781112",  
+    "lon": "116.521153",  
+    "cameraIndexCode": "5af2aec02ed94853a86283037b75fef9",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },
+  {
+    "id": "4",
+    "name": "新C馆一层东墙-CAM-07-012",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.780976",  
+    "lon": "116.521269", 
+    "cameraIndexCode": "969cd70203fc47608f555dc149761c6c",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },{
+    "id": "5",
+    "name": "新C馆一层西墙南侧",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.779794",  
+    "lon": "116.519521",
+    "cameraIndexCode": "22d41e426bab4cb19323957c0e8d4ece",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },{
+    "id": "6",
+    "name": "新C馆一层西墙西北",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.780270",  
+    "lon": "116.519116",
+    "cameraIndexCode": "87d05645104b42698774cfe55d54dc46",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },{
+    "id": "7",
+    "name": "新C馆一层西墙中",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.780119",  
+    "lon": "116.519236",
+    "cameraIndexCode": "14bf524f743c431984eeaa93640dc132",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },{
+    "id": "8",
+    "name": "新C馆一层03RD运室内_CAM-1F-03-009",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.779857",  
+    "lon": "116.519941",
+    "cameraIndexCode": "35b7c5c4e3494f6f8d61a9b4446a1ccc",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },{
+    "id": "9",
+    "name": "新C馆一层04RD货运室内西CAM-1F-04-001",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.780001",  
+    "lon": "116.520226",
+    "cameraIndexCode": "8d213d02ccaa4ae3a249db3f58aa0a57",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },{
+    "id": "10",
+    "name": "新C馆一层05RD货运室内西_CAM-1F-05-001",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.780223",  
+    "lon": "116.520597",
+    "cameraIndexCode": "1f8e3038156c4f4aaea5dd0e29e5cc63",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },{
+    "id": "11",
+    "name": "新C馆一层06RD货运室内西_CAM-1F-06-001",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.780369",  
+    "lon": "116.520868",
+    "cameraIndexCode": "4c77f45479cb4a5c828c9823856bb8e7",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  },{
+    "id": "12",
+    "name": "新C馆一层07RD货运室内西_CAM-1F-07-001",
+    "img":"./img/image/A馆东侧高点01.png",
+    "lat": "39.780487",  
+    "lon": "116.521155",
+    "cameraIndexCode": "fb4fba0cb98b4efa91793da25889e816",
+    "height": 5,
+    "url": "http://172.160.114.25:10086/flv/live/51.flv",
+    "category": "1",
+    "subCategory": 0
+  }
+]

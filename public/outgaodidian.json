@@ -1,0 +1,1339 @@
+[
+    {
+        "id": "1001",
+        "name": "A管北侧0",
+        "cameraIndexCode": "080a136b9ea04ec890f59bb9925ece2b",
+        "duankouhao": {
+            "ip": "172.160.114.74",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520483,
+                39.778548
+            ],
+            [
+                116.520344,
+                39.778711
+            ],
+            [
+                116.520532,
+                39.778811
+            ],
+            [
+                116.520682,
+                39.778646
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Ab74/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1002",
+        "name": "A管北侧1",
+        "cameraIndexCode": "693229dba04f47a08f79778e8b9d39ea",
+
+        "duankouhao": {
+            "ip": "172.160.114.75",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520682,
+                39.778646
+            ],
+            [
+                116.520532,
+                39.778811
+            ],
+            [
+                116.520737,
+                39.778914
+            ],
+            [
+                116.520873,
+                39.778751
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Ab75/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1003",
+        "name": "A管北侧2",
+        "cameraIndexCode": "693229dba04f47a08f79778e8b9d39ea",
+
+        "duankouhao": {
+            "ip": "172.160.114.76",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520873,
+                39.778751
+            ],
+            [
+                116.520737,
+                39.778914
+            ],
+            [
+                116.520955,
+                39.779016
+            ],
+            [
+                116.521089,
+                39.778863
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Ab76/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1004",
+        "name": "A管北侧3",
+        "cameraIndexCode": "693229dba04f47a08f79778e8b9d39ea",
+
+        "duankouhao": {
+            "ip": "172.160.114.77",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521089,
+                39.778863
+            ],
+            [
+                116.520955,
+                39.779016
+            ],
+            [
+                116.521146,
+                39.779121
+            ],
+            [
+                116.521281,
+                39.778961
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Ab77/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1005",
+        "name": "A管北侧4",
+                "cameraIndexCode": "693229dba04f47a08f79778e8b9d39ea",
+
+        "duankouhao": {
+            "ip": "172.160.114.78",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521281,
+                39.778961
+            ],
+            [
+                116.521146,
+                39.779121
+            ],
+            [
+                116.521343,
+                39.779218
+            ],
+            [
+                116.521489,
+                39.779066
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Ab78/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1006",
+        "name": "A管北侧5",
+        "cameraIndexCode": "693229dba04f47a08f79778e8b9d39ea",
+
+        "duankouhao": {
+            "ip": "172.160.114.79",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521489,
+                39.779066
+            ],
+            [
+                116.521343,
+                39.779218
+            ],
+            [
+                116.521562,
+                39.779327
+            ],
+            [
+                116.521700,
+                39.779170
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Ab79/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1007",
+        "name": "A管北侧6",
+        "cameraIndexCode": "693229dba04f47a08f79778e8b9d39ea",
+        "duankouhao": {
+            "ip": "172.160.114.80",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521700,
+                39.779170
+            ],
+            [
+                116.521562,
+                39.779327
+            ],
+            [
+                116.521755,
+                39.779432
+            ],
+            [
+                116.521890,
+                39.779268
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Ab80/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1008",
+        "name": "A管北侧7",
+        "cameraIndexCode": "ea23767f4ddf4960b81a77829b2ab8f2",
+        "duankouhao": {
+            "ip": "172.160.114.81",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521890,
+                39.779268
+            ],
+            [
+                116.521755,
+                39.779432
+            ],
+            [
+                116.521971,
+                39.779540
+            ],
+            [
+                116.522108,
+                39.779378
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Ab81/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1009",
+        "name": "A管北侧8",
+                        "cameraIndexCode": "f7342ad82f944f5caa2d6660f094c9d3",
+
+        "duankouhao": {
+            "ip": "172.160.114.82",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.522108,
+                39.779378
+            ],
+            [
+                116.521971,
+                39.779540
+            ],
+            [
+                116.522145,
+                39.779626
+            ],
+            [
+                116.522290,
+                39.779469
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Ab82/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1010",
+        "name": "A管北侧9",
+                        "cameraIndexCode": "bb7395b1ad464b34898e55e9dd013f90",
+
+        "duankouhao": {
+            "ip": "172.160.114.83",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.522290,
+                39.779469
+            ],
+            [
+                116.522145,
+                39.779626
+            ],
+            [
+                116.522335,
+                39.779722
+            ],
+            [
+                116.522469,
+                39.779580
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Ab83/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1047",
+        "name": "A管南侧36",
+        "cameraIndexCode": "90f9d75365ba4e3abe2bc6f576827197",
+
+        "duankouhao": {
+            "ip": "172.160.114.63",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520633,
+                39.778375
+            ],
+            [
+                116.520489,
+                39.778541
+            ],
+            [
+                116.520718,
+                39.778654
+            ],
+            [
+                116.520864,
+                39.778498
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/As63/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1048",
+        "name": "A管南侧37",
+                        "cameraIndexCode": "d788f86ce5814a6385b169958257fcde",
+
+        "duankouhao": {
+            "ip": "172.160.114.64",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520864,
+                39.778498
+            ],
+            [
+                116.520718,
+                39.778654
+            ],
+            [
+                116.520918,
+                39.778759
+            ],
+            [
+                116.521066,
+                39.778596
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/As64/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1049",
+        "name": "A管南侧38",
+        "cameraIndexCode": "0ceca6df62944c878d4631bd72ccfa9d",
+        "duankouhao": {
+            "ip": "172.160.114.65",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521066,
+                39.778596
+            ],
+            [
+                116.520918,
+                39.778759
+            ],
+            [
+                116.521136,
+                39.778872
+            ],
+            [
+                116.521285,
+                39.778714
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/As65/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1050",
+        "name": "A管南侧39",
+        "cameraIndexCode": "17e63ca7dce24a78af772f98e38ddd74",
+        "duankouhao": {
+            "ip": "172.160.114.66",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521285,
+                39.778714
+            ],
+            [
+                116.521136,
+                39.778872
+            ],
+            [
+                116.521357,
+                39.778981
+            ],
+            [
+                116.521502,
+                39.778824
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/As66/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1051",
+        "name": "A管南侧40",
+        "cameraIndexCode": "17e63ca7dce24a78af772f98e38ddd74",
+        "duankouhao": {
+            "ip": "172.160.114.67",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521502,
+                39.778824
+            ],
+            [
+                116.521357,
+                39.778981
+            ],
+            [
+                116.521567,
+                39.779092
+            ],
+            [
+                116.521717,
+                39.778929
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/As67/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1052",
+        "name": "A管南侧41",
+        "cameraIndexCode": "709779c445914110a803c6b2f728417c",
+        "duankouhao": {
+
+            "ip": "172.160.114.68",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521717,
+                39.778929
+            ],
+            [
+                116.521567,
+                39.779092
+            ],
+            [
+                116.521795,
+                39.779203
+            ],
+            [
+                116.521942,
+                39.779043
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/As68/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1053",
+        "name": "A管南侧42",
+        "cameraIndexCode": "709779c445914110a803c6b2f728417c",
+        "duankouhao": {
+            "ip": "172.160.114.70",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521942,
+                39.779043
+            ],
+            [
+                116.521795,
+                39.779203
+            ],
+            [
+                116.522010,
+                39.779317
+            ],
+            [
+                116.522171,
+                39.779164
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/As70/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1054",
+        "name": "A管南侧43",
+        "cameraIndexCode": "513abc33db3e4b2a95b67014177e33a7",
+
+        "duankouhao": {
+            "ip": "172.160.114.71",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.522171,
+                39.779164
+            ],
+            [
+                116.522010,
+                39.779317
+            ],
+            [
+                116.522252,
+                39.779445
+            ],
+            [
+                116.522403,
+                39.779281
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/As71/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1055",
+        "name": "A管南侧44",
+        "cameraIndexCode": "bde1d89e49a4407783cf38d0cbc9f853",
+        "duankouhao": {
+            "ip": "172.160.114.72",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.522403,
+                39.779281
+            ],
+            [
+                116.522252,
+                39.779445
+            ],
+            [
+                116.522474,
+                39.779562
+            ],
+            [
+                116.522612,
+                39.779392
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/As72/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1100",
+        "name": "B管东南侧70",
+        "cameraIndexCode": "cb6440d1eb204862ae8fbf0aa71443a9",
+        "duankouhao": {
+            "ip": "172.160.114.99",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521408,
+                39.779537
+            ],
+            [
+                116.521293,
+                39.779663
+            ],
+            [
+                116.521535,
+                39.779779
+            ],
+            [
+                116.521643,
+                39.779658
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bdn99/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1101",
+        "name": "B管东南侧71",
+        "cameraIndexCode": "cb6440d1eb204862ae8fbf0aa71443a9",
+        "duankouhao": {
+            "ip": "172.160.114.100",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521643,
+                39.779658
+            ],
+            [
+                116.521535,
+                39.779779
+            ],
+            [
+                116.521815,
+                39.779912
+            ],
+            [
+                116.521917,
+                39.779796
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bdn100/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1102",
+        "name": "B管东南侧72",
+        "cameraIndexCode": "c02f88adbec9425aae28a5b1182f3807",
+        "duankouhao": {
+            "ip": "172.160.114.101",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521917,
+                39.779796
+            ],
+            [
+                116.521815,
+                39.779912
+            ],
+            [
+                116.522066,
+                39.780048
+            ],
+            [
+                116.522172,
+                39.779918
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bdn101/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1118",
+        "name": "B馆东侧中88",
+        "cameraIndexCode": "1b15fc150e7b4cb0903e0718a60e52e8",
+
+        "duankouhao": {
+            "ip": "172.160.114.104",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521280,
+                39.779672
+            ],
+            [
+                116.521177,
+                39.779795
+            ],
+            [
+                116.521412,
+                39.779915
+            ],
+            [
+                116.521520,
+                39.779790
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bdz104/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1119",
+        "name": "B馆东侧中89",
+        "cameraIndexCode": "1b15fc150e7b4cb0903e0718a60e52e8",
+
+        "duankouhao": {
+            "ip": "172.160.114.103",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521520,
+                39.779790
+            ],
+            [
+                116.521412,
+                39.779915
+            ],
+            [
+                116.521680,
+                39.780048
+            ],
+            [
+                116.521789,
+                39.779925
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bdz103/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1120",
+        "name": "B馆东侧中90",
+        "cameraIndexCode": "1b15fc150e7b4cb0903e0718a60e52e8",
+        "duankouhao": {
+            "ip": "172.160.114.102",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521789,
+                39.779925
+            ],
+            [
+                116.521680,
+                39.780048
+            ],
+            [
+                116.521947,
+                39.780182
+            ],
+            [
+                116.522049,
+                39.780066
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bdz102/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1136",
+        "name": "B馆东侧北106",
+        "cameraIndexCode": "a95a4561323849a7b16740727df08d7f",
+        "duankouhao": {
+            "ip": "172.160.114.107",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521177,
+                39.779795
+            ],
+            [
+                116.521105,
+                39.779888
+            ],
+            [
+                116.521334,
+                39.780004
+            ],
+            [
+                116.521413,
+                39.779915
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bdb107/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1137",
+        "name": "B馆东侧北107",
+        "cameraIndexCode": "947364d1aeb045fc868af9381d418c44",
+
+        "duankouhao": {
+            "ip": "172.160.114.108",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521413,
+                39.779915
+            ],
+            [
+                116.521334,
+                39.780004
+            ],
+            [
+                116.521596,
+                39.780140
+            ],
+            [
+                116.521679,
+                39.780048
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bdb108/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1138",
+        "name": "B馆东侧北108",
+        "cameraIndexCode": "598aedb4084e4af1a80171a48a847a64",
+
+        "duankouhao": {
+            "ip": "172.160.114.109",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521679,
+                39.780048
+            ],
+            [
+                116.521596,
+                39.780140
+            ],
+            [
+                116.521860,
+                39.780282
+            ],
+            [
+                116.521945,
+                39.780185
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bdb109/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1153",
+        "name": "B馆西侧南123",
+        "cameraIndexCode": "338e755b4f1e4700bd131704de28d520",
+        "duankouhao": {
+            "ip": "172.160.114.85",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520161,
+                39.778904
+            ],
+            [
+                116.520053,
+                39.779032
+            ],
+            [
+                116.520251,
+                39.779130
+            ],
+            [
+                116.520366,
+                39.779001
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxn85/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1154",
+        "name": "B馆西侧南124",
+        "cameraIndexCode": "a84e7ed53941444eb291daeb75aea571",
+        "duankouhao": {
+            "ip": "172.160.114.86",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520366,
+                39.779001
+            ],
+            [
+                116.520251,
+                39.779130
+            ],
+            [
+                116.520445,
+                39.779230
+            ],
+            [
+                116.520563,
+                39.779101
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxn86/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1155",
+        "name": "B馆西侧南125",
+        "cameraIndexCode": "14244dfb39b84cadb9d2c5bc7c22f61f",
+        "duankouhao": {
+            "ip": "172.160.114.87",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520563,
+                39.779101
+            ],
+            [
+                116.520445,
+                39.779230
+            ],
+            [
+                116.520667,
+                39.779339
+            ],
+            [
+                116.520783,
+                39.779212
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxn87/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1156",
+        "name": "B馆西侧南126",
+        "cameraIndexCode": "c09438ebdf574de6a043ac5bcb71b791",
+        "duankouhao": {
+            "ip": "172.160.114.88",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520783,
+                39.779212
+            ],
+            [
+                116.520667,
+                39.779339
+            ],
+            [
+                116.520873,
+                39.779444
+            ],
+            [
+                116.520983,
+                39.779315
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxn88/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1157",
+        "name": "B馆西侧南127",
+        "cameraIndexCode": "c09438ebdf574de6a043ac5bcb71b791",
+        "duankouhao": {
+            "ip": "172.160.114.89",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520983,
+                39.779315
+            ],
+            [
+                116.520873,
+                39.779444
+            ],
+            [
+                116.521080,
+                39.779548
+            ],
+            [
+                116.521194,
+                39.779421
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxn89/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1158",
+        "name": "B馆西侧南128",
+        "cameraIndexCode": "c09438ebdf574de6a043ac5bcb71b791",
+        "duankouhao": {
+            "ip": "172.160.114.90",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.521194,
+                39.779421
+            ],
+            [
+                116.521080,
+                39.779548
+            ],
+            [
+                116.521284,
+                39.779652
+            ],
+            [
+                116.521397,
+                39.779524
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxn90/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1181",
+        "name": "B馆西侧北151",
+        "cameraIndexCode": "791f7c69307e425e84e2ff56172a09f1",
+        "duankouhao": {
+            "ip": "172.160.114.96",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.519936,
+                39.779167
+            ],
+            [
+                116.519860,
+                39.779258
+            ],
+            [
+                116.520055,
+                39.779356
+            ],
+            [
+                116.520130,
+                39.779263
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxb96/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1182",
+        "name": "B馆西侧北152",
+        "cameraIndexCode": "791f7c69307e425e84e2ff56172a09f1",
+
+        "duankouhao": {
+            "ip": "172.160.114.95",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520130,
+                39.779263
+            ],
+            [
+                116.520055,
+                39.779356
+            ],
+            [
+                116.520239,
+                39.779450
+            ],
+            [
+                116.520321,
+                39.779361
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxb95/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1183",
+        "name": "B馆西侧北153",
+        "cameraIndexCode": "42b9a5c6869c40b9be91f97f99eabda4",
+        "duankouhao": {
+            "ip": "172.160.114.94",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520321,
+                39.779361
+            ],
+            [
+                116.520239,
+                39.779450
+            ],
+            [
+                116.520471,
+                39.779563
+            ],
+            [
+                116.520550,
+                39.779479
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxb94/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1184",
+        "name": "B馆西侧北154",
+        "cameraIndexCode": "5ce43fa2d20d4ac496f88703eee4f52d",
+        "duankouhao": {
+            "ip": "172.160.114.93",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520550,
+                39.779479
+            ],
+            [
+                116.520471,
+                39.779563
+            ],
+            [
+                116.520680,
+                39.779670
+            ],
+            [
+                116.520752,
+                39.779583
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxb93/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1185",
+        "name": "B馆西侧北155",
+        "cameraIndexCode": "019933517536433e94a2b2209b78e7d2",
+
+        "duankouhao": {
+            "ip": "172.160.114.92",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520752,
+                39.779583
+            ],
+            [
+                116.520680,
+                39.779670
+            ],
+            [
+                116.520872,
+                39.779769
+            ],
+            [
+                116.520950,
+                39.779687
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxb92/webrtc",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": "1186",
+        "name": "B馆西侧北156",
+        "cameraIndexCode": "9ae03298b46249e699be72f99314c62f",
+        "duankouhao": {
+            "ip": "172.160.114.91",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 200
+        },
+        "coords": [
+            [
+                116.520950,
+                39.779687
+            ],
+            [
+                116.520872,
+                39.779769
+            ],
+            [
+                116.521087,
+                39.779879
+            ],
+            [
+                116.521157,
+                39.779796
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.20:54321/stream/beilu1/channel/Bxb91/webrtc",
+        "category": "1",
+        "subCategory": 0
+    }
+]

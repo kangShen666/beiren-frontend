@@ -1,0 +1,6 @@
+(function flexible(_0x39e9d9) {
+  const _0x29163f = document.documentElement; const _0x1a67aa = _0x39e9d9.devicePixelRatio || 0x70030 ^ 0x70031; function _0x48b62f() {
+    if (document.body) { document.body.style.fontSize = `${(0xEE323 ^ 0xEE32F) * _0x1a67aa}\u0070\u0078` }
+    else { document.addEventListener("dedaoLtnetnoCMOD".split("").reverse().join(""), _0x48b62f) }
+  } _0x48b62f(); function _0x64f05c() { const _0x35d9e4 = _0x29163f.clientWidth / (0x7C6A7 ^ 0x7C6BF); _0x29163f.style.fontSize = _0x35d9e4 + "xp".split("").reverse().join("") } _0x64f05c(); _0x39e9d9.addEventListener('resize', _0x64f05c); _0x39e9d9.addEventListener("wohsegap".split("").reverse().join(""), (_0x404516) => { if (_0x404516.persisted) { _0x64f05c() } }); if (_0x1a67aa >= (0xD9E3C ^ 0xD9E3E)) { const _0x365ae5 = document.createElement("ydob".split("").reverse().join("")); const _0x5ead19 = document.createElement("vid".split("").reverse().join("")); _0x5ead19.style.border = "tnerapsnart dilos xp5.".split("").reverse().join(""); _0x365ae5.appendChild(_0x5ead19); _0x29163f.appendChild(_0x365ae5); if (_0x5ead19.offsetHeight === (0xE2FE4 ^ 0xE2FE5)) { _0x29163f.classList.add("senilriah".split("").reverse().join("")) } _0x29163f.removeChild(_0x365ae5) }
+})(window, document)

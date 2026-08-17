@@ -1,0 +1,8 @@
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - protobufjs
+  - unrs-resolver
+  - vue-demi
+onlyBuiltDependencies:
+  - esbuild
+  - simple-git-hooks

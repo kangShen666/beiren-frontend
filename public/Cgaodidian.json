@@ -1,0 +1,992 @@
+[
+    {
+        "id": 1504,
+        "name": "新C馆三层03RD_CAM-3F-03-005",
+        "cameraIndexCode": "7d0a23b4629d44509e8b49a80d2e2e44",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.519608,
+                39.779706
+            ],
+            [
+                116.51943216362673,
+                39.77991942705368
+            ],
+            [
+                116.51969673921866,
+                39.78004225136835
+            ],
+            [
+                116.51986645508339,
+                39.77983268101178
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1505,
+        "name": "新C馆三层04RD_CAM-3F-04-003-46",
+        "cameraIndexCode": "625e56bc44054b078fe57ead6be1c0ae",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.51986645508339,
+                39.77983268101178
+            ],
+            [
+                116.51969673921866,
+                39.78004225136835
+            ],
+            [
+                116.519868,
+                39.780129
+            ],
+            [
+                116.520048,
+                39.779936
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1506,
+        "name": "新C馆三层04RD_CAM-3F-04-004-95",
+        "cameraIndexCode": "35df44e677c64d0c8e0bad12da4542b5",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520048,
+                39.779936
+            ],
+            [
+                116.519868,
+                39.780129
+            ],
+            [
+                116.520046,
+                39.780228
+            ],
+            [
+                116.520235,
+                39.780010
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1507,
+        "name": "新C馆三层05RD_CAM-3F-05-001-110",
+        "cameraIndexCode": "e388a4ebcd3e42399265a5f71ae8ce06",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520235,
+                39.780010
+            ],
+            [
+                116.520046,
+                39.780228
+            ],
+            [
+                116.520231,
+                39.780312
+            ],
+            [
+                116.520432,
+                39.780108
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1508,
+        "name": "新C馆三层05RD_CAM-3F-05-003-112",
+        "cameraIndexCode": "9e2db405275b4a8eb6545c12a6ede3e4",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520432,
+                39.780108
+            ],
+            [
+                116.520231,
+                39.780312
+            ],
+            [
+                116.520401,
+                39.780400
+            ],
+            [
+                116.520583,
+                39.780190
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1509,
+        "name": "新C馆三层05RD_CAM-3F-05-004-113",
+        "cameraIndexCode": "b5c2eb98f4f84a84b4b86b795c7a761f",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520583,
+                39.780190
+            ],
+            [
+                116.520401,
+                39.780400
+            ],
+            [
+                116.520582,
+                39.780487
+            ],
+            [
+                116.520760,
+                39.780273
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1510,
+        "name": "新C馆三层06RD_CAM-3F-06-001-142",
+        "cameraIndexCode": "ab9818b89f3a4591af8ccecd816b2226",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520760,
+                39.780273
+            ],
+            [
+                116.520582,
+                39.780487
+            ],
+            [
+                116.520761,
+                39.780575
+            ],
+            [
+                116.520928,
+                39.780377
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1511,
+        "name": "新C馆三层06RD_CAM-3F-06-002-143",
+        "cameraIndexCode": "870bc3c275de45e2abedd7aaded13b55",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520928,
+                39.780377
+            ],
+            [
+                116.520761,
+                39.780575
+            ],
+            [
+                116.520940,
+                39.780666
+            ],
+            [
+                116.521119,
+                39.780470
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1512,
+        "name": "新C馆三层06RD_CAM-3F-06-003-144",
+        "cameraIndexCode": "7f12397d4ab84aefb4efa3aaa2928198",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.521119,
+                39.780470
+            ],
+            [
+                116.520940,
+                39.780666
+            ],
+            [
+                116.521120,
+                39.780755
+            ],
+            [
+                116.521290,
+                39.780558
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1513,
+        "name": "新C馆三层06RD_CAM-3F-06-004-145",
+        "cameraIndexCode": "f6e0920a272240cfb9f71cb0ccdf1800",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.521290,
+                39.780558
+            ],
+            [
+                116.521120,
+                39.780755
+            ],
+            [
+                116.521357,
+                39.780863
+            ],
+            [
+                116.521525,
+                39.780661
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1514,
+        "name": "新C馆三层09RD_CAM-3F-09-006-64",
+        "cameraIndexCode": "32bc92bc47f04c8e858e1ade85d622ee",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.519410,
+                39.779930
+            ],
+            [
+                116.519221,
+                39.780149
+            ],
+            [
+                116.519493,
+                39.780283
+            ],
+            [
+                116.519687,
+                39.780060
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1515,
+        "name": "新C馆三层09RD_CAM-3F-09-008-66",
+        "cameraIndexCode": "c01fb95246194a678711c6b668da4e24",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.519687,
+                39.780060
+            ],
+            [
+                116.519493,
+                39.780283
+            ],
+            [
+                116.519661,
+                39.780368
+            ],
+            [
+                116.519856,
+                39.780151
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1516,
+        "name": "新C馆三层09RD_CAM-3F-09-009-67",
+        "cameraIndexCode": "bc11c9f81ad542ed8578d4d7dca7a69d",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.519856,
+                39.780151
+            ],
+            [
+                116.519661,
+                39.780368
+            ],
+            [
+                116.519843,
+                39.780457
+            ],
+            [
+                116.520026,
+                39.780241
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1517,
+        "name": "新C馆三层08RD_CAM-3F-08-006-25",
+        "cameraIndexCode": "950554eba74646a1a7a6bad652c10906",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520026,
+                39.780241
+            ],
+            [
+                116.519843,
+                39.780457
+            ],
+            [
+                116.520016,
+                39.780545
+            ],
+            [
+                116.520212,
+                39.780329
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1518,
+        "name": "新C馆三层08RD_CAM-3F-08-007-26",
+        "cameraIndexCode": "cd3f83739ff9424f823584e706d44288",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520212,
+                39.780329
+            ],
+            [
+                116.520016,
+                39.780545
+            ],
+            [
+                116.520194,
+                39.780632
+            ],
+            [
+                116.520389,
+                39.780418
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1519,
+        "name": "新C馆三层08RD_CAM-3F-08-008-27",
+        "cameraIndexCode": "83899a27acd842a6a8082ae8bec83473",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520389,
+                39.780418
+            ],
+            [
+                116.520194,
+                39.780632
+            ],
+            [
+                116.520378,
+                39.780724
+            ],
+            [
+                116.520572,
+                39.780496
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1520,
+        "name": "新C馆三层07RD_CAM-3F-07-007-188",
+        "cameraIndexCode": "bce69cb1b9e2486fabd45fc617c3b4f4",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520572,
+                39.780496
+            ],
+            [
+                116.520378,
+                39.780724
+            ],
+            [
+                116.520551,
+                39.780809
+            ],
+            [
+                116.520748,
+                39.780593
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1521,
+        "name": "新C馆三层07RD_CAM-3F-07-008-189",
+        "cameraIndexCode": "4f68e1680dd6466bbd2a3629dfcad10d",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520748,
+                39.780593
+            ],
+            [
+                116.520551,
+                39.780809
+            ],
+            [
+                116.520730,
+                39.780898
+            ],
+            [
+                116.520927,
+                39.780681
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1522,
+        "name": "新C馆三层07RD_CAM-3F-07-009-190",
+        "cameraIndexCode": "d861fd3f434f4e0c945526d044de5be1",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520927,
+                39.780681
+            ],
+            [
+                116.520730,
+                39.780898
+            ],
+            [
+                116.520908,
+                39.780987
+            ],
+            [
+                116.521095,
+                39.780766
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1523,
+        "name": "新C馆三层07RD_CAM-3F-07-010-191",
+        "cameraIndexCode": "f33859487af14de8ad4a1cb6d57f5ed5",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.521095,
+                39.780766
+            ],
+            [
+                116.520908,
+                39.780987
+            ],
+            [
+                116.521141,
+                39.781108
+            ],
+            [
+                116.521344,
+                39.780877
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1524,
+        "name": "新C馆三层09RD_CAM-3F-09-001-59",
+        "cameraIndexCode": "582f627c494e42fda74eb7afd5502689",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.519200,
+                39.780173
+            ],
+            [
+                116.519030,
+                39.780380
+            ],
+            [
+                116.519290,
+                39.780514
+            ],
+            [
+                116.519485,
+                39.780297
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1525,
+        "name": "新C馆三层09RD_CAM-3F-09-003-61",
+        "cameraIndexCode": "589dca9a0dcd4f2880877b27e214ae31",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.519485,
+                39.780297
+            ],
+            [
+                116.519290,
+                39.780514
+            ],
+            [
+                116.519464,
+                39.780600
+            ],
+            [
+                116.519640,
+                39.780383
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1526,
+        "name": "新C馆三层09RD_CAM-3F-09-004-62",
+        "cameraIndexCode": "b940caac13b24e4c988d47f17da5229d",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.519640,
+                39.780383
+            ],
+            [
+                116.519464,
+                39.780600
+            ],
+            [
+                116.519631,
+                39.780688
+            ],
+            [
+                116.519829,
+                39.780472
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1527,
+        "name": "新C馆三层09RD_CAM-3F-09-005-63",
+        "cameraIndexCode": "e1cc90eb4972422eb0f7b0cf0b901a69",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.519829,
+                39.780472
+            ],
+            [
+                116.519631,
+                39.780688
+            ],
+            [
+                116.519813,
+                39.780779
+            ],
+            [
+                116.520006,
+                39.780559
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1528,
+        "name": "新C馆三层08RD_CAM-3F-08-001-20",
+        "cameraIndexCode": "38ad91d8f2fe47968b07e3292bc895a7",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520006,
+                39.780559
+            ],
+            [
+                116.519813,
+                39.780779
+            ],
+            [
+                116.519983,
+                39.780862
+            ],
+            [
+                116.520183,
+                39.780647
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1529,
+        "name": "新C馆三层08RD_CAM-3F-08-003-22",
+        "cameraIndexCode": "dbc877395d694c13b11d9caef1ce46ce",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520183,
+                39.780647
+            ],
+            [
+                116.519983,
+                39.780862
+            ],
+            [
+                116.520171,
+                39.780957
+            ],
+            [
+                116.520367,
+                39.780735
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1530,
+        "name": "新C馆三层08RD_CAM-3F-08-004-23",
+        "cameraIndexCode": "98a862169cc44afabb8dd514bed81c2c",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520367,
+                39.780735
+            ],
+            [
+                116.520171,
+                39.780957
+            ],
+            [
+                116.520356,
+                39.781062
+            ],
+            [
+                116.520545,
+                39.780827
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1531,
+        "name": "新C馆三层07RD_CAM-3F-07-002-183",
+        "cameraIndexCode": "efcc0b80ccfd4eb2be6a823aec210a49",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520545,
+                39.780827
+            ],
+            [
+                116.520356,
+                39.781062
+            ],
+            [
+                116.520534,
+                39.781144
+            ],
+            [
+                116.520719,
+                39.780914
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1532,
+        "name": "新C馆三层07RD_CAM-3F-07-003-184",
+        "cameraIndexCode": "0a385171bd5345e68b8e4596fd64876d",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520719,
+                39.780914
+            ],
+            [
+                116.520534,
+                39.781144
+            ],
+            [
+                116.520701,
+                39.781231
+            ],
+            [
+                116.520892,
+                39.780998
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    },
+    {
+        "id": 1533,
+        "name": "新C馆三层07RD_CAM-3F-07-004-185",
+        "cameraIndexCode": "c9d7aed296094b9d9f72f0cd0a6dd757",
+        "duankouhao": {
+            "ip": "172.160.103.40",
+            "admin": "admin",
+            "password": "Ychz@2025",
+            "yuzhiwei": 203
+        },
+        "coords": [
+            [
+                116.520892,
+                39.780998
+            ],
+            [
+                116.520701,
+                39.781231
+            ],
+            [
+                116.520931,
+                39.781345
+            ],
+            [
+                116.521158,
+                39.781126
+            ]
+        ],
+        "height": 5,
+        "url": "http://172.160.114.25:10086/flv/live/103-40.flv",
+        "category": "1",
+        "subCategory": 0
+    }
+]

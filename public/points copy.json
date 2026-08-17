@@ -1,0 +1,554 @@
+[
+  {
+    "id": "1",
+    "name": "生态连廊东南角-04动球",
+    "lat": "39.778299",
+    "lon": "116.520684",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK04.flv",
+    "category": "1",
+    "subCategory": 0
+  },
+  {
+    "id": "2",
+    "name": "A馆一层西连廊南-07动球",
+    "lat": "39.778501",
+    "lon": "116.520744",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK07.flv",
+    "category": "1",
+    "subCategory": 0
+  },
+  {
+    "id": "3",
+    "name": "A馆一层序厅西-09动球",
+    "lat": "39.778506",
+    "lon": "116.521033",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK09.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "4",
+    "name": "A馆一层馆内A9西-13",
+    "lat": "39.779475",
+    "lon": "116.521824",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK13.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "5",
+    "name": "A馆一层序厅西旋转楼梯-15动球",
+    "lat": "39.778619",
+    "lon": "116.521258",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK15.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "6",
+    "name": "A馆室外A3门-17动球",
+    "lat": "39.778521",
+    "lon": "116.521564",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK17.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "7",
+    "name": "A馆一层序厅A13内-19",
+    "lat": "39.778536",
+    "lon": "116.521537",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK19.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "8",
+    "name": "A馆一层馆内A3门-20动球",
+    "lat": "39.778717",
+    "lon": "116.521346",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK20.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "9",
+    "name": "A馆一层序厅A3门-24动球",
+    "lat": "39.778730",
+    "lon": "116.521478",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK24.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "10",
+    "name": "A馆一层馆内A4门西-26动球",
+    "lat": "39.778942",
+    "lon": "116.521783",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK26.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "11",
+    "name": "A馆室外东楼梯2-34动球",
+    "lat": "39.778892",
+    "lon": "116.522306",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK34.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "12",
+    "name": "A馆一层序厅东旋转楼梯-36",
+    "lat": "39.778907",
+    "lon": "116.522223",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK36.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "13",
+    "name": "A馆一层序厅A7-37动球",
+    "lat": "39.779065",
+    "lon": "116.522138",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK37.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "14",
+    "name": "A馆一层馆内A7-39动球",
+    "lat": "39.779088",
+    "lon": "116.522086",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK39.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "15",
+    "name": "A馆一层馆内A8-44动球",
+    "lat": "39.779260",
+    "lon": "116.522422",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK44.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "16",
+    "name": "A馆一层序厅A8门-45动球",
+    "lat": "39.779226",
+    "lon": "116.522461",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK45.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "17",
+    "name": "A馆室外东南角1-47动球",
+    "lat": "39.779188",
+    "lon": "116.522857",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK47.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "18",
+    "name": "A馆东广场南-49动球",
+    "lat": "39.779333",
+    "lon": "116.522923",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK49.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "19",
+    "name": "A馆一层东连廊南-55动球",
+    "lat": "39.779415",
+    "lon": "116.522545",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK55.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "20",
+    "name": "A馆东广场北-56动球",
+    "lat": "39.779647",
+    "lon": "116.522675",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK56.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "21",
+    "name": "A馆一层东连廊北-61动球",
+    "lat": "39.779706",
+    "lon": "116.522298",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK61.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "22",
+    "name": "A馆一层西连廊北-91动球",
+    "lat": "39.778747",
+    "lon": "116.520530",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK91.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "23",
+    "name": "A馆西附楼一层客服中心北-94动球",
+    "lat": "39.778734",
+    "lon": "116.520334",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK94.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "24",
+    "name": "A馆室外西连廊北-95动球",
+    "lat": "39.778928",
+    "lon": "116.520710",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK95.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "25",
+    "name": "A馆一层馆内A13东-100动球",
+    "lat": "39.778936",
+    "lon": "116.520728",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK100.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "26",
+    "name": "A馆一层馆内A12东-106动球",
+    "lat": "39.779079",
+    "lon": "116.521031",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK106.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "27",
+    "name": "A馆一层馆外A12西-108动球",
+    "lat": "39.779233",
+    "lon": "116.521304",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK108.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "28",
+    "name": "A馆一层馆内A11西-109动球",
+    "lat": "39.779372",
+    "lon": "116.521587",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK109.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "29",
+    "name": "A馆一层馆内A10东北-114动球",   
+    "lat": "39.779532",
+    "lon": "116.521911",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK114.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "30",
+    "name": "A馆一层馆内A9西-121动球",
+    "lat": "39.779757",
+    "lon": "116.522362",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK121.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "31",
+    "name": "A馆一层东廊道外-125AI",      
+    "lat": "39.779769",
+    "lon": "116.522382",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK125.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "32",
+    "name": "A馆室外东附楼北-126动球",
+    "lat": "39.779834",
+    "lon": "116.522501",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK126.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "33",
+    "name": "A馆一层序厅东南角-128",
+    "lat": "39.779199",
+    "lon": "116.522754",
+    "url": "http://172.160.114.20:10086/flv/live/A1JK128.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "34",
+    "name": "B馆一层东附楼东侧南-32动球",
+    "lat": "39.780045",
+    "lon": "116.522082",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK32.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "35",
+    "name": "B馆一层馆内东侧-36动球",   
+    "lat": "39.779817",
+    "lon": "116.521945",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK36.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "36",
+    "name": "B馆一层馆内东侧-40动球",       
+    "lat": "39.779634",
+    "lon": "116.521562",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK40.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "37",
+    "name": "B馆一层馆内西侧-44动球",
+    "lat": "39.779428",
+    "lon": "116.521170",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK44.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "38",
+    "name": "B馆一层馆内西侧-52动球",
+    "lat": "39.779193",
+    "lon": "116.520697",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK52.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "39",
+    "name": "B馆一层西连廊南2-62",       
+    "lat": "39.779061",
+    "lon": "116.520245",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK62.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "40",
+    "name": "B馆一层西连廊北1-65",
+    "lat": "39.779301",
+    "lon": "116.520044",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK65.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "41",
+    "name": "B馆一层东附楼中-96动球",
+    "lat": "39.780186",
+    "lon": "116.521971",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK96.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "42",
+    "name": "B馆展厅内东侧-106动球",            
+    "lat": "39.780205",
+    "lon": "116.521864",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK106.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "43",
+    "name": "B馆一层室外北通道东1-108动球",
+    "lat": "39.780361",
+    "lon": "116.521758",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK108.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "44",
+    "name": "B馆展厅内东侧-111动球",       
+    "lat": "39.780198",
+    "lon": "116.521616",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK111.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "45",
+    "name": "B馆展厅内东侧-121动球",
+    "lat": "39.780054",
+    "lon": "116.521305",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK121.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "46",
+    "name": "B馆展厅内西侧-123动球",   
+    "lat": "39.779775",
+    "lon": "116.520774",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK123.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "47",
+    "name": "B馆一层室外B9门外-127动球",
+    "lat": "39.779830",
+    "lon": "116.520828",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK127.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "48",
+    "name": "B馆一层馆内西侧-139动球",     
+    "lat": "39.779468",
+    "lon": "116.520173",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK139.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "49",
+    "name": "B馆一层室外B11门外-140动球",
+    "lat": "39.779513",
+    "lon": "116.520217",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK140.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "50",
+    "name": "B馆一层馆内西侧-146动球",  
+    "lat": "39.779675",
+    "lon": "116.520576",
+    "url": "http://172.160.114.20:10086/flv/live/B1JK146.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "51",
+    "name": "会议中心南室外西南角-01动球",  
+    "lat": "39.777717",
+    "lon": "116.519962",
+    "url": "http://172.160.114.20:10086/flv/live/C1JK01.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "52",
+    "name": "会议中心南室外西广场南-02动球",
+    "lat": "39.777736",
+    "lon": "116.519902",
+    "url": "http://172.160.114.20:10086/flv/live/C1JK02.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "53",
+    "name": "会议中心南室外西广场北-09动球",
+    "lat": "39.778321",
+    "lon": "116.519418",
+    "url": "http://172.160.114.20:10086/flv/live/C1JK09.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "54",
+    "name": "会议中心南室外1号门东-12动球",     
+    "lat": "39.778546",
+    "lon": "116.519794",
+    "url": "http://172.160.114.20:10086/flv/live/C1JK12.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "55",
+    "name": "会议中心南一层VIP休息室外-13",
+    "lat": "39.778428",
+    "lon": "116.519892",
+    "url": "http://172.160.114.20:10086/flv/live/C1JK13.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "56",
+    "name": "会议中心南一层报告厅西侧中-16动球",
+    "lat": "39.778315",
+    "lon": "116.520053",
+    "url": "http://172.160.114.20:10086/flv/live/C1JK16.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "57",
+    "name": "会议中心南室外3号门西-21动球",  
+    "lat": "39.777838",
+    "lon": "116.520228",
+    "url": "http://172.160.114.20:10086/flv/live/C1JK21.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "58",
+    "name": "会议中心南二层报告厅东南角-22动球",
+    "lat": "39.778140",
+    "lon": "116.520223",
+    "url": "http://172.160.114.20:10086/flv/live/C1JK22.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "59",
+    "name": "会议中心南室外4号门东-24动球",   
+    "lat": "39.778052",
+    "lon": "116.520664",
+    "url": "http://172.160.114.20:10086/flv/live/C1JK24.flv",
+    "category": "2",
+    "subCategory": 0
+  },
+  {
+    "id": "60",
+    "name": "会议中心南一层报告厅东侧中-28动球",
+    "lat": "39.778529",
+    "lon": "116.520279",
+    "url": "http://172.160.114.20:10086/flv/live/C1JK28.flv",
+    "category": "2",
+    "subCategory": 0
+  }
+]
+
+
+
+
+
+
+
+
+
+
+
+

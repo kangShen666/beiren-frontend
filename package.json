@@ -1,0 +1,68 @@
+{
+  "name": "ll",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": "^18.18.0 || ^20.9.0 || >=21.1.0",
+    "pnpm": ">=7.33.7"
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "dev": "vite --open",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build --force",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "simple-git-hooks"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "@iconify/vue": "^5.0.0",
+    "@kjgl77/datav-vue3": "^1.7.4",
+    "@vueuse/core": "^13.4.0",
+    "axios": "^1.10.0",
+    "dayjs": "^1.11.19",
+    "cesium": "~1.98.1",
+    "echarts": "^6.1.0",
+    "element-plus": "^2.10.2",
+    "flv.js": "^1.6.2",
+    "jquery": "^3.7.1",
+    "modern-css-reset": "^1.4.0",
+    "pinia": "^3.0.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^3.7.3",
+    "@tsconfig/node20": "^20.1.4",
+    "@types/jquery": "^3.5.32",
+    "@types/node": "^20.16.10",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vitejs/plugin-vue-jsx": "^4.2.0",
+    "@vue/tsconfig": "^0.5.1",
+    "eslint": "^9.11.1",
+    "eslint-plugin-format": "^0.1.2",
+    "less": "^4.2.0",
+    "lint-staged": "^15.2.10",
+    "npm-run-all2": "^6.2.0",
+    "sass": "^1.79.4",
+    "simple-git-hooks": "^2.11.1",
+    "typescript": "~5.4.0",
+    "unplugin-auto-import": "^19.3.0",
+    "unplugin-icons": "^22.1.0",
+    "unplugin-vue-components": "^28.7.0",
+    "vite": "^6.2.4",
+    "vite-plugin-cesium": "^1.2.23",
+    "vite-plugin-vue-devtools": "^7.7.2",
+    "vue-tsc": "^2.2.8"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
+  }
+}
