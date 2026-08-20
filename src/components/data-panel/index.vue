@@ -171,7 +171,6 @@ const updateRankChart = async () => {
     return
   }
   const data = await getRealTimeData()
-  console.log(data);
   if (!data || !data.realdata) {
     return
   }
@@ -429,6 +428,7 @@ onUnmounted(() => {
   z-index: 8;
   height: calc(100vh - 6vw);
   pointer-events: none;
+
   // 标题样式变量
   --title-font-size: 1.5vw;
   --title-top: 6%;
@@ -441,7 +441,9 @@ onUnmounted(() => {
   background-size: 100% 100%;
   background-repeat: no-repeat;
   background-position: center;
-  pointer-events: auto; // 每个模块独立控制大小的CSS变量
+  pointer-events: auto;
+
+  // 每个模块独立控制大小的CSS变量
   --card-width: 26vw;
   --card-height: calc(38% - 0.5vw);
   width: var(--card-width);
@@ -531,6 +533,7 @@ onUnmounted(() => {
   top: -2vw;
   align-items: flex-end;
   justify-content: space-evenly;
+
   // 请确保此处替换为不包含文字的纯背景图
   background-image: url('@/assets/1/左上.png');
 
@@ -771,6 +774,7 @@ onUnmounted(() => {
   .data-panel {
     top: 10vw;
     height: calc(100vh - 10vw);
+
     // 移动端使用固定像素
     --title-font-size: 14px;
     --title-top: 8px;
@@ -828,6 +832,7 @@ onUnmounted(() => {
   .data-panel {
     top: 4vw;
     height: calc(100vh - 4vw);
+
     // 宽屏下调小字号，防止文字过大
     --title-font-size: 0.8vw;
     --title-top: 6%;
@@ -861,6 +866,7 @@ onUnmounted(() => {
     --card-width: 24vw;
     --card-height: 52%;
     left: -1.5vw;
+
     --grid-width: 48%;
     --grid-height: 40%;
     --grid-gap: 2vw;
@@ -919,6 +925,7 @@ onUnmounted(() => {
   .data-panel {
     top: 3vw;
     height: calc(100vh - 3vw);
+
     --title-font-size: 0.8vw;
     --title-top: 5%;
     --title-left: 3.5%;
@@ -946,6 +953,7 @@ onUnmounted(() => {
     --card-width: 29vw;
     --card-height: 54%;
     left: -1.8vw;
+
     --grid-width: 50%;
     --grid-height: 42%;
     --grid-item-label-gap: 0.15vw;
@@ -995,6 +1003,7 @@ onUnmounted(() => {
   .data-panel {
     top: 3vw;
     height: calc(100vh - 2.5vw);
+
     --title-font-size: 1.5vw;
     --title-top: 8%;
     --title-left: 12%;
@@ -1006,7 +1015,6 @@ onUnmounted(() => {
       }
     }
   }
-
 
   // 每个模块独立控制大小
   .data-card--bottom-left {
@@ -1087,6 +1095,7 @@ onUnmounted(() => {
   .data-panel {
     top: 1.5vw;
     height: calc(100vh - 1.5vw);
+
     --title-font-size: 0.3vw;
     --title-top: 4%;
     --title-left: 2.5%;
@@ -1116,6 +1125,7 @@ onUnmounted(() => {
     --card-width: 26vw;
     --card-height: 50%;
     left: -1vw;
+
     --grid-width: 45%;
     --grid-height: 35%;
     --grid-gap: 1.5vw;
@@ -1165,6 +1175,121 @@ onUnmounted(() => {
 
     &.active::after {
       left: 1vw;
+    }
+  }
+}
+
+/* 响应式：5120px * 960px 超宽且较矮屏幕 */
+@media screen and (width: 5120px) and (height: 960px) {
+  .data-panel {
+    top: 1.5vw;
+    height: calc(100vh - 1.5vw);
+
+    --title-font-size: 0.6vw;
+    --title-top: 5%;
+    --title-left: 10%;
+
+    .data-card {
+      .user-title {
+        top: 18%;
+        left: 20%;
+      }
+    }
+  }
+
+  // 每个模块独立控制大小
+  .data-card--bottom-left {
+    --card-width: 20vw;
+    --card-height: calc(40% - 0.5vw);
+    left: 1vw;
+    bottom: 1vw;
+  }
+
+  .data-card--top-right {
+    --card-width: 20vw;
+    --card-height: calc(40% - 0.5vw);
+    top: 2vw;
+    right: 4vw;
+  }
+
+  .data-card--bottom-right {
+    --card-width: 20vw;
+    --card-height: calc(40% - 0.5vw);
+    right: 4vw;
+    bottom: 1vw;
+  }
+
+  .data-card--top-left {
+    --card-width: 24vw;
+    --card-height: 55%;
+    left: -1vw;
+    top: 0.5vw;
+
+    .data-grid {
+      // width: var(--grid-width);
+      // height: var(--grid-height);
+      margin-top: 1.2vw;
+      // grid-column-gap: var(--grid-gap);
+      // grid-row-gap: 0.3vw;
+      .data-grid__item {
+        .grid-label {
+          font-size: 0.3vw;
+        }
+        .grid-value {
+          font-size: 0.5vw;
+        }
+      }
+    }
+
+    --grid-width: 50%;
+    --grid-height: 42%;
+    --grid-gap: 1.2vw;
+    --grid-item-label-gap: 0.12vw;
+
+    // 4个小模块独立控制
+    --item1-width: 85%;
+    --item1-height: 85%;
+    --item1-label-size: 0.42vw;
+    --item1-value-size: 0.9vw;
+
+    --item2-width: 85%;
+    --item2-height: 85%;
+    --item2-label-size: 0.42vw;
+    --item2-value-size: 0.9vw;
+
+    --item3-width: 85%;
+    --item3-height: 85%;
+    --item3-label-size: 0.42vw;
+    --item3-value-size: 0.9vw;
+
+    --item4-width: 85%;
+    --item4-height: 85%;
+    --item4-label-size: 0.42vw;
+    --item4-value-size: 0.9vw;
+  }
+
+  .chart-toggle {
+    top: 0.5vw;
+    right: 1vw;
+
+    span {
+      font-size: 0.42vw;
+    }
+  }
+
+  .toggle-switch {
+    // width: 1vw;
+    // height: 1vw;
+
+    &::after {
+      width: 0.8vw;
+      height: 0.8vw;
+      top: 0.1vw;
+      left: 0.1vw;
+    }
+
+    &.active::after {
+      left: 1.1vw;
     }
   }
 }

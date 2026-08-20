@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import DataPanel from "@/components/data-panel/index.vue";
 import vHead from "@/components/header/header.vue";
-import type { VMapExposed } from "@/components/vmap/index.vue";
-import vMap from "@/components/vmap/index.vue";
+import type { VMapExposed } from "@/components/vmap/cesium.vue";
+import vMap from "@/components/vmap/cesium.vue";
 import { cameraMap } from "@/constants/map";
 import type { HotspotEntity, TreePoint } from "@/type/vMap";
 import { filterEmptyParams } from "@/utils/common";
@@ -714,6 +714,8 @@ const toggleOuter = () => {
   vMapRef.value?.waiwei();
 };
 
+
+
 // 西广场按钮点击事件 - 修正版
 const xiguangchang = () => {
   QJSP.value = "";
@@ -760,7 +762,7 @@ const togglePanorama = () => {
       vMapRef.value?.Qguannei1();
     } else if (isSpecialViewport == false) {
       vMapRef.value?.Qguannei();
-    } else if (isSpecialViewport == 1) {
+    } else {
       vMapRef.value?.Qguannei2();
     }
     vMapRef.value?.yichushipin();
@@ -808,7 +810,7 @@ const togglePanorama = () => {
       vMapRef.value?.Qguannei1();
     } else if (isSpecialViewport == false) {
       vMapRef.value?.Qguannei();
-    } else if (isSpecialViewport == 1) {
+    } else {
       vMapRef.value?.Qguannei2();
     }
 
@@ -823,34 +825,14 @@ const togglePanorama = () => {
 };
 
 const toggleHallA = () => {
-  if (isSpecialViewport == true) {
-    vMapRef.value?.Aguannei1();
-  } else if (isSpecialViewport == false) {
-    vMapRef.value?.Aguannei();
-  } else if (isSpecialViewport === 1) {
-    vMapRef.value?.Aguannei2();
-  }
+  vMapRef.value?.Aguannei();
 };
 
 const toggleHallB = () => {
-  if (isSpecialViewport == true) {
-    vMapRef.value?.Bguannei1();
-  } else if (isSpecialViewport == false) {
-    vMapRef.value?.Bguannei();
-  } else if (isSpecialViewport == 1) {
-    vMapRef.value?.Bguannei2();
-  }
+  vMapRef.value?.Bguannei();
 };
 const toggleHallC = () => {
-  if (isSpecialViewport == true) {
-    vMapRef.value?.Cguannei1();
-    console.log("C馆1");
-  } else if (isSpecialViewport == false) {
-    vMapRef.value?.Cguannei();
-    console.log("C馆2");
-  } else if (isSpecialViewport == 1) {
-    vMapRef.value?.Cguannei();
-  }
+  vMapRef.value?.Cguannei();
 };
 
 const resetHallC = async () => {
@@ -1304,55 +1286,48 @@ const parseTimeFromUrl = (url: string) => {
 };
 
 // C馆服务器IP白名单（这些IP在开发环境中需要通过Vite代理转发）
-const CHALL_SERVER_IPS = ["10.10.51.1", "172.160.120.2"];
+const CHALL_SERVER_IPS = ['10.10.51.1'];
 // Vite代理路径前缀
-// const CHALL_PROXY_PREFIX = "/cghall-ws";
-
-// 修改为根据IP选择不同的代理前缀：
-const getProxyPrefix = (url: string): string => {
-  if (url.includes("172.160.120.2")) {
-    return "/a-guan-ws"; // A馆代理前缀
-  }
-  return "/cghall-ws"; // C馆代理前缀
-};
+const CHALL_PROXY_PREFIX = '/cghall-ws';
 
 /**
  * 将C馆的直连URL改写为通过Vite代理转发的URL
  * 解决浏览器与C馆视频服务器跨网段无法直连的问题
- *
+ * 
  * 转换规则：
  *   ws://10.10.51.1:559/openUrl/token -> ws://当前host:port/cghall-ws/openUrl/token
  */
-// 修改 rewriteCgaoUrl 函数：
 const rewriteCgaoUrl = (url: string): string => {
   if (!url) return url;
-  
-  // 检查是否是C馆或A馆的URL
-  const isCgaoUrl = CHALL_SERVER_IPS.some((ip) => url.includes(ip));
+
+  // 检查是否是C馆的URL
+  const isCgaoUrl = CHALL_SERVER_IPS.some(ip => url.includes(ip));
   if (!isCgaoUrl) return url;
 
   // 获取当前页面的host和port（用于构造代理URL）
   const currentUrl = new URL(window.location.href);
   const host = currentUrl.hostname;
-  const port = currentUrl.port || "8081";
+  const port = currentUrl.port || '8081';
 
   // 从原始URL中提取路径部分（/openUrl/xxx 或 /media?xxx）
-  let path = "";
+  // 原始URL格式：ws://10.10.51.1:559/openUrl/token
+  // 需要转换为：ws://当前host:port/cghall-ws/openUrl/token
+  let path = '';
   try {
     const originalUrl = new URL(url);
     path = originalUrl.pathname + originalUrl.search;
   } catch {
-    const match = url.match(/\/(openUrl|cghall-ws)[^\s]*/);
-    path = match ? match[0] : url.replace(/^wss?:\/\/[^\/]+/, "");
+    // 如果URL解析失败，尝试简单正则提取路径
+    const match = url.match(/\/(openUrl|media)[^\s]*/);
+    path = match ? match[0] : url.replace(/^wss?:\/\/[^\/]+/, '');
   }
 
-  // 根据不同的IP使用不同的代理前缀
-  const proxyPrefix = getProxyPrefix(url);
-  const rewrittenUrl = `ws://${host}:${port}${proxyPrefix}${path}`;
-  
-  console.log(`[代理] URL改写: ${url} ->${rewrittenUrl}`);
+  const rewrittenUrl = `ws://${host}:${port}${CHALL_PROXY_PREFIX}${path}`;
+  console.log(`[C馆代理] URL改写: ${url} -> ${rewrittenUrl}`);
+
   return rewrittenUrl;
 };
+
 
 // 播放热点连接的相机
 const playRTCVideoStream = async (params: HotspotEntity) => {
@@ -1367,7 +1342,7 @@ const playRTCVideoStream = async (params: HotspotEntity) => {
   if (player.value) {
     try {
       await player.value.JS_Stop();
-      console.log("已停止旧的播放");
+      console.log('已停止旧的播放');
     } catch (e) {
       // 忽略停止错误
     }
@@ -2056,6 +2031,9 @@ const SPECIAL_RESOLUTIONS_MAP = {
   "11520x2160": true, // 原有分辨率-标识true
   "5760x1080": 1, // 新增分辨率-标识1
   "7640x2160": 2, // 新增分辨率-标识2
+  "5120x960": 3, // 新增分辨率-标识3
+  "3840x1080": 4, //财富18楼
+  "3840x1079": 4, //财富18楼
   // 扩展示例：'8000x6000': 3, '9000x3000': 4
 };
 
@@ -2076,6 +2054,7 @@ const updateViewportStatus = () => {
   const currentResolution = `${viewportSize.width}x${viewportSize.height}`;
   // 关键修改：用in判断是否存在该分辨率，存在则取原值，不存在则为false
   // 避免原逻辑中"假值"被覆盖，同时精准拿到匹配的标识值
+  console.log(currentResolution);
   isSpecialViewport =
     currentResolution in SPECIAL_RESOLUTIONS_MAP
       ? SPECIAL_RESOLUTIONS_MAP[currentResolution]
@@ -2089,32 +2068,35 @@ watch(
   () => {
     updateViewportStatus();
     // 大屏判断：只要不是false，就是匹配到大屏
-    if (isSpecialViewport !== false) {
-      console.log(
-        "匹配到特殊分辨率，执行大屏通用逻辑",
-        window.innerWidth,
-        window.innerHeight,
-      );
+    // if (isSpecialViewport !== false) {
+    //   console.log(
+    //     "匹配到特殊分辨率，执行大屏通用逻辑",
+    //     window.innerWidth,
+    //     window.innerHeight,
+    //   );
 
-      // 严格分支：精准匹配标识值，不会串逻辑（true/1/2各自执行）
-      if (isSpecialViewport === true) {
-        console.log("【11520x2160】执行专属逻辑，标识值：", isSpecialViewport);
-      } else if (isSpecialViewport === 1) {
-        console.log("【5760x1080】执行专属逻辑，标识值：", isSpecialViewport);
-      } else if (isSpecialViewport === 2) {
-        console.log("【7640x2160】执行专属逻辑，标识值：", isSpecialViewport);
-      } else if (isSpecialViewport === 3) {
-        // 扩展新分辨率时，直接加else if即可
-        console.log("【新分辨率】执行专属逻辑，标识值：", isSpecialViewport);
-      }
-    } else {
-      // 小屏逻辑：未匹配任何大屏分辨率
-      console.log(
-        "未匹配到特殊分辨率，执行小屏逻辑",
-        window.innerWidth,
-        window.innerHeight,
-      );
-    }
+    //   // 严格分支：精准匹配标识值，不会串逻辑（true/1/2各自执行）
+    //   if (isSpecialViewport === true) {
+    //     console.log("【11520x2160】执行专属逻辑，标识值：", isSpecialViewport);
+    //   } else if (isSpecialViewport === 1) {
+    //     console.log("【5760x1080】执行专属逻辑，标识值：", isSpecialViewport);
+    //   } else if (isSpecialViewport === 2) {
+    //     console.log("【7640x2160】执行专属逻辑，标识值：", isSpecialViewport);
+    //   } else if (isSpecialViewport === 3) {
+    //     // 扩展新分辨率时，直接加else if即可
+    //     console.log("5120x960", isSpecialViewport);
+    //   }else if (isSpecialViewport === 4) {
+    //     // 扩展新分辨率时，直接加else if即可
+    //     // console.log("【新分辨率】执行专属逻辑，标识值：", isSpecialViewport);
+    //   }
+    // } else {
+    //   // 小屏逻辑：未匹配任何大屏分辨率
+    //   console.log(
+    //     "未匹配到特殊分辨率，执行小屏逻辑",
+    //     window.innerWidth,
+    //     window.innerHeight,
+    //   );
+    // }
   },
   { deep: true, immediate: true }, // 深度监听+初始化立即执行
 );
@@ -2202,47 +2184,23 @@ const changXiao = function (e: MouseEvent): void {
       <!-- 方向按钮容器 -->
       <div class="direction-buttons-container">
         <ul class="direction-buttons-list">
-          <li 
-            class="direction-button" 
-            data-tooltip="西面"
-            :class="{ 'active': currentNum === 1 }"
-            @click="handleDirectionClick(1)"
-            @mousedown="changDa" 
-            @mouseup="changXiao"
-          >
+          <li class="direction-button" data-tooltip="西面" :class="{ 'active': currentNum === 1 }"
+            @click="handleDirectionClick(1)" @mousedown="changDa" @mouseup="changXiao">
             <div class="direction-button-bg bg-west"></div>
             <!-- <p class="button-text">西</p> -->
           </li>
-          <li 
-            class="direction-button" 
-            data-tooltip="南面" 
-            :class="{ 'active': currentNum === 2 }"
-            @click="handleDirectionClick(2)"
-            @mousedown="changDa" 
-            @mouseup="changXiao"
-          >
+          <li class="direction-button" data-tooltip="南面" :class="{ 'active': currentNum === 2 }"
+            @click="handleDirectionClick(2)" @mousedown="changDa" @mouseup="changXiao">
             <div class="direction-button-bg bg-south"></div>
             <!-- <p class="button-text">南</p> -->
           </li>
-          <li 
-            class="direction-button" 
-            data-tooltip="东面" 
-            :class="{ 'active': currentNum === 3 }"
-            @click="handleDirectionClick(3)"
-            @mousedown="changDa" 
-            @mouseup="changXiao"
-          >
+          <li class="direction-button" data-tooltip="东面" :class="{ 'active': currentNum === 3 }"
+            @click="handleDirectionClick(3)" @mousedown="changDa" @mouseup="changXiao">
             <div class="direction-button-bg bg-east"></div>
             <!-- <p class="button-text">东</p> -->
           </li>
-          <li 
-            class="direction-button" 
-            data-tooltip="顶部" 
-            :class="{ 'active': currentNum === 4 }"
-            @click="handleDirectionClick(4)"
-            @mousedown="changDa" 
-            @mouseup="changXiao"
-          >
+          <li class="direction-button" data-tooltip="顶部" :class="{ 'active': currentNum === 4 }"
+            @click="handleDirectionClick(4)" @mousedown="changDa" @mouseup="changXiao">
             <div class="direction-button-bg bg-up"></div>
             <!-- <p class="button-text">上</p> -->
           </li>
@@ -2261,51 +2219,6 @@ const changXiao = function (e: MouseEvent): void {
                 <p class="arenbiao__text">C馆复位</p>
               </li>
             </ul>
-            <!-- <div class="fenleis" v-if="colses">
-              <ul>
-                。<li @click="toggleOuter">全景视频</li>
-                <li @click="toggleOuters">三维重构</li>
-              </ul>
-            </div> -->
-
-            <!-- 右侧按钮 备份勿删！！！！！！！！！！！！！ -->
-            <!-- <div class="arenbiao__right-wrap"> -->
-            <!-- <ul class="arenbiao__right-list"> -->
-
-            <!-- A馆按钮 -->
-            <!-- <li class="arenbiao__item" :class="{ 'arenbiao__item--active': buttonStatus.hallA }"
-                  @click="toggleHallA" @mousedown="changDa" @mouseup="changXiao">
-                  <p class="arenbiao__text">{{ buttonStatus.hallA ? '关闭A馆' : 'A馆' }}</p>
-                </li> -->
-            <!-- B馆按钮 -->
-            <!-- <li class="arenbiao__item" :class="{ 'arenbiao__item--active': buttonStatus.hallB }"
-                  @click="toggleHallB" @mousedown="changDa" @mouseup="changXiao">
-                  <p class="arenbiao__text">{{ buttonStatus.hallB ? '关闭B馆' : 'B馆' }}</p>
-                </li> -->
-
-            <!-- <li class="arenbiao__item" :class="{ 'arenbiao__item--active': buttonStatus.hallB }" @click="shijian"
-                  @mousedown="changDa" @mouseup="changXiao">
-                  <p class="arenbiao__text"> {{ ButtonText.shijian ? '报警信息' : '报警信息' }} </p>
-                </li>
-                <li class="arenbiao__item" @click="changeMark" :class="{ 'active': mtag }" @mousedown="changDa"
-                  @mouseup="changXiao">
-                  <p class="arenbiao__text">路线图</p>
-                </li> -->
-            <!-- 实时监控按钮 -->
-            <!-- <li class="arenbiao__item" :class="{ 'active': isaddCesiumLabel }" @click="addCesiumLabel"
-                  @mousedown="changDa" @mouseup="changXiao">
-                  <p class="arenbiao__text">{{ ButtonText.videoText ? "实时监控" : "实时监控" }}</p>
-                </li> -->
-            <!-- 全景按钮 -->
-            <!-- <li class="arenbiao__item" :class="{ 'arenbiao__item--active': buttonStatus.panorama }"
-                  @click="togglePanorama" @mousedown="changDa" @mouseup="changXiao">
-                  <p class="arenbiao__text">{{ buttonStatus.panorama ? '关闭全景' : '全景' }}</p>
-                </li> -->
-            <!-- 自定义按钮 -->
-            <!-- <li class="arenbiao__item" @click="zidingyi" @mousedown="changDa" @mouseup="changXiao">
-                  <p class="arenbiao__text" style="cursor: pointer;">智能展示</p>
-                </li> -->
-            <!-- </ul> -->
             <!-- 右侧按钮 备份勿删！！！！！！！！！！！！！ -->
             <!-- 右侧按钮 -->
             <div class="arenbiao__right-wrap">
@@ -2632,7 +2545,7 @@ const changXiao = function (e: MouseEvent): void {
   // background-size: 100% 100%; // 确保底图填满按钮
   // background-repeat: no-repeat; // 不重复平铺
   // background-position: center; // 居中显示
-  
+
   .direction-button-bg {
     width: 100%;
     height: 100%;
@@ -2644,22 +2557,26 @@ const changXiao = function (e: MouseEvent): void {
     left: 0;
     z-index: 1;
   }
+
   .bg-west {
     background-image: url("../assets/img/正面.png");
   }
+
   .bg-east {
     background-image: url("../assets/img/东侧.png");
   }
+
   .bg-south {
     background-image: url("../assets/img/南侧.png");
   }
+
   .bg-up {
     background-image: url("../assets/img/分顶部.png");
   }
-  
+
   .button-text {
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 2;
@@ -2670,15 +2587,16 @@ const changXiao = function (e: MouseEvent): void {
     margin: 0;
     padding: 0;
   }
-  
+
   &:hover {
     transform: scale(1.1);
   }
-  
+
   &.active {
     .direction-button-bg {
       filter: brightness(1.3) drop-shadow(0 0 10px rgba(0, 198, 255, 0.8));
     }
+
     .button-text {
       color: #00c6ff;
       text-shadow: 0 0 10px rgba(0, 198, 255, 0.8);
@@ -2735,13 +2653,13 @@ const changXiao = function (e: MouseEvent): void {
 
 /* 针对箭头的微调：移入时改变箭头颜色以匹配背景 */
 .direction-button:hover::after {
-   border-left-color: rgba(0, 15, 30, 0.95); 
-   // 如果需要箭头指向按钮，我们其实需要在左侧画一个指向右侧的箭头
-   // 下面的 CSS 修正了箭头方向，使其指向按钮
-   border-right-color: rgba(0, 15, 30, 0.95); 
-   border-left-color: transparent;
-   right: 99%; // 调整位置
-   transform: translateY(-50%);
+  border-left-color: rgba(0, 15, 30, 0.95);
+  // 如果需要箭头指向按钮，我们其实需要在左侧画一个指向右侧的箭头
+  // 下面的 CSS 修正了箭头方向，使其指向按钮
+  border-right-color: rgba(0, 15, 30, 0.95);
+  border-left-color: transparent;
+  right: 99%; // 调整位置
+  transform: translateY(-50%);
 }
 
 // 右侧主按钮列表（3个主按钮）
@@ -2870,8 +2788,8 @@ main {
   min-width: 5.8vw;
   height: 4.4vw;
   background-image: url("../assets/img/按钮new.png") !important;
-  background-size: 100% 100% !important;
-  background-repeat: no-repeat !important;
+  // background-size: 100% 100% !important;
+  // background-repeat: no-repeat !important;
   border-radius: 0.4vw;
   display: flex;
   align-items: center;
@@ -2892,7 +2810,7 @@ main {
 }
 
 .button-text {
-  margin-top: 0.5vw;
+  // margin-top: 0.5vw;
   padding: 0;
   text-align: center;
   color: white;
@@ -3797,7 +3715,7 @@ main {
   background-image: url("../assets/img/按钮new.png") !important;
   background-size: 100% 100% !important;
   /* 强制拉伸填充容器，无视图片比例 */
-  background-repeat: no-repeat !important;
+  // background-repeat: no-repeat !important;
   background-position: left bottom !important;
   /* 关键：背景图固定在左下角 */
   /* 基础布局：按需设置宽高（适配你的按钮图片尺寸），行内块/块级 */
@@ -4162,7 +4080,7 @@ main {
   }
 }
 
-// 超高清大屏适配
+// 财富中心18楼大屏适配
 @media screen and (min-width: 3840px) and (height: 1080px) {
 
   html,
@@ -4170,18 +4088,16 @@ main {
     font-size: clamp(20px, 1vw, 30px);
   }
 
-  
-
   .arenbiao {
     &__item {
-      min-width: 4vw;
-      height: 3vw;
-      margin-top: -5%;
+      min-width: 3.5vw;
+      height: 2vw;
+      // margin-top: -5%;
       // background-color: rgba(255, 255, 255, 0.9);
       background-image: url("../assets/img/按钮new.png") !important;
-      background-size: 100% 100% !important;
+      // background-size: 100% 100% !important;
       /* 强制拉伸填充，可能变形 */
-      background-repeat: no-repeat !important;
+      // background-repeat: no-repeat !important;
       border-radius: 0.4vw;
       display: flex;
       align-items: center;
@@ -4244,6 +4160,261 @@ main {
         }
       }
     }
+  }
+
+  .cruise-tip {
+    top: 1.2vw;
+    font-size: 0.3rem;
+    // right: 33vw;
+  }
+}
+
+// 四楼三联屏适配
+@media screen and (min-width: 5120px) and (height: 960px) {
+
+  html,
+  body {
+    font-size: clamp(18px, 1vw, 30px);
+  }
+
+  .arenbiao {
+    /* 左右按钮两端靠边对齐 */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 90%;
+
+
+
+    &__item {
+      min-width: 4vw;
+      height: 3vw;
+      margin-top: -5%;
+      margin-right: 0.4vw;
+      /* 按钮之间横向间隔 */
+      // background-color: rgba(255, 255, 255, 0.9);
+      background-image: url("../assets/img/按钮new.png") !important;
+      background-size: 100% 100% !important;
+      /* 强制拉伸填充，可能变形 */
+      // background-repeat: no-repeat !important;
+      border-radius: 0.4vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      // box-shadow: 0 0.1vw 0.4vw rgba(0, 0, 0, 0.1);
+      font-size: 0.42vw;
+
+      &--active {
+        background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+        color: white;
+        box-shadow: 0 0.2vw 0.8vw rgba(24, 144, 255, 0.4);
+      }
+
+      &:hover {
+        transform: scale(1.05);
+        // background-color: #e6f7ff;
+      }
+    }
+
+    .arenbiao__left-list {
+      margin-left: -3.6rem;
+    }
+  }
+
+  .arenbiao1 {
+    z-index: 999;
+    margin-top: 0.3vw;
+    background-color: #0f100f;
+    padding: 0.22vw 0.65vw;
+    border-radius: 0.3vw;
+    width: 4.4vw;
+    // height: 30vh;
+    border: 3px solid #215c82;
+    overflow-y: auto;
+    min-width: 3.2vw;
+    color: #fff;
+    font-size: 0.36vw;
+    line-height: 1.4;
+    box-shadow: 0 0.15vw 0.5vw rgba(0, 0, 0, 0.15);
+
+    &::-webkit-scrollbar {
+      width: 0.2vw;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 0.1vw;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 0.1vw;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+
+    /* 内部列表全局重置 */
+    .custom-options__list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .custom-category__item {
+      margin: 0.1vw 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    /* ==========优化一级分类标题展示效果========== */
+    .custom-category__title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.24vw 0.2vw;
+      cursor: pointer;
+      white-space: nowrap;
+      background-color: rgba(33, 92, 130, 0.25);
+      border-radius: 0.2vw;
+      transition: background-color 0.2s ease;
+      font-weight: 500;
+
+      &:hover {
+        background-color: rgba(33, 92, 130, 0.45);
+      }
+
+      &.disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .category-arrow {
+        flex-shrink: 0;
+        margin-left: 0.15vw;
+        font-size: 0.32vw;
+      }
+    }
+
+    /* 二级子列表容器 */
+    .custom-options__children {
+      margin: 0.12vw 0 0.2vw 0;
+      padding: 0 0.25vw 0 0.45vw;
+      list-style: none;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* 二级子选项 */
+    .custom-options__item {
+      padding: 0.16vw 0.05vw;
+      line-height: 1.3;
+      cursor: pointer;
+      white-space: nowrap;
+      border-radius: 0.15vw;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.12);
+      }
+    }
+  }
+
+  .arenbiao__sub-item {
+    // min-width: 5.8vw;
+    margin-top: 3px !important;
+    margin-bottom: 0 !important;
+    line-height: 1.35;
+  }
+
+  .arenbiao__sub-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    // width: 10vw;
+    display: flex;
+    flex-direction: column;
+    gap: 0; // 【极致紧凑】无间距
+    position: absolute;
+    top: 2.2vw;
+    left: 53%;
+    transform: translateX(-50%);
+    z-index: 99999;
+  }
+
+  .video-container {
+    width: 20vw !important;
+    height: 60vh !important;
+    z-index: 999999;
+    position: absolute;
+    right: 9vw;
+    top: 14vh;
+    background-image: url("../assets/img/border_1.png");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    border-radius: 0.4vw;
+    overflow: hidden;
+    box-shadow: 0 0.2vw 1vw rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+
+    .player-container {
+      padding-top: 1.4vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+
+      .player-item {
+        width: 95%;
+        height: 90%;
+
+        .player-box {
+          width: 100%;
+          height: 100%;
+          background-color: #000;
+        }
+      }
+    }
+  }
+
+
+  // 底部ABC馆按钮容器样式
+  .abc-buttons-container {
+    position: absolute;
+    bottom: 1vw;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999999;
+    display: flex;
+    justify-content: center;
+    gap: 2vw; // 按钮之间的间距
+  }
+
+  .chain-msg-popup {
+    top: 5vw;
+    // left: 1.5vw;
+    width: 15vw;
+    max-height: 60vh;
+    // background: rgba(0, 15, 30, 0.98);
+    // border: 1px solid #00c6ff;
+    // border-radius: 8px;
+    // z-index: 99999;
+    // overflow: hidden;
+    // box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
+  }
+
+  .cruise-tip {
+    // position: absolute;
+    top: 0.6vw;
+    font-size: 0.3rem;
+    // right: 33vw;
+    // font-size: 0.2rem;
+    // padding: 2px 10px;
+    // z-index: 9;
+    // color: #fff;
   }
 }
 
@@ -4542,7 +4713,7 @@ main {
       background-image: url("../assets/img/按钮new.png") !important;
       background-size: 100% 100% !important;
       /* 强制拉伸填充，可能变形 */
-      background-repeat: no-repeat !important;
+      // background-repeat: no-repeat !important;
       border-radius: 0.4vw;
       display: flex;
       align-items: center;
@@ -4868,7 +5039,7 @@ main {
       background-image: url("../assets/img/按钮new.png") !important;
       background-size: 100% 100% !important;
       /* 强制拉伸填充，可能变形 */
-      background-repeat: no-repeat !important;
+      // background-repeat: no-repeat !important;
       border-radius: 0.4vw;
       display: flex;
       align-items: center;
@@ -5380,10 +5551,10 @@ main {
 // 横屏超高清大屏额外适配
 @media screen and (width: 5760px) and (height: 1080px) {
 
- .direction-button {
+  .direction-button {
     min-width: 1vw;
     height: 1vw;
- }
+  }
 
   // 按钮容器样式
   .arenbiao {
@@ -5436,7 +5607,7 @@ main {
       background-image: url("../assets/img/按钮new.png") !important;
       background-size: 100% 100% !important;
       /* 强制拉伸填充，可能变形 */
-      background-repeat: no-repeat !important;
+      // background-repeat: no-repeat !important;
       border-radius: 0.4vw;
       display: flex;
       align-items: center;
