@@ -17,7 +17,12 @@ const totalExit = ref(0)
 let chartInstance: echarts.ECharts | null = null
 let barChartInstance: echarts.ECharts | null = null
 let rankChartInstance: echarts.ECharts | null = null
+
 let rankChartTimer: ReturnType<typeof setInterval> | null = null
+let flowChartTimer: ReturnType<typeof setInterval> | null = null
+
+// 客流接口基础地址
+const BASE_API_URL = 'https://br.yziic.com:19563'
 
 interface RealDataItem {
   groupName: string
@@ -37,6 +42,7 @@ interface ApiResponse {
   }
 }
 
+// --- 数据接口请求方法 ---
 const getRealTimeData = async (): Promise<ApiResponse['data'] | null> => {
   try {
     const response = await axios.get<ApiResponse>('/api/getRealTimeData', {
@@ -54,11 +60,61 @@ const getRealTimeData = async (): Promise<ApiResponse['data'] | null> => {
   }
 }
 
-const initChart = () => {
+// 获取某日各小时数据
+const getHourlyData = async (date?: string) => {
+  try {
+    const url = `${BASE_API_URL}/getHourlyData`
+    const params = date ? { date } : {}
+    const response = await axios.get(url, { params })
+    if (response.data.code === 0 && response.data.data) {
+      return response.data.data
+    }
+    return null
+  } catch (error) {
+    console.error('获取小时数据失败:', error)
+    return null
+  }
+}
+
+// 获取近7天数据
+const getWeeklyData = async () => {
+  try {
+    const url = `${BASE_API_URL}/getWeeklyData`
+    const response = await axios.get(url)
+    if (response.data.code === 0 && response.data.data) {
+      return response.data.data
+    }
+    return null
+  } catch (error) {
+    console.error('获取近7天数据失败:', error)
+    return null
+  }
+}
+
+// --- 图表初始化与更新逻辑 ---
+const initChart = async () => {
   if (!chartRef.value) {
     return
   }
   chartInstance = echarts.init(chartRef.value)
+  await updateFlowChart()
+}
+
+const updateFlowChart = async () => {
+  if (!chartInstance) {
+    return
+  }
+  const hourlyData = await getHourlyData()
+  if (!hourlyData || hourlyData.length === 0) {
+    return
+  }
+
+  // 聚合计算每个小时的总进入人数
+  const hours = hourlyData.map((item: any) => `${item.hour}:00`)
+  const totalEnters = hourlyData.map((item: any) =>
+    item.groups.reduce((sum: number, group: any) => sum + group.enter, 0)
+  )
+
   const option: echarts.EChartsOption = {
     tooltip: {
       trigger: 'axis',
@@ -72,7 +128,7 @@ const initChart = () => {
     },
     xAxis: {
       type: 'category',
-      data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+      data: hours,
       axisLine: { lineStyle: { color: '#fff' } },
       axisLabel: { color: '#fff', fontSize: 10 },
     },
@@ -86,7 +142,7 @@ const initChart = () => {
       {
         name: '实时人流',
         type: 'line',
-        data: [120, 80, 350, 580, 420, 680],
+        data: totalEnters,
         lineStyle: {
           color: '#00d4ff',
           width: 2,
@@ -111,11 +167,29 @@ const initChart = () => {
   chartInstance.setOption(option)
 }
 
-const initBarChart = () => {
+const initBarChart = async () => {
   if (!barChartRef.value) {
     return
   }
   barChartInstance = echarts.init(barChartRef.value)
+  await updateBarChart()
+}
+
+const updateBarChart = async () => {
+  if (!barChartInstance) {
+    return
+  }
+  const weeklyData = await getWeeklyData()
+  if (!weeklyData || weeklyData.length === 0) {
+    return
+  }
+
+  // 聚合计算每天的总进入人数，提取日期(MM-DD)
+  const dates = weeklyData.map((item: any) => item.date.substring(5))
+  const totalEnters = weeklyData.map((item: any) =>
+    item.groups.reduce((sum: number, group: any) => sum + group.enter, 0)
+  )
+
   const option: echarts.EChartsOption = {
     tooltip: {
       trigger: 'axis',
@@ -129,7 +203,7 @@ const initBarChart = () => {
     },
     xAxis: {
       type: 'category',
-      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+      data: dates,
       axisLine: { lineStyle: { color: '#fff' } },
       axisLabel: { color: '#fff', fontSize: 10 },
     },
@@ -143,7 +217,7 @@ const initBarChart = () => {
       {
         name: '每日人流',
         type: 'bar',
-        data: [3200, 4100, 3800, 4500, 5200, 6800, 5600],
+        data: totalEnters,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: 'rgba(0, 212, 255, 0.6)' },
@@ -191,8 +265,6 @@ const updateRankChart = async () => {
     const name = item.groupName.replace('总客流统计组', '').replace('客流', '').replace('全局场馆', '')
     return name.length > 8 ? `${name.substring(0, 8)}...` : name
   })
-
-  const _values = uniqueData.map(item => item.enter)
 
   const option: echarts.EChartsOption = {
     tooltip: {
@@ -302,11 +374,20 @@ onMounted(() => {
   initBarChart()
   initRankChart()
   window.addEventListener('resize', handleResize)
+
+  // 每30秒刷新排行图
   rankChartTimer = setInterval(() => {
     if (showRankChart.value && rankChartInstance) {
       updateRankChart()
     }
   }, 30000)
+
+  // 每60秒刷新折线图(实时人流)
+  flowChartTimer = setInterval(() => {
+    if (showFlowChart.value && chartInstance) {
+      updateFlowChart()
+    }
+  }, 60000)
 })
 
 watch(showFlowChart, (val) => {
@@ -350,6 +431,10 @@ onUnmounted(() => {
   if (rankChartTimer) {
     clearInterval(rankChartTimer)
     rankChartTimer = null
+  }
+  if (flowChartTimer) {
+    clearInterval(flowChartTimer)
+    flowChartTimer = null
   }
 })
 </script>
@@ -428,7 +513,6 @@ onUnmounted(() => {
   z-index: 8;
   height: calc(100vh - 6vw);
   pointer-events: none;
-
   // 标题样式变量
   --title-font-size: 1.5vw;
   --title-top: 6%;
@@ -442,7 +526,6 @@ onUnmounted(() => {
   background-repeat: no-repeat;
   background-position: center;
   pointer-events: auto;
-
   // 每个模块独立控制大小的CSS变量
   --card-width: 26vw;
   --card-height: calc(38% - 0.5vw);
@@ -533,7 +616,6 @@ onUnmounted(() => {
   top: -2vw;
   align-items: flex-end;
   justify-content: space-evenly;
-
   // 请确保此处替换为不包含文字的纯背景图
   background-image: url('@/assets/1/左上.png');
 
@@ -774,7 +856,6 @@ onUnmounted(() => {
   .data-panel {
     top: 10vw;
     height: calc(100vh - 10vw);
-
     // 移动端使用固定像素
     --title-font-size: 14px;
     --title-top: 8px;
@@ -832,7 +913,6 @@ onUnmounted(() => {
   .data-panel {
     top: 4vw;
     height: calc(100vh - 4vw);
-
     // 宽屏下调小字号，防止文字过大
     --title-font-size: 0.8vw;
     --title-top: 6%;
@@ -866,7 +946,6 @@ onUnmounted(() => {
     --card-width: 24vw;
     --card-height: 52%;
     left: -1.5vw;
-
     --grid-width: 48%;
     --grid-height: 40%;
     --grid-gap: 2vw;
@@ -925,7 +1004,6 @@ onUnmounted(() => {
   .data-panel {
     top: 3vw;
     height: calc(100vh - 3vw);
-
     --title-font-size: 0.8vw;
     --title-top: 5%;
     --title-left: 3.5%;
@@ -953,7 +1031,6 @@ onUnmounted(() => {
     --card-width: 29vw;
     --card-height: 54%;
     left: -1.8vw;
-
     --grid-width: 50%;
     --grid-height: 42%;
     --grid-item-label-gap: 0.15vw;
@@ -1003,7 +1080,6 @@ onUnmounted(() => {
   .data-panel {
     top: 3vw;
     height: calc(100vh - 2.5vw);
-
     --title-font-size: 1.5vw;
     --title-top: 8%;
     --title-left: 12%;
@@ -1043,7 +1119,6 @@ onUnmounted(() => {
     --card-height: 52%;
     left: -2vw;
     top: 1vw;
-
     // data-grid缩小让4个小模块能完整显示
     --grid-width: 45%;
     --grid-height: 35%;
@@ -1095,7 +1170,6 @@ onUnmounted(() => {
   .data-panel {
     top: 1.5vw;
     height: calc(100vh - 1.5vw);
-
     --title-font-size: 0.3vw;
     --title-top: 4%;
     --title-left: 2.5%;
@@ -1125,7 +1199,6 @@ onUnmounted(() => {
     --card-width: 26vw;
     --card-height: 50%;
     left: -1vw;
-
     --grid-width: 45%;
     --grid-height: 35%;
     --grid-gap: 1.5vw;
@@ -1184,7 +1257,6 @@ onUnmounted(() => {
   .data-panel {
     top: 1.5vw;
     height: calc(100vh - 1.5vw);
-
     --title-font-size: 0.6vw;
     --title-top: 5%;
     --title-left: 10%;
@@ -1235,6 +1307,7 @@ onUnmounted(() => {
         .grid-label {
           font-size: 0.3vw;
         }
+
         .grid-value {
           font-size: 0.5vw;
         }
@@ -1280,7 +1353,6 @@ onUnmounted(() => {
   .toggle-switch {
     // width: 1vw;
     // height: 1vw;
-
     &::after {
       width: 0.8vw;
       height: 0.8vw;

@@ -2155,6 +2155,18 @@ const changXiao = function (e: MouseEvent): void {
       <div class="head">
         <vHead />
       </div>
+
+       <!-- 顶部导航栏 -->
+      <div class="menu-container">
+        <div class="child-menu">全景</div>
+        <div class="child-menu">实时监控</div>
+        <div class="child-menu">报警信息</div>
+        <div class="child-menu">路线图</div>
+        <div class="child-menu">C馆回位</div>
+        <div class="child-menu">人流监控</div>
+        <div class="child-menu">停止</div>
+      </div>
+
       <!-- 底部ABC馆按钮容器 -->
       <div class="abc-buttons-container">
         <ul class="abc-buttons-list">
@@ -2761,6 +2773,22 @@ main {
   position: absolute;
   z-index: 9;
   width: 100%;
+}
+
+// 顶部导航栏
+.menu-container {
+  position: absolute;
+  top: 8vw;
+  left: 25%;
+  width: 55vw;
+  height: 4vw;
+  z-index: 999;
+  background: url('@/assets/img/顶部导航栏.png') no-repeat;
+  background-size: 100% 100%;
+  /* 强制拉伸填充，可能变形 */
+  background-repeat: no-repeat !important;
+  display: flex;
+  flex-direction: row;
 }
 
 // 底部ABC馆按钮容器样式

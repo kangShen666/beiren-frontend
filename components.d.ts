@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     '副本': typeof import('./src/components/vmap/index - 副本.vue')['default']
+    Cesium: typeof import('./src/components/vmap/cesium.vue')['default']
     DataPanel: typeof import('./src/components/data-panel/index.vue')['default']
     Header: typeof import('./src/components/header/header.vue')['default']
     'Hik播放器': typeof import('./src/components/vmap/hik播放器.vue')['default']
