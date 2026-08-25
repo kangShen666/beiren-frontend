@@ -1289,15 +1289,13 @@ const enableHotspotClick = () => {
         const entity = pickedObject.id;
 
         if (entity && entity.properties) {
-          const ids = [];
-          if (ids.includes(entity.id)) {
-            console.log("联动id", entity.id);
-            emits("liandongss", entity?.properties?.hotspot?._value, 1);
-            return;
-          }
+          // const ids = [];
+          // if (ids.includes(entity.id)) {
+          //   console.log("联动id", entity.id);
+          //   emits("liandongss", entity?.properties?.hotspot?._value, 1);
+          //   return;
+          // }
           let hotspotData = entity?.properties?.hotspot?._value;
-          console.log(hotspotData);
-
           await loadCgaoCameraList();
           const isCgao = cgaoCameraList.includes(hotspotData?.cameraIndexCode);
           console.log("是否C馆:", isCgao);

@@ -988,9 +988,6 @@ let startX = 0;
 let startY = 0;
 let dragging = false;
 const startDrag = (event: MouseEvent) => {
-  // console.log(startX);
-  // console.log(startY);
-
   dragging = true;
   startX = event.clientX - x.value;
   startY = event.clientY - y.value;
@@ -1978,10 +1975,6 @@ const changXiao = function (e: MouseEvent): void {
           <!-- 视频弹窗 -->
           <div v-if="isShow.isShowVideo" class="video-container" ref="videoRef"
             :style="{ left: `${x}px`, top: `${y}px` }" style="position: absolute" @mousedown="startDrag">
-            <!-- ref="videoRef"
-    :style="{ left: `${x}px`, top: `${y}px` }"
-    style="position: absolute"
-    @mousedown="startDrag" -->
             <!-- 名字显示区域 -->
             <div class="name-display">{{ videoName || "摄像头01" }}</div>
 
