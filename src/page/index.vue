@@ -48,10 +48,13 @@ const smartDisplayItems = ref([
   { label: 'AB馆连廊', value: ['q32'], image: '/src/assets/img/AB馆连廊.png' },
 ]);
 
+// 是否显示停止
+const showXun = ref(false);
 
 // 新增：智能展示切换
 const toggleSmartDisplay = () => {
   showSmartDisplay.value = !showSmartDisplay.value;
+  showXun.value = !showXun.value;
 };
 
 // 新增：智能展示点击处理（复用原 handleCustomItemClick 逻辑）
@@ -64,44 +67,44 @@ const handleSmartDisplayItemClick = (value: string[]) => {
   // 原有飞行与模型逻辑
   if (value[0] === "q1") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity2"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity2"), 1000);
   } else if (value[0] === "q2") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity1"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity1"), 1000);
   } else if (value[0] === "q7" && value[1] === "q5") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity3"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity3"), 1000);
   } else if (value[0] === "q3" && value[1] === "q9") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity4"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity4"), 1000);
   } else if (value[0] === "q4" && value[1] === "q6") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity5"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity5"), 1000);
   } else if (value[0] === "q30") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity11"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity11"), 1000);
   } else if (value[0] === "q31") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity16"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity16"), 1000);
   } else if (value[0] == "q39") {
     vMapRef.value?.removeModelById(3);
   } else if (value[0] == "q38") {
     vMapRef.value?.removeModelById(3);
   } else if (value[0] == "q33") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity19"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity19"), 1000);
   } else if (value[0] == "q32") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity20"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity20"), 1000);
   } else if (value[0] == "q41") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity21"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity21"), 1000);
   } else if (value[0] == "q42") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity22"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity22"), 1000);
   } else if (value[0] == "q43") {
     vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity23"), 4000);
+    setTimeout(() => vMapRef.value?.Erxun("entity23"), 1000);
   } else if (value[0] == "q44") {
     vMapRef.value?.removeModelById(3);
   }
@@ -452,45 +455,45 @@ const entityMap = {
   q32: "entity20",
 };
 // 直接飞行（移除弹窗逻辑）
-const startDirectFlight = () => {
-  // 检查全景视频是否打开
-  if (!SPkzq.value) {
-    ElMessage.warning("请先打开全景视频");
-    return;
-  }
+// const startDirectFlight = () => {
+//   // 检查全景视频是否打开
+//   if (!SPkzq.value) {
+//     ElMessage.warning("请先打开全景视频");
+//     return;
+//   }
 
-  // 检查飞行区域是否选择
-  if (!SPfx.value) {
-    ElMessage.warning("请先选择飞行区域");
-    return;
-  }
-  let targetEntity;
-  // console.log("------------------222", SPfx.value)
-  if (QJSP.value == "entity17") {
-    targetEntity = "entity17";
-  } else {
-    targetEntity = entityMap[SPfx.value];
-  }
-  // console.log("------------11111", targetEntity)
-  if (!targetEntity) {
-    ElMessage.error("未找到对应的飞行实体");
-    return;
-  }
+//   // 检查飞行区域是否选择
+//   if (!SPfx.value) {
+//     ElMessage.warning("请先选择飞行区域");
+//     return;
+//   }
+//   let targetEntity;
+//   // console.log("------------------222", SPfx.value)
+//   if (QJSP.value == "entity17") {
+//     targetEntity = "entity17";
+//   } else {
+//     targetEntity = entityMap[SPfx.value];
+//   }
+//   // console.log("------------11111", targetEntity)
+//   if (!targetEntity) {
+//     ElMessage.error("未找到对应的飞行实体");
+//     return;
+//   }
 
-  // 先停止当前飞行（如果有）
-  stopFlight();
+//   // 先停止当前飞行（如果有）
+//   stopFlight();
 
-  // 更新飞行状态
-  flightStatus.isFlying = true;
-  flightStatus.currentSpeed = flightSpeed.value;
-  flightStatus.currentEntity = targetEntity;
+//   // 更新飞行状态
+//   flightStatus.isFlying = true;
+//   flightStatus.currentSpeed = flightSpeed.value;
+//   flightStatus.currentEntity = targetEntity;
 
-  // 调用飞行方法
-  // console.log("-----",targetEntity)
-  vMapRef.value?.Erxun(targetEntity);
+//   // 调用飞行方法
+//   // console.log("-----",targetEntity)
+//   vMapRef.value?.Erxun(targetEntity);
 
-  ElMessage.success(`开始飞行`);
-};
+//   ElMessage.success(`开始飞行`);
+// };
 
 // 停止飞行
 const stopFlight = () => {
@@ -511,48 +514,48 @@ const stopFlight = () => {
 };
 
 // 全景视频相关
-let qtag = ref(false);
-let yincang = ref(false);
-let fenlei = ref(false);
-let isbtn = ref(true);
-let QuanJing = function (e: any) {
-  if (fenlei.value) {
-    isimagelist.value = false;
-    isimagelist1.value = false;
-    fenlei.value = false;
-    vMapRef.value?.removeurl();
-    isbtn.value = true;
-  } else {
-    fenlei.value = true;
-  }
-};
+// let qtag = ref(false);
+// let yincang = ref(false);
+// let fenlei = ref(false);
+// let isbtn = ref(true);
+// let QuanJing = function (e: any) {
+//   if (fenlei.value) {
+//     isimagelist.value = false;
+//     isimagelist1.value = false;
+//     fenlei.value = false;
+//     vMapRef.value?.removeurl();
+//     isbtn.value = true;
+//   } else {
+//     fenlei.value = true;
+//   }
+// };
 
 let isimagelist = ref(false);
 let isimagelist1 = ref(false);
 
-let Indoor = function () {
-  if (isimagelist.value) {
-    isimagelist.value = false;
-    isimagelist1.value = false;
-    isbtn.value = true;
-  } else {
-    isimagelist.value = true;
-    isimagelist1.value = false;
-    isbtn.value = false;
-  }
-};
+// let Indoor = function () {
+//   if (isimagelist.value) {
+//     isimagelist.value = false;
+//     isimagelist1.value = false;
+//     isbtn.value = true;
+//   } else {
+//     isimagelist.value = true;
+//     isimagelist1.value = false;
+//     isbtn.value = false;
+//   }
+// };
 
-let Outdoor = function () {
-  if (isimagelist1.value) {
-    isimagelist.value = false;
-    isimagelist1.value = false;
-    isbtn.value = true;
-  } else {
-    isimagelist.value = false;
-    isimagelist1.value = true;
-    isbtn.value = false;
-  }
-};
+// let Outdoor = function () {
+//   if (isimagelist1.value) {
+//     isimagelist.value = false;
+//     isimagelist1.value = false;
+//     isbtn.value = true;
+//   } else {
+//     isimagelist.value = false;
+//     isimagelist1.value = true;
+//     isbtn.value = false;
+//   }
+// };
 
 let SPfx = ref("");
 let SPkzq = ref(false);
@@ -750,8 +753,8 @@ let OpenModel1 = function (id) {
 
   isimagelist.value = false;
   isimagelist1.value = false;
-  yincang.value = false;
-  isbtn.value = true;
+  // yincang.value = false;
+  // isbtn.value = true;
 };
 
 // 按钮状态管理
@@ -760,21 +763,21 @@ const buttonStatus = ref({
   panorama: false,
   xiguangchang: false,
 });
-const colses = ref(false);
-const yyvideo = ref(false);
-const sanwei = ref(false);
-const opens = () => {
-  colses.value = !colses.value;
-  if (colses.value) {
-    buttonStatus.value.outer = true;
-    colses.value = true;
-    // console.log("关闭");
-  } else {
-    colses.value = false;
-    // console.log("dakai");
-    buttonStatus.value.outer = false;
-  }
-};
+// const colses = ref(false);
+// const yyvideo = ref(false);
+// const sanwei = ref(false);
+// const opens = () => {
+//   colses.value = !colses.value;
+//   if (colses.value) {
+//     buttonStatus.value.outer = true;
+//     colses.value = true;
+//     // console.log("关闭");
+//   } else {
+//     colses.value = false;
+//     // console.log("dakai");
+//     buttonStatus.value.outer = false;
+//   }
+// };
 
 const toggleOuter = () => {
   vMapRef.value?.waiwei();
@@ -817,7 +820,7 @@ const toggleOuter = () => {
 //     // setTimeout(() => {
 //     //   startDirectFlight();
 //     //   console.log("西广场：触发飞行逻辑");
-//     // }, 4000);
+//     // }, 1000);
 //   }
 // };
 
@@ -826,8 +829,9 @@ let QJSP = ref("");
 const togglePanorama = () => {
   if (buttonStatus.value.panorama) {
     vMapRef.value?.yichushipin();
-    // vMapRef.value?.yichu()
-    vMapRef.value?.loadModelById(3);
+    // vMapRef.value?.loadModelById(3);
+    //缓慢降落
+    vMapRef.value?.loadModelWithAnimation(3, { dropHeight: 65, duration: 2500 });
     vMapRef.value?.closeAllWebSockets();
     buttonStatus.value.panorama = false;
     SPkzq.value = false;
@@ -870,7 +874,9 @@ const togglePanorama = () => {
     vMapRef.value?.getshengtailianlang();
     vMapRef.value?.getbaogaoting();
     vMapRef.value?.getxuting();
-    vMapRef.value?.removeModelById(3);
+    // vMapRef.value?.removeModelById(3);
+    // 缓慢升高移除
+    vMapRef.value?.removeModelWithAnimation(3, { raiseHeight: 65, duration: 2500 });
     buttonStatus.value.outer = false;
   }
 };
@@ -1876,7 +1882,7 @@ const changXiao = function (e: MouseEvent): void {
         <div class="child-menu" @click="toggleDynamicAreas">展位图</div>
         <div class="child-menu" @click="resetHallC">C馆回位</div>
         <div class="child-menu" @click="toggleDataPanel">人流监控</div>
-        <div class="child-menu" @click="tingzhi">停止</div>
+        <div class="child-menu" v-if="showXun" @click="tingzhi">{{ tingzhifeixing ? "继续" : "停止" }}</div>
       </div>
 
       <!-- 按钮容器 -->
@@ -2561,7 +2567,7 @@ main {
 
 .cruise-tip {
   position: absolute;
-  top: 3vw;
+  top: 2vw;
   right: 33vw;
   font-size: 0.2rem;
   padding: 2px 10px;

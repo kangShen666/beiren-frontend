@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useViewportStore } from '@/stores/module/viewportStore';
 import type { HotspotEntity, TreePoint } from "@/type/vMap";
+import { createModelAnimator } from "@/utils/modelAnimation.ts"; //模型动画
 import axios from "axios";
 import * as Cesium from "cesium";
 import { defineEmits, onMounted, onUnmounted, reactive, ref } from "vue";
@@ -8,7 +9,6 @@ import ModelCol from "../../assets/js/modelColCar.js";
 import ModelColCarbaogao from "../../assets/js/ModelColCarbaogao.js";
 import ModelColCarxuting from "../../assets/js/ModelColCarxuting.js";
 import ModelColQiao from "../../assets/js/ModelColQiao.js";
-
 // 获取状态
 const viewportStore = useViewportStore();
 const isSpecialViewport = computed(() => viewportStore.isSpecialViewport);
@@ -19,7 +19,6 @@ const emits = defineEmits([
   "parsedDatas",
   "pointName",
   "close-video",
-  "flytotingzhi"
 ]);
 // 设置Cesium的静态资源路径
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_TOKEN;
@@ -30,6 +29,7 @@ let viewer: Cesium.Viewer;
 // 全局变量来保存事件处理器
 let clickHandler: Cesium.ScreenSpaceEventHandler | null = null;
 // 初始化Cesium
+let modelAnimator: ReturnType<typeof createModelAnimator> | null = null;
 
 const bingMap1 = new Cesium.UrlTemplateImageryProvider({
   url: "http://172.160.114.20:8080/map/{z}/{x}/{y}.png",
@@ -70,207 +70,35 @@ const createArrowLine = (
 
 // 箭头数组
 let arrowList = [
-  {
-    id: "a1",
-    startLnt: 116.52203704085817,
-    startLat: 39.780542378197985,
-    endLnt: 116.52214910735538,
-    endLat: 39.78058891721192,
-    color: Cesium.Color.GREEN,
-  },
-  {
-    id: "a2",
-    startLnt: 116.52206368731508,
-    startLat: 39.78069262886435,
-    endLnt: 116.52194412458348,
-    endLat: 39.78064638890595,
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "a3",
-    startLnt: 116.52264862569028,
-    startLat: 39.77863347823575,
-    endLnt: 116.52271978688813,
-    endLat: 39.77854975489632,
-    color: Cesium.Color.GREEN,
-  },
-  {
-    id: "a4",
-    startLnt: 116.5188799528918,
-    startLat: 39.77907559974768,
-    endLnt: 116.51876298647882,
-    endLat: 39.7790207246148,
-    color: Cesium.Color.GREEN,
-  },
-  {
-    id: "a5",
-    startLnt: 116.51925934789858,
-    startLat: 39.778479235173926,
-    endLnt: 116.51919858033557,
-    endLat: 39.77845046903051,
-    color: Cesium.Color.GREEN,
-  },
-  {
-    id: "a6",
-    startLnt: 116.51922514582328,
-    startLat: 39.778417290518924,
-    endLnt: 116.51930825368461,
-    endLat: 39.77845663214741,
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "a7",
-    startLnt: 116.52209633256813,
-    startLat: 39.77826967173626,
-    endLnt: 116.52205234106658,
-    endLat: 39.778325823416495,
-  },
-  {
-    id: "a8",
-    startLnt: 116.52118693233727,
-    startLat: 39.77784171149632,
-    endLnt: 116.52113900971192,
-    endLat: 39.777898452955895,
-  },
-  {
-    id: "a9",
-    startLnt: 116.51928087908728,
-    startLat: 39.78020454916937,
-    endLnt: 116.51918214125307,
-    endLat: 39.7803451717648,
-    height: 22,
-    color: Cesium.Color.GREEN,
-  },
-  {
-    id: "a10",
-    startLnt: 116.5192803367451,
-    startLat: 39.78039716447175,
-    endLnt: 116.51939184762236,
-    endLat: 39.78025165609966,
-    height: 22,
-  },
+  { id: 'a1', startLnt: 116.52203704085817, startLat: 39.780542378197985, endLnt: 116.52214910735538, endLat: 39.78058891721192, color: Cesium.Color.GREEN },
+  { id: 'a2', startLnt: 116.52206368731508, startLat: 39.78069262886435, endLnt: 116.52194412458348, endLat: 39.78064638890595, color: Cesium.Color.RED },
+  { id: 'a3', startLnt: 116.52264862569028, startLat: 39.77863347823575, endLnt: 116.52271978688813, endLat: 39.77854975489632, color: Cesium.Color.GREEN },
+  { id: 'a4', startLnt: 116.518679, startLat: 39.778910, endLnt: 116.518541, endLat: 39.778836, color: Cesium.Color.GREEN },
+  { id: 'a5', startLnt: 116.519110, startLat: 39.778386, endLnt: 116.518979, endLat: 39.778319, color: Cesium.Color.GREEN },
+  { id: 'a6', startLnt: 116.519020, startLat: 39.778287, endLnt: 116.519143, endLat: 39.778347, color: Cesium.Color.RED },
+  { id: 'a7', startLnt: 116.52209633256813, startLat: 39.77826967173626, endLnt: 116.52205234106658, endLat: 39.778325823416495 },
+  { id: 'a8', startLnt: 116.52118693233727, startLat: 39.77784171149632, endLnt: 116.52113900971192, endLat: 39.777898452955895 },
+  { id: 'a9', startLnt: 116.519006, startLat: 39.780468, endLnt: 116.518922, endLat: 39.780565, height: 22, color: Cesium.Color.GREEN },
+  { id: 'a10', startLnt: 116.519366, startLat: 39.780809, endLnt: 116.519463, endLat: 39.780698, height: 22 },
   //最外层箭头
-  {
-    id: "a11",
-    startLnt: 116.51730497967019,
-    startLat: 39.78065135752872,
-    endLnt: 116.51746859340213,
-    endLat: 39.78044856886056,
-  },
-  {
-    id: "a12",
-    startLnt: 116.51840567567868,
-    startLat: 39.77924610056798,
-    endLnt: 116.51859517973469,
-    endLat: 39.77900540432951,
-  },
-  {
-    id: "a13",
-    startLnt: 116.51972632921063,
-    startLat: 39.777566271898564,
-    endLnt: 116.51982595165195,
-    endLat: 39.777440489694,
-  },
-  {
-    id: "a14",
-    startLnt: 116.52042152643568,
-    startLat: 39.77737482633317,
-    endLnt: 116.52064564092991,
-    endLat: 39.777477532899724,
-  },
-  {
-    id: "a15",
-    startLnt: 116.52327695375395,
-    startLat: 39.778709237446186,
-    endLnt: 116.52296460325972,
-    endLat: 39.77856322169702,
-  },
-  {
-    id: "a16",
-    startLnt: 116.52101278807082,
-    startLat: 39.78239250311327,
-    endLnt: 116.52121627529604,
-    endLat: 39.78214600156798,
-  },
-  {
-    id: "a17",
-    startLnt: 116.5221205007125,
-    startLat: 39.78101978722993,
-    endLnt: 116.52236787191895,
-    endLat: 39.78071369937907,
-  },
-  {
-    id: "a18",
-    startLnt: 116.52341845279655,
-    startLat: 39.779421995576556,
-    endLnt: 116.52357136479486,
-    endLat: 39.77923193184585,
-  },
-  {
-    id: "a19",
-    startLnt: 116.51757617462835,
-    startLat: 39.780486310558864,
-    endLnt: 116.51777073164514,
-    endLat: 39.78023552269074,
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "a20",
-    startLnt: 116.51894066908547,
-    startLat: 39.77874959159285,
-    endLnt: 116.5190503890359,
-    endLat: 39.77861463497003,
-    color: Cesium.Color.RED,
-  },
+  { id: 'a11', startLnt: 116.516958, startLat: 39.780566, endLnt: 116.517396, endLat: 39.780049, },
+  { id: 'a12', startLnt: 116.518454, startLat: 39.778818, endLnt: 116.518762, endLat: 39.778461, },
+  { id: 'a13', startLnt: 116.520748, startLat: 39.777501, endLnt: 116.520950, endLat: 39.777602 },
+  { id: 'a14', startLnt: 116.522726, startLat: 39.778511, endLnt: 116.522991, endLat: 39.778648 },
+  { id: 'a15', startLnt: 116.523353, startLat: 39.779640, endLnt: 116.522969, endLat: 39.780089 },
+  { id: 'a16', startLnt: 116.522228, startLat: 39.781007, endLnt: 116.521902, endLat: 39.781394 },
+  { id: 'a17', startLnt: 116.519957, startLat: 39.782632, endLnt: 116.519304, endLat: 39.782298 },
+  { id: 'a18', startLnt: 116.518348, startLat: 39.781809, endLnt: 116.517699, endLat: 39.781474, },
+  { id: 'a19', startLnt: 116.517552, startLat: 39.779944, endLnt: 116.517699, endLat: 39.779772, color: Cesium.Color.RED },
+  { id: 'a20', startLnt: 116.518209, startLat: 39.779173, endLnt: 116.518358, endLat: 39.778998, color: Cesium.Color.RED },
   //入口线路箭头
-  {
-    id: "a21",
-    startLnt: 116.52187631900716,
-    startLat: 39.78077969556994,
-    endLnt: 116.52184453403552,
-    endLat: 39.78082113304217,
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "a22",
-    startLnt: 116.52164604775383,
-    startLat: 39.781076472005815,
-    endLnt: 116.5216162066698,
-    endLat: 39.781115143458656,
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "a23",
-    startLnt: 116.5213819017888,
-    startLat: 39.78135853150514,
-    endLnt: 116.52136463977212,
-    endLat: 39.78135037340914,
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "a24",
-    startLnt: 116.521449716868,
-    startLat: 39.78173089129283,
-    endLnt: 116.52137875750822,
-    endLat: 39.781688874835154,
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "a25",
-    startLnt: 116.51803624826384,
-    startLat: 39.78124751456565,
-    endLnt: 116.51808056179615,
-    endLat: 39.7811805841536,
-    color: Cesium.Color.RED,
-  },
+  { id: 'a21', startLnt: 116.521816, startLat: 39.780780, endLnt: 116.521711, endLat: 39.780911, color: Cesium.Color.RED },
+  { id: 'a23', startLnt: 116.521523, startLat: 39.781141, endLnt: 116.521469, endLat: 39.781109, color: Cesium.Color.RED },
+  { id: 'a24', startLnt: 116.521340, startLat: 39.781720, endLnt: 116.521201, endLat: 39.781657, color: Cesium.Color.RED },
+  { id: 'a25', startLnt: 116.51803624826384, startLat: 39.78124751456565, endLnt: 116.51808056179615, endLat: 39.7811805841536, color: Cesium.Color.RED },
   //左侧图片蓝箭头
-  {
-    id: "a26",
-    startLnt: 116.51896408270855,
-    startLat: 39.778762181808226,
-    endLnt: 116.51903890105251,
-    endLat: 39.77879741864251,
-  },
+  { id: 'a26', startLnt: 116.518793, startLat: 39.778539, endLnt: 116.518917, endLat: 39.778592, },
+
 ];
 //创建虚线方法 参数 viewer，startLnt,startLat,endLnt,endLat
 const createPolyLine = (
@@ -302,60 +130,16 @@ const createPolyLine = (
   });
 };
 let polyList = [
-  // 外框蓝色虚线（四条）
-  {
-    id: "p1",
-    startLnt: 116.52081495513944,
-    startLat: 39.782638466205746,
-    endLnt: 116.51712007422086,
-    endLat: 39.780888640022425,
-  },
-  {
-    id: "p2",
-    startLnt: 116.52081495513944,
-    startLat: 39.782638466205746,
-    endLnt: 116.52380160583925,
-    endLat: 39.77895361815668,
-  },
-  {
-    id: "p3",
-    startLnt: 116.52002360653613,
-    startLat: 39.77718714464374,
-    endLnt: 116.51712007422086,
-    endLat: 39.780888640022425,
-  },
-  {
-    id: "p4",
-    startLnt: 116.52002360653613,
-    startLat: 39.77718714464374,
-    endLnt: 116.52380160583925,
-    endLat: 39.77895361815668,
-  },
+  // 外框蓝色虚线（四条） 
+  { id: 'p1', startLnt: 116.520543, startLat: 39.782997, endLnt: 116.523971, endLat: 39.779051, },
+  { id: 'p2', startLnt: 116.523971, startLat: 39.779051, endLnt: 116.519944, endLat: 39.777012, },
+  { id: 'p3', startLnt: 116.519944, startLat: 39.777012, endLnt: 116.516523, endLat: 39.780969, },
+  { id: 'p4', startLnt: 116.516523, startLat: 39.780969, endLnt: 116.520543, endLat: 39.782997, },
+
   //红色虚线（1条）
-  {
-    id: "p5",
-    startLnt: 116.51727747471664,
-    startLat: 39.780860697417204,
-    endLnt: 116.51920725297346,
-    endLat: 39.77841471001115,
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "p6",
-    startLnt: 116.52191773994768,
-    startLat: 39.78072461748659,
-    endLnt: 116.52141407908597,
-    endLat: 39.78137403254107,
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "p7",
-    startLnt: 116.52130587164828,
-    startLat: 39.78132191101006,
-    endLnt: 116.52141407908597,
-    endLat: 39.78137403254107,
-    color: Cesium.Color.RED,
-  },
+  { id: 'p5', startLnt: 116.517038, startLat: 39.780551, endLnt: 116.518972, endLat: 39.778280, color: Cesium.Color.RED },
+  { id: 'p6', startLnt: 116.521916, startLat: 39.780657, endLnt: 116.521523, endLat: 39.781142, color: Cesium.Color.RED },
+  { id: 'p7', startLnt: 116.521523, startLat: 39.781142, endLnt: 116.521462, endLat: 39.781105, color: Cesium.Color.RED }
 ];
 //创建文字方法 参数
 const createWord = (
@@ -392,234 +176,39 @@ const createWord = (
   });
 };
 let wordList = [
-  {
-    id: "序厅",
-    startLng: 116.52175649721367,
-    startlat: 39.7787196855439,
-    text: "序厅",
-  },
-  {
-    id: "A馆",
-    startLng: 116.52160816218358,
-    startlat: 39.77898762394732,
-    text: "A馆",
-  },
-  {
-    id: "B馆",
-    startLng: 116.52107818986636,
-    startlat: 39.77963510682674,
-    text: "B馆",
-  },
-  {
-    id: "C馆",
-    startLng: 116.52048145879036,
-    height: 22,
-    startlat: 39.780437712098326,
-    text: "C馆",
-  },
-  {
-    id: "VIP",
-    startLng: 116.52024428824848,
-    height: 20,
-    startlat: 39.78092094036002,
-    text: "VVIP临停和VIP停车场",
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "北门入",
-    startLng: 116.5194609784249,
-    height: 20,
-    startlat: 39.78043271177042,
-    text: "北门人员入口",
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "北门出",
-    startLng: 116.51896733624075,
-    height: 23,
-    startlat: 39.780172435939924,
-    text: "北门人员出口",
-    color: Cesium.Color.GREEN,
-  },
-  {
-    id: "会客厅",
-    startLng: 116.51964743497997,
-    startlat: 39.77899443046679,
-    text: "会客厅",
-  },
-  {
-    id: "会议楼",
-    startLng: 116.51979802628519,
-    startlat: 39.7781284057038,
-    text: "会议楼(南)",
-  },
-  {
-    id: "报告厅",
-    startLng: 116.52022934878445,
-    startlat: 39.778318381210774,
-    text: "报告厅",
-    isVertical: true,
-  },
-  {
-    id: "VVIP",
-    startLng: 116.52032911711258,
-    startlat: 39.77772039921377,
-    text: "VVIP驻留停车场",
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "安全",
-    startLng: 116.5229070242081,
-    startlat: 39.7794994195104,
-    text: "安全保障车辆停车场",
-    color: Cesium.Color.RED,
-    isVertical: true,
-  },
-  {
-    id: "永昌",
-    startLng: 116.52236251314567,
-    startlat: 39.78087691915114,
-    text: "永昌南路",
-    isVertical: true,
-    font: "Bold 20px sans-serif",
-  },
-  {
-    id: "宏达",
-    startLng: 116.51852711766004,
-    startlat: 39.77892552544466,
-    text: "宏达南路",
-    isVertical: true,
-    font: "Bold 20px sans-serif",
-  },
-  {
-    id: "东门入",
-    startLng: 116.52187174928771,
-    startlat: 39.78062511139602,
-    text: "东门车辆入口",
-    color: Cesium.Color.RED,
-    font: "14px sans-serif",
-  },
-  {
-    id: "东门出",
-    startLng: 116.52196509014368,
-    startlat: 39.78050877997081,
-    text: "东门车辆出口",
-    color: Cesium.Color.GREEN,
-    font: "14px sans-serif",
-  },
-  {
-    id: "景园街",
-    startLng: 116.52197621375868,
-    startlat: 39.778061830885086,
-    text: "景园街封路",
-    font: "Bold 20px sans-serif",
-  },
-  {
-    id: "南一门",
-    startLng: 116.52273528607962,
-    startlat: 39.77851914307262,
-    text: "南一门人员入口",
-    font: "Bold 14px sans-serif",
-    color: Cesium.Color.GREEN,
-  },
-  {
-    id: "西门出",
-    startLng: 116.51891620059348,
-    startlat: 39.77909967410772,
-    text: "西门人员出口",
-    color: Cesium.Color.GREEN,
-  },
-  {
-    id: "西门入",
-    startLng: 116.51901282583422,
-    startlat: 39.77897450303965,
-    text: "西门人员入口",
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "VVIP出",
-    startLng: 116.51937866547674,
-    startlat: 39.778534022018036,
-    text: "VVIP车辆出口",
-    color: Cesium.Color.GREEN,
-  },
-  {
-    id: "VVIP入",
-    startLng: 116.51940265242723,
-    startlat: 39.77849285071269,
-    text: "VVIP车辆入口",
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "南二门",
-    startLng: 116.52211865616572,
-    startlat: 39.778245744533564,
-    text: "南二门人员入口",
-    font: "Bold 14px sans-serif",
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "南三门",
-    startLng: 116.52120098433342,
-    startlat: 39.77781844549598,
-    text: "南三门人员入口",
-    font: "Bold 14px sans-serif",
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "荣昌",
-    startLng: 116.5189725333931,
-    startlat: 39.78170265994373,
-    text: "荣昌东街",
-    font: "Bold 20px sans-serif",
-  },
-  {
-    id: "安检机1",
-    startLng: 116.51906773923064,
-    startlat: 39.778919947870136,
-    text: "6闸机3安检机",
-    font: "14px sans-serif",
-  },
-  {
-    id: "嘉宾",
-    startLng: 116.51918030932954,
-    startlat: 39.77874474506386,
-    text: "嘉宾、听众",
-    font: "14px sans-serif",
-    color: Cesium.Color.RED,
-    height: 5,
-  },
-  {
-    id: "展商",
-    startLng: 116.5191942550459,
-    startlat: 39.77873058260084,
-    text: "展商、工作人员",
-    font: "14px sans-serif",
-    color: Cesium.Color.RED,
-  },
-  {
-    id: "安检机2",
-    startLng: 116.52199302778578,
-    startlat: 39.77840781294485,
-    text: "6闸机3安检机",
-    font: "14px sans-serif",
-  },
-  {
-    id: "安检机3",
-    startLng: 116.52108220998224,
-    startlat: 39.77796702868903,
-    text: "6闸机3安检机",
-    font: "14px sans-serif",
-  },
-  {
-    id: "安检机北口",
-    startLng: 116.5194123893452,
-    startlat: 39.78010620821923,
-    text: "2闸机1安检机",
-    font: "14px sans-serif",
-    height: 20,
-  },
-];
+  { id: '序厅', startLng: 116.52175649721367, startlat: 39.7787196855439, text: '序厅' },
+  { id: 'A馆', startLng: 116.52160816218358, startlat: 39.77898762394732, text: 'A馆' },
+  { id: 'B馆', startLng: 116.52107818986636, startlat: 39.77963510682674, text: 'B馆' },
+  { id: 'C馆', startLng: 116.52048145879036, height: 22, startlat: 39.780437712098326, text: 'C馆' },
+  { id: 'VIP', startLng: 116.520215, height: 20, startlat: 39.781190, text: 'VVIP临停和VIP停车场', color: Cesium.Color.RED },
+  { id: '北门入', startLng: 116.519446, height: 20, startlat: 39.780683, text: '北门人员入口', color: Cesium.Color.RED },
+  { id: '北门出', startLng: 116.519000, height: 23, startlat: 39.780462, text: '北门人员出口', color: Cesium.Color.GREEN },
+  { id: '会客厅', startLng: 116.51964743497997, startlat: 39.77899443046679, text: '会客厅' },
+  { id: '会议楼', startLng: 116.51979802628519, startlat: 39.7781284057038, text: '会议楼(南)' },
+  { id: '报告厅', startLng: 116.52022934878445, startlat: 39.778318381210774, text: '报告厅', isVertical: true },
+  { id: 'VVIP', startLng: 116.520492, startlat: 39.777555, text: 'VVIP驻留停车场', color: Cesium.Color.RED },
+  { id: '安全', startLng: 116.522853, startlat: 39.779672, text: '安全保障车辆停车场', color: Cesium.Color.RED, isVertical: true },
+  { id: '永昌', startLng: 116.52236251314567, startlat: 39.78087691915114, text: '永昌南路', isVertical: true, font: 'Bold 20px sans-serif' },
+  { id: '宏达', startLng: 116.518580, startlat: 39.778502, text: '宏达南路', isVertical: true, font: 'Bold 20px sans-serif' },
+  { id: '东门入', startLng: 116.52187174928771, startlat: 39.78062511139602, text: '东门车辆入口', color: Cesium.Color.RED, font: '14px sans-serif' },
+  { id: '东门出', startLng: 116.52196509014368, startlat: 39.78050877997081, text: '东门车辆出口', color: Cesium.Color.GREEN, font: '14px sans-serif' },
+  { id: '景园街', startLng: 116.52197621375868, startlat: 39.778061830885086, text: '景园街封路', font: 'Bold 20px sans-serif' },
+  { id: '南一门', startLng: 116.52273528607962, startlat: 39.77851914307262, text: '南一门人员入口', font: 'Bold 14px sans-serif', color: Cesium.Color.GREEN },
+  { id: '西门出', startLng: 116.518607, startlat: 39.778929, text: '西门人员出口', color: Cesium.Color.GREEN },
+  { id: '西门入', startLng: 116.518703, startlat: 39.778808, text: '西门人员入口', color: Cesium.Color.RED },
+
+  { id: 'VVIP出', startLng: 116.519004, startlat: 39.778409, text: 'VVIP车辆出口', color: Cesium.Color.GREEN },
+  { id: 'VVIP入', startLng: 116.519108, startlat: 39.778273, text: 'VVIP车辆入口', color: Cesium.Color.RED },
+  { id: '南二门', startLng: 116.52211865616572, startlat: 39.778245744533564, text: '南二门人员入口', font: 'Bold 14px sans-serif', color: Cesium.Color.RED },
+  { id: '南三门', startLng: 116.52120098433342, startlat: 39.77781844549598, text: '南三门人员入口', font: 'Bold 14px sans-serif', color: Cesium.Color.RED },
+  { id: '荣昌', startLng: 116.5189725333931, startlat: 39.78170265994373, text: '荣昌东街', font: 'Bold 20px sans-serif' },
+  { id: '安检机1', startLng: 116.518948, startlat: 39.778703, text: '6闸机3安检机', font: '14px sans-serif' },
+  { id: '嘉宾', startLng: 116.51918030932954, startlat: 39.77874474506386, text: '嘉宾、听众', font: '14px sans-serif', color: Cesium.Color.RED, height: 5 },
+  { id: '展商', startLng: 116.5191942550459, startlat: 39.77873058260084, text: '展商、工作人员', font: '14px sans-serif', color: Cesium.Color.RED },
+  { id: '安检机2', startLng: 116.52199302778578, startlat: 39.77840781294485, text: '6闸机3安检机', font: '14px sans-serif' },
+  { id: '安检机3', startLng: 116.52108220998224, startlat: 39.77796702868903, text: '6闸机3安检机', font: '14px sans-serif' },
+  { id: '安检机北口', startLng: 116.518512, startlat: 39.781013, text: '2闸机1安检机', font: '14px sans-serif', height: 3 },
+]
 //创建图片方法   horizontalOrigin: any = Cesium.HorizontalOrigin.CENTER,
 const createImg = (
   viewer: any,
@@ -660,205 +249,137 @@ const createImg = (
 let imgList = [
   // 西1
   {
-    id: "i1",
-    imgUrl: "./public/img/222.png",
-    startLnt1: 116.51906923128672,
-    startLat1: 39.77880227736619,
-    startLnt2: 116.51911382450024,
-    startLat2: 39.77882417796261,
-    startLnt3: 116.51914152033116,
-    startLat3: 39.778788232542496,
-    startLnt4: 116.51909591253906,
-    startLat4: 39.77876730967341,
-    rote: 60,
-    strote: 60,
+    id: 'i1',
+    imgUrl: './public/img/222.png',
+    startLnt1: 116.518955, startLat1: 39.778661,
+    startLnt2: 116.51901257365573, startLat2: 39.77859518594504,
+    startLnt3: 116.518946, startLat3: 39.778561,
+    startLnt4: 116.5188862646933, startLat4: 39.77862666778118,
+    rote: 60, strote: 60
   },
+  // {
+  //   id: 'i2',
+  //   imgUrl: './public/img/222.png',
+  //   startLnt1: 116.51906923128672, startLat1: 39.77880227736619,
+  //   startLnt2: 116.51911382450024, startLat2: 39.77882417796261,
+  //   startLnt3: 116.51908649839241, startLat3: 39.778862001320164,
+  //   startLnt4: 116.51903999575174, startLat4: 39.77884055894652,
+  //   rote: 60, strote: 60
+  // },
   {
-    id: "i2",
-    imgUrl: "./public/img/222.png",
-    startLnt1: 116.51906923128672,
-    startLat1: 39.77880227736619,
-    startLnt2: 116.51911382450024,
-    startLat2: 39.77882417796261,
-    startLnt3: 116.51908649839241,
-    startLat3: 39.778862001320164,
-    startLnt4: 116.51903999575174,
-    startLat4: 39.77884055894652,
-    rote: 60,
-    strote: 60,
+
+    id: 'i3',
+    imgUrl: './public/img/111.png',
+    startLnt1: 116.519012, startLat1: 39.778689,
+    startLnt2: 116.519069, startLat2: 39.778621,
+    startLnt3: 116.51901257365573, startLat3: 39.77859518594504,
+    startLnt4: 116.518955, startLat4: 39.778661,
+    rote: 60, strote: 60
   },
-  {
-    id: "i3",
-    imgUrl: "./public/img/111.png",
-    startLnt1: 116.51908649839241,
-    startLat1: 39.778862001320164,
-    startLnt2: 116.51911382450024,
-    startLat2: 39.77882417796261,
-    startLnt3: 116.51915466826084,
-    startLat3: 39.77884318374862,
-    startLnt4: 116.51912694706627,
-    startLat4: 39.77888126147497,
-    rote: 60,
-    strote: 60,
-  },
-  {
-    id: "i4",
-    imgUrl: "./public/img/111.png",
-    startLnt1: 116.51914152033116,
-    startLat1: 39.778788232542496,
-    startLnt2: 116.51918468811526,
-    startLat2: 39.77880837773822,
-    startLnt3: 116.51915466826084,
-    startLat3: 39.77884318374862,
-    startLnt4: 116.51911382450024,
-    startLat4: 39.77882417796261,
-    rote: 60,
-    strote: 60,
-  },
+  // {
+  //   id: 'i4',
+  //   imgUrl: './public/img/111.png',
+  //   startLnt1: 116.51914152033116, startLat1: 39.778788232542496,
+  //   startLnt2: 116.51918468811526, startLat2: 39.77880837773822,
+  //   startLnt3: 116.51915466826084, startLat3: 39.77884318374862,
+  //   startLnt4: 116.51911382450024, startLat4: 39.77882417796261,
+  //   rote: 60, strote: 60
+  // },
+
+
+
   // 南1
   {
-    id: "i5",
-    imgUrl: "./public/img/222.png",
-    startLnt1: 116.52104867647793,
-    startLat1: 39.77792418262657,
-    startLnt2: 116.521103030458,
-    startLat2: 39.777948698100964,
-    startLnt3: 116.52113528930715,
-    startLat3: 39.777903285062656,
-    startLnt4: 116.52108263051808,
-    startLat4: 39.77787950415978,
-    rote: -30,
-    strote: -30,
+    id: 'i5',
+    imgUrl: './public/img/111.png',
+    startLnt1: 116.52108742196226, startLat1: 39.77795701842022,
+    startLnt2: 116.52119330370945, startLat2: 39.77800761702931,
+    startLnt3: 116.52123692947193, startLat3: 39.77795460211267,
+    startLnt4: 116.52113242856868, startLat4: 39.77790391441666,
+    rote: -30, strote: -30
   },
   {
-    id: "i6",
-    imgUrl: "./public/img/222.png",
-    startLnt1: 116.521103030458,
-    startLat1: 39.777948698100964,
-    startLnt2: 116.52113528930715,
-    startLat2: 39.777903285062656,
-    startLnt3: 116.52118658636635,
-    startLat3: 39.77792833139829,
-    startLnt4: 116.52115406379876,
-    startLat4: 39.777973342018356,
-    rote: -30,
-    strote: -30,
+    id: 'i6',
+    imgUrl: './public/img/111.png',
+    startLnt1: 116.5211930190762, startLat1: 39.778007407145786,
+    startLnt2: 116.52128909150268, startLat2: 39.77805383351373,
+    startLnt3: 116.52132734335534, startLat3: 39.77799829594331,
+    startLnt4: 116.52123543881095, startLat4: 39.77795421858285,
+    rote: -30, strote: -30
   },
   {
-    id: "i7",
-    imgUrl: "./public/img/111.png",
-    startLnt1: 116.52104867647793,
-    startLat1: 39.77792418262657,
-    startLnt2: 116.521103030458,
-    startLat2: 39.777948698100964,
-    startLnt3: 116.5210666135454,
-    startLat3: 39.77800069838254,
-    startLnt4: 116.52101218844034,
-    startLat4: 39.77797516697972,
-    rote: -30,
-    strote: -30,
+    id: 'i7',
+    imgUrl: './public/img/222.png',
+    startLnt1: 116.52113494245344, startLat1: 39.777905237859414,
+    startLnt2: 116.5212318554277, startLat2: 39.77795242388284,
+    startLnt3: 116.52128567658136, startLat3: 39.77787734103089,
+    startLnt4: 116.5211926979105, startLat4: 39.77783323437208,
+    rote: -30, strote: -30
   },
   {
-    id: "i8",
-    imgUrl: "./public/img/111.png",
-    startLnt1: 116.521103030458,
-    startLat1: 39.777948698100964,
-    startLnt2: 116.5210666135454,
-    startLat2: 39.77800069838254,
-    startLnt3: 116.52111868885369,
-    startLat3: 39.7780233587778,
-    startLnt4: 116.52115406379876,
-    startLat4: 39.777973342018356,
-    rote: -30,
-    strote: -30,
+    id: 'i8',
+    imgUrl: './public/img/222.png',
+    startLnt1: 116.52132739384494, startLat1: 39.77799836124578,
+    startLnt2: 116.5212318554277, startLat2: 39.77795242388284,
+    startLnt3: 116.52128580487773, startLat3: 39.77787706301688,
+    startLnt4: 116.52138086364472, startLat4: 39.777921619197365,
+    rote: -30, strote: -210
   },
   // 南二
   {
-    id: "i9",
-    imgUrl: "./public/img/222.png",
-    startLnt1: 116.5219565859897,
-    startLat1: 39.778343874133014,
-    startLnt2: 116.52201553333472,
-    startLat2: 39.77837127629255,
-    startLnt3: 116.5220468046828,
-    startLat3: 39.77833026956581,
-    startLnt4: 116.52198765672762,
-    startLat4: 39.77830267283545,
-    rote: -30,
-    strote: -30,
+    id: 'i9',
+    imgUrl: './public/img/222.png',
+    startLnt1: 116.5219565859897, startLat1: 39.778343874133014,
+    startLnt2: 116.52201553333472, startLat2: 39.77837127629255,
+    startLnt3: 116.5220468046828, startLat3: 39.77833026956581,
+    startLnt4: 116.52198765672762, startLat4: 39.77830267283545,
+    rote: -30, strote: -30
   },
   {
-    id: "i10",
-    imgUrl: "./public/img/222.png",
-    startLnt1: 116.52207729454875,
-    startLat1: 39.778398533970574,
-    startLnt2: 116.52201553333472,
-    startLat2: 39.77837127629255,
-    startLnt3: 116.5220468046828,
-    startLat3: 39.77833026956581,
-    startLnt4: 116.52210567477267,
-    startLat4: 39.77835749831773,
-    rote: -30,
-    strote: -30,
+    id: 'i10',
+    imgUrl: './public/img/222.png',
+    startLnt1: 116.52207729454875, startLat1: 39.778398533970574,
+    startLnt2: 116.52201553333472, startLat2: 39.77837127629255,
+    startLnt3: 116.5220468046828, startLat3: 39.77833026956581,
+    startLnt4: 116.52210567477267, startLat4: 39.77835749831773,
+    rote: -30, strote: -30
   },
   {
-    id: "i11",
-    imgUrl: "./public/img/111.png",
-    startLnt1: 116.5219565859897,
-    startLat1: 39.778343874133014,
-    startLnt2: 116.52201553333472,
-    startLat2: 39.77837127629255,
-    startLnt3: 116.52198554862942,
-    startLat3: 39.77841721693552,
-    startLnt4: 116.5219259620304,
-    startLat4: 39.77839079422769,
-    rote: -30,
-    strote: -30,
+    id: 'i11',
+    imgUrl: './public/img/111.png',
+    startLnt1: 116.5219565859897, startLat1: 39.778343874133014,
+    startLnt2: 116.52201553333472, startLat2: 39.77837127629255,
+    startLnt3: 116.52198554862942, startLat3: 39.77841721693552,
+    startLnt4: 116.5219259620304, startLat4: 39.77839079422769,
+    rote: -30, strote: -30
   },
   {
-    id: "i12",
-    imgUrl: "./public/img/111.png",
-    startLnt1: 116.52201553333472,
-    startLat1: 39.77837127629255,
-    startLnt2: 116.52207729454875,
-    startLat2: 39.778398533970574,
-    startLnt3: 116.52204287099939,
-    startLat3: 39.778442628760274,
-    startLnt4: 116.52198554862942,
-    startLat4: 39.77841721693552,
-    rote: -30,
-    strote: -30,
+    id: 'i12',
+    imgUrl: './public/img/111.png',
+    startLnt1: 116.52201553333472, startLat1: 39.77837127629255,
+    startLnt2: 116.52207729454875, startLat2: 39.778398533970574,
+    startLnt3: 116.52204287099939, startLat3: 39.778442628760274,
+    startLnt4: 116.52198554862942, startLat4: 39.77841721693552,
+    rote: -30, strote: -30
   },
   // 北门
   {
-    id: "i13",
-    imgUrl: "./public/img/222.png",
-    startLnt1: 116.5193051305041,
-    startLat1: 39.780184532483524,
-    startLnt2: 116.51941555888959,
-    startLat2: 39.780241283519985,
-    startLnt3: 116.51948925427554,
-    startLat3: 39.78015289817506,
-    startLnt4: 116.51936992485787,
-    startLat4: 39.780092482655505,
-    rote: 150,
-    strote: 150,
-    height: 20,
+    id: 'i13',
+    imgUrl: './public/img/222.png',
+    startLnt1: 116.51846192833295, startLat1: 39.78119697340168,
+    startLnt2: 116.51826122197473, startLat2: 39.78109403846232,
+    startLnt3: 116.51817369927403, startLat3: 39.78119622766197,
+    startLnt4: 116.51837596299556, startLat4: 39.78129844864408,
+    rote: 150, strote: 150, height: 3
   },
   {
-    id: "i14",
-    imgUrl: "./public/img/111.png",
-    startLnt1: 116.51948925427554,
-    startLat1: 39.78015289817506,
-    startLnt2: 116.51936992485787,
-    startLat2: 39.780092482655505,
-    startLnt3: 116.51941437632746,
-    startLat3: 39.78005101007328,
-    startLnt4: 116.51953303155125,
-    startLat4: 39.780107327223256,
-    rote: 150,
-    strote: 150,
-    height: 20,
+    id: 'i14',
+    imgUrl: './public/img/111.png',
+    startLnt1: 116.5185484460368, startLat1: 39.78108838706317,
+    startLnt2: 116.5183416168613, startLat2: 39.78098899341698,
+    startLnt3: 116.51826066966835, startLat3: 39.781094445873435,
+    startLnt4: 116.51846097247095, startLat4: 39.78119788868953,
+    rote: 150, strote: 150, height: 3
   },
 ];
 const ids = ref([]);
@@ -1078,6 +599,9 @@ const initCesium = () => {
     },
     // imageryProvider: bingMap1,
   });
+  // 新增：初始化模型动画控制器
+  modelAnimator = createModelAnimator(viewer, modelConfigs, loadedModels, MODEL_POSITION);
+
 
   (viewer.cesiumWidget.creditContainer as HTMLElement).style.display = "none"; // 隐藏版本号
   // 右键旋转
@@ -4495,23 +4019,19 @@ let Qguannei = () => {
 };
 //外围鹰眼  
 let waiwei = () => {
+  console.log(isSpecialViewport.value);
   if (isSpecialViewport.value == false) {
     // 小屏
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
-        // x: -2192187.969935387,
-        // y: 4391808.203378108,
-        // z: 4059160.983655047,
-        "x": -2192380.7976778005,
-        "y": 4391833.006623125,
-        "z": 4059219.443228148,
+        "x": -2192059.038351901,
+        "y": 4391877.505759474,
+        "z": 4059208.1273751687,
       },
       orientation: {
-        // pitch: -0.15257297927209534,
-        // heading: 4.937519489253693,
-        "pitch": -0.30188313768469643,
-        "heading": 4.891699135521943,
+        "pitch": -0.43476565828639746,
+        "heading": 4.961726147018309,
         roll: 0.0,
       },
     });
@@ -6070,6 +5590,13 @@ defineExpose({
   // ===== 新增：动态区域显示/隐藏 =====
   showDynamicAreas,
   removeDynamicAreas,
+  // 暴露新的动画方法
+  loadModelWithAnimation: (modelId: number, options?: { dropHeight?: number; duration?: number }) => {
+    modelAnimator?.loadModelWithAnimation(modelId, options);
+  },
+  removeModelWithAnimation: (modelId: number, options?: { raiseHeight?: number; duration?: number }) => {
+    modelAnimator?.removeModelWithAnimation(modelId, options);
+  },
 });
 </script>
 
