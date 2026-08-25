@@ -1,19 +1,17 @@
 <script setup lang="ts">
+import { useViewportStore } from '@/stores/module/viewportStore';
 import type { HotspotEntity, TreePoint } from "@/type/vMap";
 import axios from "axios";
 import * as Cesium from "cesium";
-import { defineEmits, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { defineEmits, onMounted, onUnmounted, reactive, ref } from "vue";
 import ModelCol from "../../assets/js/modelColCar.js";
 import ModelColCarbaogao from "../../assets/js/ModelColCarbaogao.js";
 import ModelColCarxuting from "../../assets/js/ModelColCarxuting.js";
 import ModelColQiao from "../../assets/js/ModelColQiao.js";
-const props = defineProps({
-  showSystem: {
-    type: Boolean, // 类型匹配父组件的布尔值（true/false）
-    required: true, // 必传属性（可选，根据业务需求决定）
-    // default: false // 可选：默认值，当父组件未传递时使用
-  },
-});
+
+// 获取状态
+const viewportStore = useViewportStore();
+const isSpecialViewport = computed(() => viewportStore.isSpecialViewport);
 // 子传父
 const emits = defineEmits([
   "playVideoFusion",
@@ -21,6 +19,7 @@ const emits = defineEmits([
   "parsedDatas",
   "pointName",
   "close-video",
+  "flytotingzhi"
 ]);
 // 设置Cesium的静态资源路径
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_TOKEN;
@@ -869,6 +868,7 @@ const changeMark = (e) => {
       ids.value.forEach((id) => {
         viewer.entities.removeById(id);
       });
+      ids.value = [];
       return;
     }
   }
@@ -939,7 +939,111 @@ const changeMark = (e) => {
   });
 };
 
-// const Binglayer = new Cesium.ImageryLayer(bingMap1);
+/**
+ * 显示所有动态区域（封装 addDynamicAreasAndLabels，供父组件调用）
+ */
+const showDynamicAreas = async () => {
+  if (!viewer) {
+    console.warn("viewer 未初始化，无法显示动态区域");
+    return;
+  }
+  // 先清除已存在的动态区域，避免重复添加
+  removeDynamicAreas();
+  // 调用原有方法添加区域和标签
+  const response = await fetch('/dynamic-areas.json');
+  const data = await response.json();
+  addDynamicAreasAndLabels(viewer, data);
+  console.log("动态区域已显示");
+};
+
+// 新增：用于缓存动态创建的区域和标签实体引用，提升清除性能
+let dynamicEntitiesCache: Cesium.Entity[] = [];
+
+/**
+ * 批量添加测试区域（多边形）和标签
+ * @param {Cesium.Viewer} viewer - Cesium viewer 实例
+ * @param {Array} dataList - 数据数组，包含多边形和标签信息
+ */
+function addDynamicAreasAndLabels(viewer: Cesium.Viewer, dataList: any[]) {
+  if (!Array.isArray(dataList) || dataList.length === 0) {
+    console.warn("数据为空或格式不正确");
+    return;
+  }
+
+  // 核心优化：每次添加前先清空旧缓存，避免重复堆积
+  removeDynamicAreas();
+
+  dataList.forEach((item, index) => {
+    // 1. 数据预处理与默认值设置
+    const areaId = `dynamic_area_${item.id}` || `dynamic_area_${index}`;
+    const points = item.points;
+    const labelPos = item.labelPosition;
+
+    const height = item.height !== undefined ? item.height : 10;
+    const labelText = item.name || "未命名区域";
+    const polygonColor = item.color ? Cesium.Color.fromCssColorString(item.color).withAlpha(item.alpha || 0.1) : Cesium.Color.ORANGE.withAlpha(0.7);
+    const bgColor = item.backgroundColor ? Cesium.Color.fromCssColorString(item.backgroundColor).withAlpha(0.8) : Cesium.Color.fromCssColorString("#333333").withAlpha(0.8);
+
+    // 2. 创建多边形区域并缓存引用
+    const polygonEntity = viewer.entities.add({
+      id: areaId,
+      polygon: {
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(points),
+        material: polygonColor,
+        outline: true,
+        outlineColor: Cesium.Color.WHITE,
+        outlineWidth: 4,
+        height: height,
+        classificationType: Cesium.ClassificationType.BOTH
+      }
+    });
+    dynamicEntitiesCache.push(polygonEntity);
+
+    // 3. 创建文字标签并缓存引用
+    const labelEntity = viewer.entities.add({
+      id: `${areaId}_label`,
+      position: Cesium.Cartesian3.fromDegrees(labelPos.lon, labelPos.lat, labelPos.height),
+      label: {
+        text: labelText,
+        font: "bold 8px sans-serif",
+        fillColor: Cesium.Color.WHITE,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 3,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        pixelOffset: new Cesium.Cartesian2(0, -20),
+        scaleByDistance: new Cesium.NearFarScalar(1.5e2, 2.0, 1.5e7, 0.5),
+        showBackground: true,
+        backgroundColor: bgColor,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY
+      }
+    });
+    dynamicEntitiesCache.push(labelEntity);
+  });
+}
+
+/**
+ * 高效清除所有动态区域
+ * 直接通过缓存的实体引用进行删除，无需遍历全部场景实体
+ */
+const removeDynamicAreas = () => {
+  if (!viewer) {
+    console.warn("viewer 未初始化，无法清除动态区域");
+    return;
+  }
+
+  // 仅遍历缓存数组，性能消耗极小
+  dynamicEntitiesCache.forEach((entity) => {
+    // 安全校验：确保实体未被其他全局方法（如 removeAll）清空过
+    if (entity && viewer.entities.contains(entity)) {
+      viewer.entities.remove(entity);
+    }
+  });
+
+  // 清空缓存引用
+  dynamicEntitiesCache = [];
+  console.log("动态区域已高效清除");
+};
 
 const initCesium = () => {
   if (!cesiumContainer.value) {
@@ -1214,7 +1318,7 @@ const initCesium = () => {
   });
 
   // 根据分辨率飞向不同位置
-  if (isSpecialViewport === true) {
+  if (isSpecialViewport.value === true) {
     // 4K 分辨率 (11520×2160) 的视角
     viewer.camera.flyTo({
       destination: {
@@ -1243,7 +1347,7 @@ const initCesium = () => {
       },
       duration: 0,
     });
-  } else if (isSpecialViewport === false) {
+  } else if (isSpecialViewport.value === false) {
     // 默认分辨率（如 1920×1080）的视角
     viewer.camera.flyTo({
       //定位到范围中心点
@@ -1259,7 +1363,7 @@ const initCesium = () => {
       },
       duration: 0,
     });
-  } else if (isSpecialViewport === 1) {
+  } else if (isSpecialViewport.value === 1) {
     // 4K 分辨率 (11520×2160) 的视角
     viewer.camera.flyTo({
       destination: {
@@ -1288,7 +1392,7 @@ const initCesium = () => {
       },
       duration: 0,
     });
-  } else if (isSpecialViewport === 3) {
+  } else if (isSpecialViewport.value === 3) {
     // (5120 960) 的视角
     viewer.camera.flyTo({
       //定位到范围中心点
@@ -1303,7 +1407,7 @@ const initCesium = () => {
         roll: 0.0,
       },
     });
-  } else if (isSpecialViewport === 4) {
+  } else if (isSpecialViewport.value === 4) {
     // (3840 1080) 的视角
     viewer.camera.flyTo({
       //定位到范围中心点
@@ -1355,7 +1459,7 @@ const addHotspot = (hotspotList: HotspotEntity[]) => {
       }
       // 1. 添加 Billboard（广告牌）
       viewer.entities.add({
-        id,
+        id: `hot_${id}`,
         // 使用 properties 来存储自定义数据
         properties: {
           hotspot: hotspot as HotspotEntity, // 强制类型转换
@@ -1396,111 +1500,22 @@ const addHotspot = (hotspotList: HotspotEntity[]) => {
   });
   enableHotspotClick();
   // {x: -2191736.3094851333, y: 4392172.650035219, z: 4059084.368847259, pitch: -0.5702609508624539, heading: 0.32466408362774235}
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      x: -2191736.3094851333,
-      y: 4392172.650035219,
-      z: 4059084.368847259,
-    },
-    orientation: {
-      pitch: -0.5702609508624539,
-      heading: 0.32466408362774235,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-      roll: 0.0,
-    },
-  });
+  // viewer.camera.flyTo({
+  //   //定位到范围中心点
+  //   destination: {
+  //     x: -2191736.3094851333,
+  //     y: 4392172.650035219,
+  //     z: 4059084.368847259,
+  //   },
+  //   orientation: {
+  //     pitch: -0.5702609508624539,
+  //     heading: 0.32466408362774235,
+  //     // heading: testHeading,//左右方向
+  //     // pitch: testPitch, //上下方向
+  //     roll: 0.0,
+  //   },
+  // });
 };
-
-// const addHotspots = (hotspotList: HotspotEntity[]) => {
-//   if (!Array.isArray(hotspotList) || hotspotList.length === 0) {
-//     console.warn("热点数据为空或格式不正确");
-//     return;
-//   }
-//   hotspotList.forEach((hotspot) => {
-//     const { id, lon, lat, name, height,img } = hotspot;
-//     try {
-//       if (!viewer) {
-//         return;
-//       }
-//       // 1. 添加 Billboard（广告牌）
-//       const mainEntity = viewer.entities.add({
-//         id,
-//         // 使用 properties 来存储自定义数据
-//         properties: {
-//           hotspot: hotspot as HotspotEntity, // 强制类型转换
-//         },
-//         position: Cesium.Cartesian3.fromDegrees(Number(lon), Number(lat), Number(height)),
-//         // label: {
-//         //   text: name,
-//         //   font: "bold 17px sans-serif",
-//         //   fillColor: Cesium.Color.WHITE,
-//         //   outlineColor: Cesium.Color.BLACK,
-//         //   outlineWidth: 4,
-//         //   style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-//         //   // showBackground: true,
-//         //   scale: 1.0,
-//         //   // horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
-//         //   pixelOffset: new Cesium.Cartesian2(0, -83),
-//         //   // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
-//         //   //   0,
-//         //   //   300
-//         //   // ), // 广告牌在距离视点 0 到 10,000 米时显示
-//         //   disableDepthTestDistance: Number.POSITIVE_INFINITY, // 禁用深度测试
-//         //   show: true,
-//         // },
-//         billboard: {
-//           image: "/xiangji1.png",
-//           pixelOffset: new Cesium.Cartesian2(0, 3),
-//           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-//           scale: 0.4,
-//           disableDepthTestDistance: Number.POSITIVE_INFINITY, // 禁用深度测试
-//           show: true,
-//           heightReference: Cesium.HeightReference.ABSOLUTE, // 绝对高度，不随地形起伏
-//           rotation: Cesium.Math.toRadians(0),
-//           alignedAxis: Cesium.Cartesian3.ZERO
-//         },
-//       });
-
-//       viewer.entities.add({
-//         // 设置父子关系，跟随主实体位置
-//         parent: mainEntity,
-//         // id,
-//         properties: {
-//           hotspot: hotspot as HotspotEntity, // 强制类型转换
-//         },
-//         position: Cesium.Cartesian3.fromDegrees(Number(lon), Number(lat), Number(height)),
-//         billboard: {
-//           image: img,
-//           pixelOffset: new Cesium.Cartesian2(0, -40),
-//           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-//           scale: 0.2,
-//           disableDepthTestDistance: Number.POSITIVE_INFINITY, // 禁用深度测试
-//           show: true,
-//           heightReference: Cesium.HeightReference.ABSOLUTE, // 绝对高度，不随地形起伏
-//           rotation: Cesium.Math.toRadians(0),
-//           alignedAxis: Cesium.Cartesian3.ZERO
-//         },
-//       });
-//     } catch (error) {
-//       console.error(`添加热点时出错:`, error);
-//     }
-//   });
-//   enableHotspotClick();
-//   // {x: -2191736.3094851333, y: 4392172.650035219, z: 4059084.368847259, pitch: -0.5702609508624539, heading: 0.32466408362774235}
-//   // viewer.camera.flyTo({ //定位到范围中心点
-//   //   destination: {
-//   //     x: -2191736.3094851333, y: 4392172.650035219, z: 4059084.368847259,
-//   //   },
-//   //   orientation: {
-//   //     pitch: -0.5702609508624539, heading: 0.32466408362774235,
-//   //     // heading: testHeading,//左右方向
-//   //     // pitch: testPitch, //上下方向
-//   //     roll: 0.0
-//   //   },
-//   // })
-// };
 
 const gaodidianliandong = (hotspotList: HotspotEntity[]) => {
   if (!viewer) {
@@ -1849,12 +1864,13 @@ const removeHotspotsByIds = (entityIds: string[]) => {
   const removedIds: string[] = [];
   const notFoundIds: string[] = [];
   entityIds.forEach((entityId) => {
-    const entity = viewer.entities.getById(entityId);
+    let id = `hot_${entityId}`;
+    const entity = viewer.entities.getById(id);
     if (entity) {
-      viewer.entities.removeById(entityId);
-      removedIds.push(entityId);
+      viewer.entities.removeById(id);
+      removedIds.push(id);
     } else {
-      notFoundIds.push(entityId);
+      notFoundIds.push(id);
     }
   });
   if (notFoundIds.length > 0) {
@@ -2416,6 +2432,11 @@ const addHotspots = async (hotspotList: HotspotEntity[]) => {
     return;
   }
 
+  // 如果已经存在热点，先清除旧的（可选优化）
+  if (Object.keys(hotspotMainEntities).length > 0) {
+    return;
+  }
+
   if (!handler && viewer) {
     handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
     handler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -2434,7 +2455,7 @@ const addHotspots = async (hotspotList: HotspotEntity[]) => {
 
       // --- 主实体（相机图标） ---
       const mainEntity = viewer.entities.add({
-        id,
+        id: `hots_${id}`,
         properties: {
           hotspot: hotspot as HotspotEntity,
           isHotspotMain: true,
@@ -2935,11 +2956,11 @@ let QuanJing = function (e, idArray) {
   //序厅二楼飞行视角
   if (idArray == "q31") {
     // closeAllWebSockets()
-    if (isSpecialViewport === true) {
+    if (isSpecialViewport.value === true) {
       xuting2();
-    } else if (isSpecialViewport === 1) {
+    } else if (isSpecialViewport.value === 1) {
       xuting();
-    } else if (isSpecialViewport === false) {
+    } else if (isSpecialViewport.value === false) {
       xuting();
     }
 
@@ -2948,13 +2969,13 @@ let QuanJing = function (e, idArray) {
   } else if (idArray == "q30") {
     //序厅一楼飞行视角
     // closeAllWebSockets()
-    if (isSpecialViewport === true) {
+    if (isSpecialViewport.value === true) {
       xutingyilou2();
       // console.log("------", 11111)
-    } else if (isSpecialViewport === 1) {
+    } else if (isSpecialViewport.value === 1) {
       // console.log("------", 222)
       xutingyilou2();
-    } else if (isSpecialViewport === false) {
+    } else if (isSpecialViewport.value === false) {
       //小屏
       xutingyilou1();
       // console.log("------", 333)
@@ -2965,11 +2986,11 @@ let QuanJing = function (e, idArray) {
   } else if (idArray == "q33") {
     // closeAllWebSockets()
 
-    if (isSpecialViewport === true) {
+    if (isSpecialViewport.value === true) {
       shengtailianlang();
-    } else if (isSpecialViewport === 1) {
+    } else if (isSpecialViewport.value === 1) {
       shengtailianlang2();
-    } else if (isSpecialViewport === false) {
+    } else if (isSpecialViewport.value === false) {
       shengtailianlang();
     }
     getshengtailianlang();
@@ -2988,32 +3009,27 @@ let QuanJing = function (e, idArray) {
     // dengluting()
     // DT()
     // getbaogaoting()
-    if (isSpecialViewport === true) {
+    if (isSpecialViewport.value === true) {
       dengluting1();
-
       // vMapRef.value?.()
-    } else if (isSpecialViewport === 1) {
+    } else if (isSpecialViewport.value === 1) {
       // vMapRef.value?.Bguannei()
       dengluting2();
-    } else if (isSpecialViewport === false) {
+    } else if (isSpecialViewport.value === false) {
       // vMapRef.value?.Bguannei()
       dengluting();
     }
   } else if (idArray == "q39") {
-    // console.log("------",11111)
-    // closeAllWebSockets()
-    // dating()
-
-    if (isSpecialViewport === true) {
+    if (isSpecialViewport.value === true) {
       dating1();
       // vMapRef.value?.()
-    } else if (isSpecialViewport === false) {
+    } else if (isSpecialViewport.value === false) {
       // vMapRef.value?.Bguannei()
       dating();
     }
     // getbaogaoting()
   } else if (idArray == "q31") {
-    if (isSpecialViewport === 1) {
+    if (isSpecialViewport.value === 1) {
       viewer.camera.flyTo({
         //定位到范围中心点
         destination: {
@@ -3030,7 +3046,7 @@ let QuanJing = function (e, idArray) {
         },
         duration: 0,
       });
-    } else if (isSpecialViewport === false) {
+    } else if (isSpecialViewport.value === false) {
       viewer.camera.flyTo({
         //定位到范围中心点
         destination: {
@@ -3050,7 +3066,7 @@ let QuanJing = function (e, idArray) {
     }
     // getbaogaoting()
   } else if (idArray == "q40") {
-    if (isSpecialViewport === 1) {
+    if (isSpecialViewport.value === 1) {
       viewer.camera.flyTo({
         //定位到范围中心点
         destination: {
@@ -3067,7 +3083,7 @@ let QuanJing = function (e, idArray) {
         },
         duration: 0,
       });
-    } else if (isSpecialViewport === false) {
+    } else if (isSpecialViewport.value === false) {
       viewer.camera.flyTo({
         //定位到范围中心点
         destination: {
@@ -3089,7 +3105,7 @@ let QuanJing = function (e, idArray) {
   } else if (idArray == "q41" || idArray == "q42" || idArray == "q43") {
   } else if (idArray == "q44") {
     // 北会
-    if (isSpecialViewport === 1) {
+    if (isSpecialViewport.value === 1) {
       viewer.camera.flyTo({
         //定位到范围中心点
         destination: {
@@ -3104,7 +3120,7 @@ let QuanJing = function (e, idArray) {
         },
         duration: 0,
       });
-    } else if (isSpecialViewport === false) {
+    } else if (isSpecialViewport.value === false) {
       viewer.camera.flyTo({
         //定位到范围中心点
         destination: {
@@ -3123,8 +3139,6 @@ let QuanJing = function (e, idArray) {
       });
     }
   }
-
-  // removeModelById(3)
 
   // 定义所有视频实体配置 ---- 小屏
   const videoEntities = [
@@ -4068,7 +4082,7 @@ let QuanJing = function (e, idArray) {
     rtcVideo(videoElement, entityConfig.streamUrl);
   };
 
-  if (isSpecialViewport === true) {
+  if (isSpecialViewport.value === true) {
     ERvideoEntities.forEach((entityConfig) => {
       idArray?.forEach((item) => {
         // 增加可选链容错
@@ -4077,20 +4091,20 @@ let QuanJing = function (e, idArray) {
             // 调用安全创建方法
             createVideoEntitySafe(item, entityConfig);
           } else {
-            if (entityConfig.x) {
-              viewer.camera.flyTo({
-                destination: {
-                  x: entityConfig.x,
-                  y: entityConfig.y,
-                  z: entityConfig.z,
-                },
-                orientation: {
-                  heading: entityConfig.heading,
-                  pitch: entityConfig.pitch,
-                },
-                duration: 3,
-              });
-            }
+            // if (entityConfig.x) {
+            //   viewer.camera.flyTo({
+            //     destination: {
+            //       x: entityConfig.x,
+            //       y: entityConfig.y,
+            //       z: entityConfig.z,
+            //     },
+            //     orientation: {
+            //       heading: entityConfig.heading,
+            //       pitch: entityConfig.pitch,
+            //     },
+            //     duration: 3,
+            //   });
+            // }
           }
         }
       });
@@ -4098,7 +4112,7 @@ let QuanJing = function (e, idArray) {
 
     // 关键：返回视频实体数组，供外部调用
     return ERvideoEntities;
-  } else if (isSpecialViewport === false) {
+  } else if (isSpecialViewport.value === false) {
     videoEntities.forEach((entityConfig) => {
       // viewer.entities.removeById(entityConfig.id);
       idArray?.forEach((item) => {
@@ -4108,20 +4122,20 @@ let QuanJing = function (e, idArray) {
             // 调用安全创建方法
             createVideoEntitySafe(item, entityConfig);
           } else {
-            if (entityConfig.x) {
-              viewer.camera.flyTo({
-                destination: {
-                  x: entityConfig.x,
-                  y: entityConfig.y,
-                  z: entityConfig.z,
-                },
-                orientation: {
-                  heading: entityConfig.heading,
-                  pitch: entityConfig.pitch,
-                },
-                duration: 3,
-              });
-            }
+            // if (entityConfig.x) {
+            //   viewer.camera.flyTo({
+            //     destination: {
+            //       x: entityConfig.x,
+            //       y: entityConfig.y,
+            //       z: entityConfig.z,
+            //     },
+            //     orientation: {
+            //       heading: entityConfig.heading,
+            //       pitch: entityConfig.pitch,
+            //     },
+            //     duration: 3,
+            //   });
+            // }
           }
         }
       });
@@ -4235,7 +4249,7 @@ let removeurl = () => {
 // {x: -2191808.125210258, y: 4392013.848647462, z: 4059293.415413833, pitch: -1.246890216631376, heading: 2.5640768289781457}
 let Aguannei = () => {
   // 小屏
-  if (isSpecialViewport == false) {
+  if (isSpecialViewport.value == false) {
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
@@ -4252,7 +4266,7 @@ let Aguannei = () => {
       },
       duration: 0,
     });
-  } else if (isSpecialViewport == true) {
+  } else if (isSpecialViewport.value == true) {
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
@@ -4285,7 +4299,7 @@ let Aguannei = () => {
 
 //B馆内飞行
 let Bguannei = () => {
-  if (isSpecialViewport == true) {
+  if (isSpecialViewport.value == true) {
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
@@ -4306,7 +4320,7 @@ let Bguannei = () => {
         roll: 0.0,
       },
     });
-  } else if (isSpecialViewport == false) {
+  } else if (isSpecialViewport.value == false) {
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
@@ -4350,7 +4364,7 @@ let Bguannei = () => {
 
 //C馆内飞行
 let Cguannei = () => {
-  if (isSpecialViewport == true) {
+  if (isSpecialViewport.value == true) {
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
@@ -4366,7 +4380,7 @@ let Cguannei = () => {
         roll: 0.0,
       },
     });
-  } else if (isSpecialViewport == false) {
+  } else if (isSpecialViewport.value == false) {
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
@@ -4427,67 +4441,61 @@ let ABguannei = () => {
 // {{x: -2191748.802947443, y: 4392186.225688886, z: 4059595.5232176734, pitch: -1.1230293953163293, heading: 2.56627419000521}}
 //AB馆内飞行
 let Qguannei = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      x: -2191696.636244873,
-      y: 4392209.281509875,
-      z: 4058994.2914847224,
-    },
-    orientation: {
-      pitch: -0.24936875863887709,
-      heading: 0.3816129569025355,
-      roll: 0.0,
-    },
-  });
-};
-let Qguannei1 = () => {
-  viewer.camera.flyTo({
-    destination: {
-      x: -2191636.5104259043,
-      y: 4392560.046771221,
-      z: 4058821.997722278,
-    },
-    orientation: {
-      pitch: -0.24936876418225218,
-      heading: 0.3816129574690388,
+  if (isSpecialViewport.value == true) {
+    viewer.camera.flyTo({
+      destination: {
+        x: -2191636.5104259043,
+        y: 4392560.046771221,
+        z: 4058821.997722278,
+      },
+      orientation: {
+        pitch: -0.24936876418225218,
+        heading: 0.3816129574690388,
 
-      roll: 0,
-    },
-    duration: 3.0,
-  });
-};
-let Qguannei2 = () => {
-  viewer.camera.flyTo({
-    destination: {
-      // x: -2191682.460827356,
-      // y: 4392443.805805931,
-      // z: 4058867.817731173,
-      "x": -2191682.4608273576,
-      "y": 4392443.805805932,
-      "z": 4058867.8177311732,
-    },
-    orientation: {
-      // pitch: -0.23649701798782896,
-      // heading: 0.3922481473302266,
-      "pitch": -0.2364970179878283,
-      "heading": 0.3922481473302266,
-      roll: 0,
-    },
-    duration: 3.0,
-  });
-  // {
-  //     "x": -2191682.4608273576,
-  //     "y": 4392443.805805932,
-  //     "z": 4058867.8177311732,
-  //     "pitch": -0.2364970179878283,
-  //     "heading": 0.3922481473302266
-  // }
+        roll: 0,
+      },
+      duration: 3.0,
+    });
+  } else if (isSpecialViewport.value == false) {
+    viewer.camera.flyTo({
+      //定位到范围中心点
+      destination: {
+        x: -2191696.636244873,
+        y: 4392209.281509875,
+        z: 4058994.2914847224,
+      },
+      orientation: {
+        pitch: -0.24936875863887709,
+        heading: 0.3816129569025355,
+        roll: 0.0,
+      },
+    });
+  } else {
+    viewer.camera.flyTo({
+      destination: {
+        // x: -2191682.460827356,
+        // y: 4392443.805805931,
+        // z: 4058867.817731173,
+        "x": -2191682.4608273576,
+        "y": 4392443.805805932,
+        "z": 4058867.8177311732,
+      },
+      orientation: {
+        // pitch: -0.23649701798782896,
+        // heading: 0.3922481473302266,
+        "pitch": -0.2364970179878283,
+        "heading": 0.3922481473302266,
+        roll: 0,
+      },
+      duration: 3.0,
+    });
+  }
+
 
 };
 //外围鹰眼  
 let waiwei = () => {
-  if (isSpecialViewport == false) {
+  if (isSpecialViewport.value == false) {
     // 小屏
     viewer.camera.flyTo({
       //定位到范围中心点
@@ -4804,7 +4812,7 @@ let dating1 = () => {
 
 //四个不同的方向
 let ximian = () => {
-  if (isSpecialViewport === 3) {
+  if (isSpecialViewport.value === 3) {
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
@@ -4816,7 +4824,7 @@ let ximian = () => {
         roll: 0.0,
       },
     });
-  } else if (isSpecialViewport === 4) {
+  } else if (isSpecialViewport.value === 4) {
     // 财富中心18楼
     viewer.camera.flyTo({
       //定位到范围中心点
@@ -4848,7 +4856,7 @@ let ximian = () => {
   }
 };
 let nanmian = () => {
-  if (isSpecialViewport === 3) {
+  if (isSpecialViewport.value === 3) {
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
@@ -4859,7 +4867,7 @@ let nanmian = () => {
         roll: 0.0,
       },
     });
-  } else if (isSpecialViewport === 4) {
+  } else if (isSpecialViewport.value === 4) {
     // 财富中心18楼
     viewer.camera.flyTo({
       //定位到范围中心点
@@ -4892,7 +4900,7 @@ let nanmian = () => {
   }
 };
 let dongmian = () => {
-  if (isSpecialViewport === 3) {
+  if (isSpecialViewport.value === 3) {
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
@@ -4903,7 +4911,7 @@ let dongmian = () => {
         roll: 0.0,
       },
     });
-  } else if (isSpecialViewport === 4) {
+  } else if (isSpecialViewport.value === 4) {
     // 财富中心18楼
     viewer.camera.flyTo({
       //定位到范围中心点
@@ -4937,7 +4945,7 @@ let dongmian = () => {
 
 };
 let shangmian = () => {
-  if (isSpecialViewport === 3) {
+  if (isSpecialViewport.value === 3) {
     viewer.camera.flyTo({
       //定位到范围中心点
       destination: {
@@ -4951,7 +4959,7 @@ let shangmian = () => {
         roll: 0.0,
       },
     });
-  } else if (isSpecialViewport === 4) {
+  } else if (isSpecialViewport.value === 4) {
     // 财富中心18楼
     viewer.camera.flyTo({
       //定位到范围中心点
@@ -5414,7 +5422,7 @@ const CRUISE_VIEWS_CENTER = {
       "pitch": -0.3930149990156713,
       "heading": 4.062436751048265
     }
-    ],
+  ],
   Cn: [
     {
       x: -2191731.112129056,
@@ -5463,9 +5471,9 @@ const CRUISE_VIEWS_CENTER = {
 
 // 视口 → 视图字典
 const CRUISE_VIEWS = {
-  small: CRUISE_VIEWS_SMALL, // isSpecialViewport === false
-  big: CRUISE_VIEWS_BIG, // isSpecialViewport === true
-  san: CRUISE_VIEWS_SAN, // isSpecialViewport === 1
+  small: CRUISE_VIEWS_SMALL, // isSpecialViewport.value === false
+  big: CRUISE_VIEWS_BIG, // isSpecialViewport.value === true
+  san: CRUISE_VIEWS_SAN, // isSpecialViewport.value === 1
   middle: CRUISE_VIEWS_MIDDLE, // C馆4楼3联屏
   center: CRUISE_VIEWS_CENTER  // 财富中心18楼
 };
@@ -5498,10 +5506,10 @@ let cruiseStatess = {
 
 // 根据视口返回视图字典
 function getCruiseViews() {
-  if (isSpecialViewport === true) return CRUISE_VIEWS.big;
-  if (isSpecialViewport === 1) return CRUISE_VIEWS.san;
-  if (isSpecialViewport === 3) return CRUISE_VIEWS.middle;
-  if (isSpecialViewport === 4) return CRUISE_VIEWS.center;
+  if (isSpecialViewport.value === true) return CRUISE_VIEWS.big;
+  if (isSpecialViewport.value === 1) return CRUISE_VIEWS.san;
+  if (isSpecialViewport.value === 3) return CRUISE_VIEWS.middle;
+  if (isSpecialViewport.value === 4) return CRUISE_VIEWS.center;
   return CRUISE_VIEWS.small;
 }
 
@@ -5984,102 +5992,15 @@ const closeWebSocket = () => {
   isConnected.value = false;
 };
 
-// 1. 保留变量，用于存储匹配到的大屏标识值（true/1/2/3...）
-let isSpecialViewport: any;
-// 2. 特殊分辨率映射表（后续扩展直接追加即可）
-const SPECIAL_RESOLUTIONS_MAP = {
-  "11520x2160": true, // 原有分辨率-标识true
-  "5760x1080": 1, // 新增分辨率-标识1
-  "7640x2160": 2, // 新增分辨率-标识2
-  "5120x960": 3,
-  "3840x1080": 4, //财富18楼
-  "3840x1079": 4, //财富18楼
-  // 扩展示例：'8000x6000': 3, '9000x3000': 4
-};
-
-// 3. 响应式视口对象（Vue3 reactive）
-const viewportSize = reactive({
-  width: window.innerWidth,
-  height: window.innerHeight,
-});
-
-// 4. 窗口大小变化处理
-const handleResize = () => {
-  viewportSize.width = window.innerWidth;
-  viewportSize.height = window.innerHeight;
-};
-
-// 5. 封装判断逻辑：精准获取映射表匹配的value
-const updateViewportStatus = () => {
-  const currentResolution = `${viewportSize.width}x${viewportSize.height}`;
-  // 关键修改：用in判断是否存在该分辨率，存在则取原值，不存在则为false
-  // 避免原逻辑中"假值"被覆盖，同时精准拿到匹配的标识值
-  isSpecialViewport =
-    currentResolution in SPECIAL_RESOLUTIONS_MAP
-      ? SPECIAL_RESOLUTIONS_MAP[currentResolution]
-      : false;
-  console.log("当前匹配的大屏标识值：", isSpecialViewport); // 精准打印true/1/2/false
-};
-
-// 6. 监听视口变化，严格按标识值执行对应逻辑
-watch(
-  viewportSize,
-  () => {
-    updateViewportStatus();
-    // 大屏判断：只要不是false，就是匹配到大屏
-    // if (isSpecialViewport !== false) {
-    //   console.log(
-    //     "匹配到特殊分辨率，执行大屏通用逻辑",
-    //     window.innerWidth,
-    //     window.innerHeight,
-    //   );
-
-    //   // 严格分支：精准匹配标识值，不会串逻辑（true/1/2各自执行）
-    //   if (isSpecialViewport === true) {
-    //     console.log("【11520x2160】执行专属逻辑，标识值：", isSpecialViewport);
-    //   } else if (isSpecialViewport === 1) {
-    //     console.log("【5760x1080】执行专属逻辑，标识值：", isSpecialViewport);
-    //   } else if (isSpecialViewport === 2) {
-    //     console.log("【7640x2160】执行专属逻辑，标识值：", isSpecialViewport);
-    //   } else if (isSpecialViewport === 3) {
-    //     // 扩展新分辨率时，直接加else if即可
-    //     console.log("5120x960", isSpecialViewport);
-    //   } else if (isSpecialViewport === 4) {
-    //     // 扩展新分辨率时，直接加else if即可
-    //     // console.log("【新分辨率】执行专属逻辑，标识值：", isSpecialViewport);
-    //   }
-    // } else {
-    //   // 小屏逻辑：未匹配任何大屏分辨率
-    //   console.log(
-    //     "未匹配到特殊分辨率，执行小屏逻辑",
-    //     window.innerWidth,
-    //     window.innerHeight,
-    //   );
-    // }
-  },
-  { deep: true, immediate: true }, // 深度监听+初始化立即执行
-);
-
-// 新增：动态添加特殊分辨率的方法（不改动原有逻辑，仅扩展）
-const addSpecialResolution = (width, height, value) => {
-  const resolutionKey = `${width}x${height}`;
-  if (!SPECIAL_RESOLUTIONS_MAP[resolutionKey]) {
-    SPECIAL_RESOLUTIONS_MAP[resolutionKey] = value;
-    updateViewportStatus();
-  }
-};
 
 // 组件挂载时初始化
 onMounted(() => {
   // ld("r1")
-  window.addEventListener("resize", handleResize);
-  // 初始化时先执行一次判断
-  updateViewportStatus();
   initCesium();
-  QuanJing();
+  // QuanJing();
   // loadModel('/model/br10.glb')
   loadModelById(1);
-  loadModelById(2);
+  // loadModelById(2);
   loadModelById(3);
   ld();
 
@@ -6093,7 +6014,6 @@ onUnmounted(() => {
     viewer.destroy();
     // viewer = null
   }
-  window.removeEventListener("resize", handleResize);
 });
 
 // 暴露方法可以在父组件里面使用
@@ -6127,8 +6047,6 @@ defineExpose({
   Cguannei,
   ABguannei,
   Qguannei,
-  Qguannei1,
-  Qguannei2,
   waiwei,
   // stopCruise,
   clearResources,
@@ -6149,6 +6067,9 @@ defineExpose({
   Erxun,
   stopErxun,
   continueErxun,
+  // ===== 新增：动态区域显示/隐藏 =====
+  showDynamicAreas,
+  removeDynamicAreas,
 });
 </script>
 

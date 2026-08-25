@@ -6,6 +6,7 @@ import vMap from "@/components/vmap/cesium.vue";
 import { cameraMap } from "@/constants/map";
 import type { HotspotEntity, TreePoint } from "@/type/vMap";
 import { filterEmptyParams } from "@/utils/common";
+import { Search } from '@element-plus/icons-vue';
 import axios from "axios";
 import dayjs from "dayjs";
 import { ElMessage } from "element-plus";
@@ -25,6 +26,87 @@ import {
   destroyPlugin,
   init,
 } from "../assets/HangKai";
+
+// 新增：智能展示数据
+const showSmartDisplay = ref(false);
+const smartDisplayItems = ref([
+  { label: 'A馆北侧', value: ['q2'], image: '/src/assets/img/A馆北侧.png' },
+  { label: 'A馆南侧', value: ['q1'], image: '/src/assets/img/A馆南侧.png' },
+  { label: 'A馆序厅一楼', value: ['q30'], image: '/src/assets/img/A馆序厅一楼.png' },
+  { label: 'A馆序厅二楼', value: ['q31'], image: '/src/assets/img/A馆序厅二楼.png' },
+  { label: 'B馆北侧', value: ['q4', 'q6'], image: '/src/assets/img/B馆北侧.png' },
+  { label: 'B馆中间', value: ['q3', 'q9'], image: '/src/assets/img/B馆中间.png' },
+  { label: 'B馆南侧', value: ['q7', 'q5'], image: '/src/assets/img/B馆南侧.png' },
+  { label: 'C馆南侧', value: ['q41'], image: '/src/assets/img/C馆南侧.png' },
+  { label: 'C馆中间', value: ['q42'], image: '/src/assets/img/C馆中间.png' },
+  { label: 'C馆北侧', value: ['q43'], image: '/src/assets/img/C馆北侧.png' },
+  { label: '北会', value: ['q44'], image: '/src/assets/img/北会.png' },
+  { label: '生态连廊', value: ['q33'], image: '/src/assets/img/生态连廊.png' },
+  { label: '报告', value: ['q38'], image: '/src/assets/img/报告.png' },
+  { label: '登录厅', value: ['q39'], image: '/src/assets/img/登录厅.png' },
+  { label: '西广场', value: ['q40'], image: '/src/assets/img/西广场.png' },
+  { label: 'AB馆连廊', value: ['q32'], image: '/src/assets/img/AB馆连廊.png' },
+]);
+
+
+// 新增：智能展示切换
+const toggleSmartDisplay = () => {
+  showSmartDisplay.value = !showSmartDisplay.value;
+};
+
+// 新增：智能展示点击处理（复用原 handleCustomItemClick 逻辑）
+const handleSmartDisplayItemClick = (value: string[]) => {
+  if (!value || value.length === 0) return;
+  tingzhifeixing.value = false;
+  currentCruiseName.value = true;
+  buttonStatus.value = { outer: false, panorama: true };
+
+  // 原有飞行与模型逻辑
+  if (value[0] === "q1") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity2"), 4000);
+  } else if (value[0] === "q2") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity1"), 4000);
+  } else if (value[0] === "q7" && value[1] === "q5") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity3"), 4000);
+  } else if (value[0] === "q3" && value[1] === "q9") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity4"), 4000);
+  } else if (value[0] === "q4" && value[1] === "q6") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity5"), 4000);
+  } else if (value[0] === "q30") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity11"), 4000);
+  } else if (value[0] === "q31") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity16"), 4000);
+  } else if (value[0] == "q39") {
+    vMapRef.value?.removeModelById(3);
+  } else if (value[0] == "q38") {
+    vMapRef.value?.removeModelById(3);
+  } else if (value[0] == "q33") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity19"), 4000);
+  } else if (value[0] == "q32") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity20"), 4000);
+  } else if (value[0] == "q41") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity21"), 4000);
+  } else if (value[0] == "q42") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity22"), 4000);
+  } else if (value[0] == "q43") {
+    vMapRef.value?.removeModelById(3);
+    setTimeout(() => vMapRef.value?.Erxun("entity23"), 4000);
+  } else if (value[0] == "q44") {
+    vMapRef.value?.removeModelById(3);
+  }
+};
+
 
 // 报警列表搜索参数
 const searchAlarmParams = reactive({
@@ -51,8 +133,6 @@ const handleAlarmSearch = async () => {
 };
 
 const player = shallowRef(null); // 使用 shallowRef 优化性能
-let xianshizhanshi = ref(false);
-let xitongzhanshi = ref(false);
 let showDataPanel = ref(false);
 let currentCruise = ref();
 let currentCruiseName = ref(true);
@@ -60,13 +140,20 @@ let currentCruiseName = ref(true);
 // 添加底部按钮激活状态变量
 const activeButton = ref(2); // 初始激活"首页"按钮
 
+// ===== 新增：动态区域显示/隐藏控制 =====
+let showDynamicAreas = ref(false);
 
-// 新增：右侧按钮展开状态（控制子按钮显示/隐藏）
-const rightBtnExpand = reactive({
-  smartShow: false, // 智能展示 展开状态
-  normalShow: false, // 显示展示 展开状态
-  system: false, // 系统按钮 展开状态
-});
+// 切换动态区域显示/隐藏
+const toggleDynamicAreas = () => {
+  showDynamicAreas.value = !showDynamicAreas.value;
+  if (showDynamicAreas.value) {
+    // 当前已显示，点击则关闭
+    vMapRef.value?.showDynamicAreas();
+  } else {
+    // 当前未显示，点击则显示
+    vMapRef.value?.removeDynamicAreas();
+  }
+};
 
 const eveWarn = ref();
 const showPopup = ref(false);
@@ -88,22 +175,22 @@ const closePopup = () => {
   showPopup.value = false;
 };
 
-const switchBoo = ref(false);
+// const switchBoo = ref(false);
 // 切换透明模型
-const switchModel = () => {
-  switchBoo.value = !switchBoo.value;
-  // vMapRef.value?.loadModel('/model/tm.glb');
-  // 真 加载虚拟
-  if (switchBoo.value) {
-    console.log(switchBoo.value);
-    vMapRef.value?.removeModelById(1);
-    vMapRef.value?.loadModelById(2);
-  } else {
-    console.log(switchBoo.value);
-    vMapRef.value?.removeModelById(2);
-    vMapRef.value?.loadModelById(1);
-  }
-};
+// const switchModel = () => {
+//   switchBoo.value = !switchBoo.value;
+//   // vMapRef.value?.loadModel('/model/tm.glb');
+//   // 真 加载虚拟
+//   if (switchBoo.value) {
+//     console.log(switchBoo.value);
+//     vMapRef.value?.removeModelById(1);
+//     vMapRef.value?.loadModelById(2);
+//   } else {
+//     console.log(switchBoo.value);
+//     vMapRef.value?.removeModelById(2);
+//     vMapRef.value?.loadModelById(1);
+//   }
+// };
 
 // 风险数据
 const risk = reactive({
@@ -139,11 +226,6 @@ const showChainMsgPopup1 = ref(false);
 const loadedMsgIds = ref<Set<string | number>>(new Set());
 // 轮询定时器
 let chainMsgTimer: NodeJS.Timeout | null = null;
-
-// 关闭链消息弹窗
-const closeChainMsgPopup = () => {
-  showChainMsgPopup.value = false;
-};
 
 const formatToIOS8601WithTimezone = (dateString: any) => {
   // 解析输入时间（假设为本地时间）
@@ -578,7 +660,6 @@ let OpenModel1 = function (id) {
     },
     "q2,q1,q4,q3,q7,q6,q5,q8,q15,q18,q23": () => {
       vMapRef.value?.QuanJing(true, id);
-      //  vMapRef.value?.Qguannei();
       const dataArr = hasVideo
         ? [
           ...idToArrayMap.q1,
@@ -604,7 +685,6 @@ let OpenModel1 = function (id) {
     "q2, q1, q4, q3, q7, q6, q5, q9, q8, q15, q18, q23, q30, q31, q32, q33, q34, q35,q38, q39":
       () => {
         vMapRef.value?.QuanJing(true, id);
-        //  vMapRef.value?.Qguannei();
         const dataArr = hasVideo
           ? [
             ...idToArrayMap.q1,
@@ -638,22 +718,8 @@ let OpenModel1 = function (id) {
     "q8,q15,q18,q23": () => {
       vMapRef.value?.QuanJing(true, id);
       vMapRef.value?.Qguannei();
-      const dataArr = [
-        ...idToArrayMap.q8,
-        ...idToArrayMap.q15,
-        ...idToArrayMap.q18,
-        ...idToArrayMap.q23,
-      ];
-      // vMapRef.value?.danquanbu(dataArr);
     },
   };
-
-  // if (customOptions.value === "q30") {
-  //    vMapRef.value?.yichu()
-  //    vMapRef.value?.closeAllWebSockets()
-  //   vMapRef.value?.getbaogaoting()
-
-  // }
 
   // 优先处理特殊组合
   if (specialHandlers[id]) {
@@ -717,54 +783,48 @@ const toggleOuter = () => {
 
 
 // 西广场按钮点击事件 - 修正版
-const xiguangchang = () => {
-  QJSP.value = "";
-  if (buttonStatus.value.xiguangchang) {
-    // 关闭西广场逻辑（保持原有）
-    vMapRef.value?.yichushipin();
-    // vMapRef.value?.yichu()
-    vMapRef.value?.loadModelById(3);
-    // vMapRef.value?.closeAllWebSockets()
-    buttonStatus.value.xiguangchang = false;
-    SPkzq.value = false;
-    SPfx.value = "";
-    if (flightStatus.isFlying) {
-      stopFlight();
-    }
-  } else {
-    // 打开西广场逻辑 - 对齐智能展示的西广场逻辑
-    // 1. 重置其他按钮状态（和智能展示点击逻辑一致）
-    buttonStatus.value = {
-      outer: false,
-      panorama: false,
-      xiguangchang: false,
-    };
+// const xiguangchang = () => {
+//   QJSP.value = "";
+//   if (buttonStatus.value.xiguangchang) {
+//     // 关闭西广场逻辑（保持原有）
+//     vMapRef.value?.yichushipin();
+//     // vMapRef.value?.yichu()
+//     vMapRef.value?.loadModelById(3);
+//     // vMapRef.value?.closeAllWebSockets()
+//     buttonStatus.value.xiguangchang = false;
+//     SPkzq.value = false;
+//     SPfx.value = "";
+//     if (flightStatus.isFlying) {
+//       stopFlight();
+//     }
+//   } else {
+//     // 打开西广场逻辑 - 对齐智能展示的西广场逻辑
+//     // 1. 重置其他按钮状态（和智能展示点击逻辑一致）
+//     buttonStatus.value = {
+//       outer: false,
+//       panorama: false,
+//       xiguangchang: false,
+//     };
 
-    // 2. 调用正确的OpenModel1（参数改为q40，和智能展示一致）
-    OpenModel1(["q40"]);
-    vMapRef.value?.QuanJing(true, ["q40"]); // 保持和智能展示一致的全景调用
-    // vMapRef.value?.closeAllWebSockets()
-    // 3. 标记西广场按钮激活
-    buttonStatus.value.xiguangchang = true;
+//     // 2. 调用正确的OpenModel1（参数改为q40，和智能展示一致）
+//     OpenModel1(["q40"]);
+//     vMapRef.value?.QuanJing(true, ["q40"]); // 保持和智能展示一致的全景调用
+//     // vMapRef.value?.closeAllWebSockets()
+//     // 3. 标记西广场按钮激活
+//     buttonStatus.value.xiguangchang = true;
 
-    // 4. 延时触发飞行（和智能展示的handleCustomItemClick逻辑一致）
-    // setTimeout(() => {
-    //   startDirectFlight();
-    //   console.log("西广场：触发飞行逻辑");
-    // }, 4000);
-  }
-};
+//     // 4. 延时触发飞行（和智能展示的handleCustomItemClick逻辑一致）
+//     // setTimeout(() => {
+//     //   startDirectFlight();
+//     //   console.log("西广场：触发飞行逻辑");
+//     // }, 4000);
+//   }
+// };
 
 let QJSP = ref("");
+// 全景按钮
 const togglePanorama = () => {
   if (buttonStatus.value.panorama) {
-    if (isSpecialViewport == true) {
-      vMapRef.value?.Qguannei1();
-    } else if (isSpecialViewport == false) {
-      vMapRef.value?.Qguannei();
-    } else {
-      vMapRef.value?.Qguannei2();
-    }
     vMapRef.value?.yichushipin();
     // vMapRef.value?.yichu()
     vMapRef.value?.loadModelById(3);
@@ -805,15 +865,6 @@ const togglePanorama = () => {
       "q43",
     ]);
     buttonStatus.value.panorama = true;
-    // vMapRef.value?.Qguannei()
-    if (isSpecialViewport == true) {
-      vMapRef.value?.Qguannei1();
-    } else if (isSpecialViewport == false) {
-      vMapRef.value?.Qguannei();
-    } else {
-      vMapRef.value?.Qguannei2();
-    }
-
     vMapRef.value?.closeAllWebSockets();
     vMapRef.value?.getRadarDatarc();
     vMapRef.value?.getshengtailianlang();
@@ -822,6 +873,62 @@ const togglePanorama = () => {
     vMapRef.value?.removeModelById(3);
     buttonStatus.value.outer = false;
   }
+};
+
+// 首页按钮
+const toggleHome = () => {
+  vMapRef.value?.Qguannei();
+  // if (buttonStatus.value.panorama) {
+  //   vMapRef.value?.Qguannei();
+  //   vMapRef.value?.yichushipin();
+  //   // vMapRef.value?.yichu()
+  //   // vMapRef.value?.loadModelById(3);
+  //   vMapRef.value?.closeAllWebSockets();
+  //   buttonStatus.value.panorama = false;
+  //   SPkzq.value = false;
+  //   SPfx.value = "";
+  //   QJSP.value = "";
+  //   if (flightStatus.isFlying) {
+  //     stopFlight();
+  //   }
+  // } else {
+  //   QJSP.value = "entity17";
+  //   OpenModel1([
+  //     "q2",
+  //     "q1",
+  //     "q4",
+  //     "q3",
+  //     "q7",
+  //     "q6",
+  //     "q5",
+  //     "q9",
+  //     "q8",
+  //     "q15",
+  //     "q18",
+  //     "q23",
+  //     "q30",
+  //     "q31",
+  //     "q32",
+  //     "q33",
+  //     "q34",
+  //     "q35",
+  //     "q38",
+  //     "q39",
+  //     "q40",
+  //     "q41",
+  //     "q42",
+  //     "q43",
+  //   ]);
+  //   buttonStatus.value.panorama = true;
+  //   vMapRef.value?.Qguannei();
+  //   vMapRef.value?.closeAllWebSockets();
+  //   vMapRef.value?.getRadarDatarc();
+  //   vMapRef.value?.getshengtailianlang();
+  //   vMapRef.value?.getbaogaoting();
+  //   vMapRef.value?.getxuting();
+  //   // vMapRef.value?.removeModelById(3);
+  //   buttonStatus.value.outer = false;
+  // }
 };
 
 const toggleHallA = () => {
@@ -897,233 +1004,7 @@ const stopDrag = () => {
   document.removeEventListener("mouseup", stopDrag);
 };
 
-// 按钮显隐控制
-const showButtons = ref(true);
-// 自定义列表显隐控制
-const showCustomList = ref(false);
-// 【保持原变量名】改造为互斥分类的二级结构
-const customOptions = ref([
-  {
-    label: "A馆",
-    expanded: false, // 是否展开
-    disabled: false, // 是否禁用点击
-    children: [
-      { label: "A馆北侧", value: ["q2"] },
-      { label: "A馆南侧", value: ["q1"] },
-      { label: "A馆序厅一楼", value: ["q30"] },
-      { label: "A馆序厅二楼", value: ["q31"] },
-    ],
-  },
-  {
-    label: "B馆",
-    expanded: false,
-    disabled: false,
-    children: [
-      { label: "B馆北侧", value: ["q4", "q6"] },
-      { label: "B馆中间", value: ["q3", "q9"] },
-      { label: "B馆南侧", value: ["q7", "q5"] },
-    ],
-  },
-  {
-    label: "C馆",
-    expanded: false,
-    disabled: false,
-    children: [
-      { label: "C馆南侧", value: ["q41"] },
-      { label: "C馆中间", value: ["q42"] },
-      { label: "C馆北侧", value: ["q43"] },
-    ],
-  },
-  {
-    label: "北会",
-    expanded: false,
-    disabled: false,
-    children: [
-      { label: "北会", value: ["q44"] },
-    ],
-  },
-  {
-    label: "其他",
-    expanded: false,
-    disabled: false,
-    children: [
-      { label: "生态连廊", value: ["q33"] },
-      { label: "报告", value: ["q38"] },
-      { label: "登录厅", value: ["q39"] },
-      { label: "西广场", value: ["q40"] },
-      { label: "AB馆连廊", value: ["q32"] },
-      // { label: '外围', value: ['q8, q15, q18, q23'] },
-    ],
-  },
-]);
-// 切换按钮显隐
-const toggleButtons = () => {
-  showButtons.value = !showButtons.value;
-  showCustomList.value = false;
-};
-
-// 【原有方法】重置自定义列表状态
-const zidingyi = () => {
-  //  buttonStatus.value.panorama = !buttonStatus.value.panorama
-  if (!buttonStatus.value.panorama) {
-    OpenModel1([
-      "q2",
-      "q1",
-      "q4",
-      "q3",
-      "q7",
-      "q6",
-      "q5",
-      "q9",
-      "q8",
-      "q15",
-      "q18",
-      "q23",
-      "q30",
-      "q31",
-      "q32",
-      "q33",
-      "q34",
-      "q35",
-      "q38",
-      "q39",
-      "q40",
-    ]);
-    buttonStatus.value.panorama = true;
-  }
-
-  stopFlight();
-  QJSP.value = "";
-  showCustomList.value = !showCustomList.value;
-  if (showCustomList.value) {
-    xianshizhanshi.value = false;
-    xitongzhanshi.value = false;
-    // 重置：所有分类收起 + 全部启用
-    customOptions.value.forEach((item) => {
-      item.expanded = false;
-      item.disabled = false;
-    });
-    // vMapRef.value?.yichushipin();
-    // vMapRef.value?.yichu();
-    // vMapRef.value?.removeModelById(3);
-    if (flightStatus.isFlying) {
-      stopFlight();
-    }
-    // vMapRef.value?.test1()
-  } else {
-    // vMapRef.value?.loadModelById(3);
-  }
-};
-// 【新增】点击分类标题（互斥展开/关闭）
-const toggleCustomCategory = (catIndex: number) => {
-  const currentCategory = customOptions.value[catIndex];
-  // 记录当前分类点击前的展开状态
-  const wasExpanded = currentCategory.expanded;
-
-  // 第一步：先收起所有分类（实现互斥，不修改disabled）
-  customOptions.value.forEach((item) => {
-    item.expanded = false; // 只收起，不禁用
-  });
-
-  // 第二步：切换当前分类的状态（点击前展开则关闭，点击前关闭则展开）
-  currentCategory.expanded = !wasExpanded;
-};
-
-// 【新增】点击具体选项直接触发逻辑（移除确认按钮）
-const handleCustomItemClick = (value: string[]) => {
-  OpenModel1(value);
-  // console.log(xitongzhanshi.value)
-
-  // buttonStatus.value.panorama = true;
-  // 1. 先判断数组是否有值，再处理
-  if (!value || value.length === 0) {
-    console.warn("未选择任何选项");
-    return; // 无值直接退出，避免后续逻辑执行
-  }
-  // 2. 去除首尾空白，兼容undefined
-  // const realValue = value[0]?.trim() || '';
-  // console.log('处理后的值：', realValue, '长度：', realValue.length)
-  xitongzhanshi.value = true;
-  tingzhifeixing.value = false;
-  showCustomList.value = false;
-  currentCruiseName.value = true;
-  buttonStatus.value = { outer: false, panorama: true };
-
-  // 3. 严格全等判断
-  if (value[0] === "q1") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity2");
-    }, 4000);
-  } else if (value[0] === "q2") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity1");
-    }, 4000);
-  } else if (value[0] === "q7" && value[1] === "q5") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity3");
-    }, 4000);
-  } else if (value[0] === "q3" && value[1] === "q9") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity4");
-    }, 4000);
-  } else if (value[0] === "q4" && value[1] === "q6") {
-    // console.log("111111111111111111");
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity5");
-    }, 4000);
-  } else if (value[0] === "q30") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity11");
-    }, 4000);
-  } else if (value[0] === "q31") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity16");
-    }, 4000);
-  } else if (value[0] == "q39") {
-    vMapRef.value?.removeModelById(3);
-  } else if (value[0] == "q38") {
-    vMapRef.value?.removeModelById(3);
-  } else if (value[0] == "q33") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity19");
-    }, 4000);
-  } else if (value[0] == "q32") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity20");
-    }, 4000);
-  } else if (value[0] == "q41") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity21");
-    }, 4000);
-  } else if (value[0] == "q42") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity22");
-    }, 4000);
-  } else if (value[0] == "q43") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => {
-      vMapRef.value?.Erxun("entity23");
-    }, 4000);
-  } else if (value[0] == "q44") {
-    // 北会
-    vMapRef.value?.removeModelById(3);
-  }
-};
-
-let liandongs = ref(false);
 let ldsp = ref(false);
-let liandong1 = ref("高低联动");
 let ips = ref("");
 
 let liandong = async (e: any, id: any) => {
@@ -1595,7 +1476,7 @@ const closeVideo = async () => {
 };
 
 // 热点连接的函数
-let isaddCesiumLabel = ref(false);
+// let isaddCesiumLabel = ref(false);
 const addCesiumLabel = async () => {
   QJSP.value = "";
   ButtonText.videoText = !ButtonText.videoText;
@@ -1603,16 +1484,16 @@ const addCesiumLabel = async () => {
   const data: HotspotEntity[] = await response.json();
   const idArray: string[] = data.map((item) => item.id);
   if (!ButtonText.videoText) {
-    vMapRef.value?.removeHotspotsByIds(idArray);
-    vMapRef.value?.disableHotspotClick();
+    // vMapRef.value?.removeHotspotsByIds(idArray);
+    // vMapRef.value?.disableHotspotClick();
     vMapRef.value?.addHotspot(data);
-    vMapRef.value?.removeModelById(3);
-    isaddCesiumLabel.value = true;
+    // vMapRef.value?.removeModelById(3);
+    // isaddCesiumLabel.value = true;
   } else {
     vMapRef.value?.removeHotspotsByIds(idArray);
-    vMapRef.value?.disableHotspotClick();
+    // vMapRef.value?.disableHotspotClick();
     // vMapRef.value?.loadModelById(3)
-    isaddCesiumLabel.value = false;
+    // isaddCesiumLabel.value = false;
     addCesiumLabels();
     addCesiumLabelsC();
   }
@@ -1682,10 +1563,6 @@ const ClickThreeMenu = async (item: TreePoint) => {
   vMapRef.value?.FlightFn(item);
 };
 
-// 打开模型
-const OpenModel = (num: number) => {
-  vMapRef.value?.loadModel(`/model/${num}.glb`);
-};
 
 // 给视频贴图
 const click_draw_polygon_fn = () => {
@@ -1696,20 +1573,13 @@ const click_draw_polygon_fn = () => {
 let mtag = ref(false);
 let changeMark = (e: any) => {
   QJSP.value = "";
-  if (mtag.value) {
-    vMapRef.value?.changeMark(mtag.value);
-    mtag.value = false;
-  } else {
-    vMapRef.value?.changeMark(mtag.value);
-    vMapRef.value?.removeModelById(3);
-
-    mtag.value = true;
-  }
+  mtag.value = !mtag.value;
+  vMapRef.value?.changeMark(mtag.value);
 };
 
+// 报警信息
 let shijian = (e: any) => {
   if (ButtonText.shijian) {
-    // console.log("-----", ButtonText.shijian, 111111)
     showChainMsgPopup.value = false;
     ButtonText.shijian = false;
     searchAlarmParams.cameraName = "";
@@ -1717,15 +1587,12 @@ let shijian = (e: any) => {
     searchAlarmParams.endTime = "";
     closeHisVideo();
   } else {
-    // console.log("-----------------2", showChainMsgPopup.value)
     showChainMsgPopup.value = true;
     ButtonText.shijian = true;
     fetchChainMsgForPopup();
   }
 };
-let fanhui = () => {
-  vMapRef.value?.Qguannei();
-};
+
 let tingzhifeixing = ref(false);
 let tingzhi = () => {
   tingzhifeixing.value = !tingzhifeixing.value;
@@ -1767,40 +1634,30 @@ let flytotingzhi = (id) => {
     buttonStatus.value.panorama = true;
   }
   if (id == "r1") {
-    xitongzhanshi.value = true;
-    // console.log(xitongzhanshi.value)
     tingzhifeixing.value = false;
     currentCruiseName.value = true;
   } else if (id == "r2") {
-    xitongzhanshi.value = true;
     tingzhifeixing.value = false;
     currentCruiseName.value = true;
   } else if (id == "r3") {
-    xitongzhanshi.value = true;
     tingzhifeixing.value = false;
     currentCruiseName.value = true;
   } else if (id == "r4") {
-    xitongzhanshi.value = true;
     tingzhifeixing.value = false;
     currentCruiseName.value = true;
   } else if (id == "r5") {
-    xitongzhanshi.value = true;
     tingzhifeixing.value = false;
     currentCruiseName.value = true;
   } else if (id == "r7") {
-    xitongzhanshi.value = true;
     tingzhifeixing.value = false;
     currentCruiseName.value = true;
   } else if (id == "r8") {
-    xitongzhanshi.value = true;
     tingzhifeixing.value = false;
     currentCruiseName.value = true;
   } else if (id == "r11") {
-    xitongzhanshi.value = true;
     tingzhifeixing.value = false;
     currentCruiseName.value = true;
   } else if (id == "r12") {
-    xitongzhanshi.value = true;
     tingzhifeixing.value = false;
     currentCruiseName.value = true;
   }
@@ -1816,11 +1673,6 @@ const directionMap = {
 
 // 2. 响应式状态：当前方向编号（初始为1，对应西面）
 const currentNum = ref(1);
-
-// 3. 【关键修复】用computed创建响应式计算属性，自动跟随currentNum更新
-const currentDirection = computed(() => {
-  return directionMap[currentNum.value];
-});
 
 
 // 方向按钮点击事件
@@ -1844,52 +1696,6 @@ const handleDirectionClick = (direction: number) => {
   }
 };
 
-/**
- * 核心切换方法：1→2→3→4→1 无限循环（原有逻辑无需修改，本身无问题）
- */
-const changeDirection = () => {
-  currentNum.value = currentNum.value === 4 ? 1 : currentNum.value + 1;
-  // 步骤2：根据新编号执行对应方法
-  switch (currentNum.value) {
-    case 1:
-      vMapRef.value?.ximian();
-      break;
-    case 2:
-      vMapRef.value?.nanmian();
-      break;
-    case 3:
-      vMapRef.value?.dongmian();
-      break;
-    case 4:
-      vMapRef.value?.shangmian();
-      break;
-    default:
-      break;
-  }
-};
-
-const xianshizhanshis = () => {
-  xianshizhanshi.value = !xianshizhanshi.value;
-  if (xianshizhanshi.value) {
-    showCustomList.value = false;
-    xitongzhanshi.value = false;
-    xianshizhanshi.value = true;
-    // console.log(2222);
-  } else {
-    xianshizhanshi.value = false;
-    // console.log(111);
-  }
-};
-const xitongzhanshis = () => {
-  xitongzhanshi.value = !xitongzhanshi.value;
-  if (xitongzhanshi.value) {
-    showCustomList.value = false;
-    xianshizhanshi.value = false;
-    xitongzhanshi.value = true;
-  } else {
-    xitongzhanshi.value = false;
-  }
-};
 const toggleDataPanel = () => {
   showDataPanel.value = !showDataPanel.value;
 };
@@ -2006,109 +1812,14 @@ onMounted(() => {
 
   setTimeout(() => {
     togglePanorama();
-    buttonStatus.value.panorama = true;
+    // buttonStatus.value.panorama = true;
     execMethodByUrl();
     addCesiumLabelss();
     outaddCesiumLabelss();
     xutingerlou();
     Cgaodidianliandong();
   }, 2000);
-
-  // getRadarpoeple();
-  window.addEventListener("resize", handleResize);
-  // 初始化时先执行一次判断
-  updateViewportStatus();
-
-  // // 修正alert用法：拼接字符串和变量，确保数值正确显示
-  // alert("浏览器视口宽度：" + viewportWidth);
-  // alert("浏览器视口高度：" + viewportHeight);
 });
-
-// 1. 保留变量，用于存储匹配到的大屏标识值（true/1/2/3...）
-let isSpecialViewport: any;
-// 2. 特殊分辨率映射表（后续扩展直接追加即可）
-const SPECIAL_RESOLUTIONS_MAP = {
-  "11520x2160": true, // 原有分辨率-标识true
-  "5760x1080": 1, // 新增分辨率-标识1
-  "7640x2160": 2, // 新增分辨率-标识2
-  "5120x960": 3, // 新增分辨率-标识3
-  "3840x1080": 4, //财富18楼
-  "3840x1079": 4, //财富18楼
-  // 扩展示例：'8000x6000': 3, '9000x3000': 4
-};
-
-// 3. 响应式视口对象（Vue3 reactive）
-const viewportSize = reactive({
-  width: window.innerWidth,
-  height: window.innerHeight,
-});
-
-// 4. 窗口大小变化处理
-const handleResize = () => {
-  viewportSize.width = window.innerWidth;
-  viewportSize.height = window.innerHeight;
-};
-
-// 5. 封装判断逻辑：精准获取映射表匹配的value
-const updateViewportStatus = () => {
-  const currentResolution = `${viewportSize.width}x${viewportSize.height}`;
-  // 关键修改：用in判断是否存在该分辨率，存在则取原值，不存在则为false
-  // 避免原逻辑中"假值"被覆盖，同时精准拿到匹配的标识值
-  console.log(currentResolution);
-  isSpecialViewport =
-    currentResolution in SPECIAL_RESOLUTIONS_MAP
-      ? SPECIAL_RESOLUTIONS_MAP[currentResolution]
-      : false;
-  console.log("当前匹配的大屏标识值：", isSpecialViewport); // 精准打印true/1/2/false
-};
-
-// 6. 监听视口变化，严格按标识值执行对应逻辑
-watch(
-  viewportSize,
-  () => {
-    updateViewportStatus();
-    // 大屏判断：只要不是false，就是匹配到大屏
-    // if (isSpecialViewport !== false) {
-    //   console.log(
-    //     "匹配到特殊分辨率，执行大屏通用逻辑",
-    //     window.innerWidth,
-    //     window.innerHeight,
-    //   );
-
-    //   // 严格分支：精准匹配标识值，不会串逻辑（true/1/2各自执行）
-    //   if (isSpecialViewport === true) {
-    //     console.log("【11520x2160】执行专属逻辑，标识值：", isSpecialViewport);
-    //   } else if (isSpecialViewport === 1) {
-    //     console.log("【5760x1080】执行专属逻辑，标识值：", isSpecialViewport);
-    //   } else if (isSpecialViewport === 2) {
-    //     console.log("【7640x2160】执行专属逻辑，标识值：", isSpecialViewport);
-    //   } else if (isSpecialViewport === 3) {
-    //     // 扩展新分辨率时，直接加else if即可
-    //     console.log("5120x960", isSpecialViewport);
-    //   }else if (isSpecialViewport === 4) {
-    //     // 扩展新分辨率时，直接加else if即可
-    //     // console.log("【新分辨率】执行专属逻辑，标识值：", isSpecialViewport);
-    //   }
-    // } else {
-    //   // 小屏逻辑：未匹配任何大屏分辨率
-    //   console.log(
-    //     "未匹配到特殊分辨率，执行小屏逻辑",
-    //     window.innerWidth,
-    //     window.innerHeight,
-    //   );
-    // }
-  },
-  { deep: true, immediate: true }, // 深度监听+初始化立即执行
-);
-
-// 新增：动态添加特殊分辨率的方法（不改动原有逻辑，仅扩展）
-const addSpecialResolution = (width, height, value) => {
-  const resolutionKey = `${width}x${height}`;
-  if (!SPECIAL_RESOLUTIONS_MAP[resolutionKey]) {
-    SPECIAL_RESOLUTIONS_MAP[resolutionKey] = value;
-    updateViewportStatus();
-  }
-};
 
 const handleCruisePointChange = (pointName) => {
   console.log("父组件接收到巡航信息：", pointName);
@@ -2156,42 +1867,54 @@ const changXiao = function (e: MouseEvent): void {
         <vHead />
       </div>
 
-       <!-- 顶部导航栏 -->
+      <!-- 顶部导航栏 -->
       <div class="menu-container">
-        <div class="child-menu">全景</div>
-        <div class="child-menu">实时监控</div>
-        <div class="child-menu">报警信息</div>
-        <div class="child-menu">路线图</div>
-        <div class="child-menu">C馆回位</div>
-        <div class="child-menu">人流监控</div>
-        <div class="child-menu">停止</div>
+        <div class="child-menu" @click="togglePanorama">全景</div>
+        <div class="child-menu" @click="addCesiumLabel">实时监控</div>
+        <div class="child-menu" @click="shijian">报警信息</div>
+        <div class="child-menu" @click="changeMark">路线图</div>
+        <div class="child-menu" @click="toggleDynamicAreas">展位图</div>
+        <div class="child-menu" @click="resetHallC">C馆回位</div>
+        <div class="child-menu" @click="toggleDataPanel">人流监控</div>
+        <div class="child-menu" @click="tingzhi">停止</div>
       </div>
 
+      <!-- 按钮容器 -->
+      <div class="smart-display-btn" @click="toggleSmartDisplay">漫游巡航</div>
+
+      <div class="smart-display-panel" v-if="showSmartDisplay">
+        <div class="smart-display-grid">
+          <div class="smart-display-item" v-for="item in smartDisplayItems" :key="item.value"
+            :style="{ backgroundImage: 'url(' + item.image + ')' }" @click="handleSmartDisplayItemClick(item.value)">
+            <!-- 文字浮动在底部 -->
+            <p>{{ item.label }}</p>
+          </div>
+        </div>
+      </div>
+
+
+
       <!-- 底部ABC馆按钮容器 -->
-      <div class="abc-buttons-container">
+      <div class="abc-buttons-container" :style="{ bottom: showSmartDisplay ? 'calc(16vh + 2vw)' : '2vw' }">
         <ul class="abc-buttons-list">
-          <li class="abc-button" :class="{ 'active': activeButton === 0 }" @click="toggleHallA(); activeButton = 0;"
-            @mousedown="changDa" @mouseup="changXiao">
+          <li class="abc-button" :class="{ 'active': activeButton === 0 }" @click="toggleHallA(); activeButton = 0;">
             <p class="button-text">A馆</p>
           </li>
-          <li class="abc-button" :class="{ 'active': activeButton === 1 }" @click="toggleHallB(); activeButton = 1;"
-            @mousedown="changDa" @mouseup="changXiao">
+          <li class="abc-button" :class="{ 'active': activeButton === 1 }" @click="toggleHallB(); activeButton = 1;">
             <p class="button-text">B馆</p>
           </li>
-          <li class="abc-button" :class="{ 'active': activeButton === 2 }" @click="togglePanorama(); activeButton = 2;"
-            @mousedown="changDa" @mouseup="changXiao">
+          <li class="abc-button" :class="{ 'active': activeButton === 2 }" @click="toggleHome(); activeButton = 2;">
             <p class="button-text">首页</p>
           </li>
-          <li class="abc-button" :class="{ 'active': activeButton === 3 }" @click="toggleHallC(); activeButton = 3;"
-            @mousedown="changDa" @mouseup="changXiao">
+          <li class="abc-button" :class="{ 'active': activeButton === 3 }" @click="toggleHallC(); activeButton = 3;">
             <p class="button-text">C馆</p>
           </li>
-          <li class="abc-button" :class="{ 'active': activeButton === 4 }" @click="toggleOuter(); activeButton = 4;"
-            @mousedown="changDa" @mouseup="changXiao">
+          <li class="abc-button" :class="{ 'active': activeButton === 4 }" @click="toggleOuter(); activeButton = 4;">
             <p class="button-text">外围</p>
           </li>
         </ul>
       </div>
+
 
       <!-- 方向按钮容器 -->
       <div class="direction-buttons-container">
@@ -2199,22 +1922,18 @@ const changXiao = function (e: MouseEvent): void {
           <li class="direction-button" data-tooltip="西面" :class="{ 'active': currentNum === 1 }"
             @click="handleDirectionClick(1)" @mousedown="changDa" @mouseup="changXiao">
             <div class="direction-button-bg bg-west"></div>
-            <!-- <p class="button-text">西</p> -->
           </li>
           <li class="direction-button" data-tooltip="南面" :class="{ 'active': currentNum === 2 }"
             @click="handleDirectionClick(2)" @mousedown="changDa" @mouseup="changXiao">
             <div class="direction-button-bg bg-south"></div>
-            <!-- <p class="button-text">南</p> -->
           </li>
           <li class="direction-button" data-tooltip="东面" :class="{ 'active': currentNum === 3 }"
             @click="handleDirectionClick(3)" @mousedown="changDa" @mouseup="changXiao">
             <div class="direction-button-bg bg-east"></div>
-            <!-- <p class="button-text">东</p> -->
           </li>
           <li class="direction-button" data-tooltip="顶部" :class="{ 'active': currentNum === 4 }"
             @click="handleDirectionClick(4)" @mousedown="changDa" @mouseup="changXiao">
             <div class="direction-button-bg bg-up"></div>
-            <!-- <p class="button-text">上</p> -->
           </li>
         </ul>
       </div>
@@ -2223,111 +1942,6 @@ const changXiao = function (e: MouseEvent): void {
       <div class="center">
         <!-- 地图 -->
         <div class="map">
-          <!-- 按钮容器 -->
-          <div class="arenbiao" :class="{ 'arenbiao--show': showButtons }">
-            <!-- 左侧按钮 -->
-            <ul class="arenbiao__left-list">
-              <li class="arenbiao__main-item" @click="resetHallC" @mousedown="changDa" @mouseup="changXiao">
-                <p class="arenbiao__text">C馆复位</p>
-              </li>
-            </ul>
-            <!-- 右侧按钮 备份勿删！！！！！！！！！！！！！ -->
-            <!-- 右侧按钮 -->
-            <div class="arenbiao__right-wrap">
-              <!-- 右侧主按钮列表（3个主按钮） -->
-              <ul class="arenbiao__right-main-list">
-                <!-- 第一个主按钮：智能展示 -->
-                <li class="arenbiao__main-item" @mouseenter="rightBtnExpand.smartShow = true"
-                  @mouseleave="() => (rightBtnExpand.smartShow = false)" @click="zidingyi" @mousedown="changDa"
-                  @mouseup="changXiao">
-                  <p class="arenbiao__text">智能展示</p>
-
-                  <!-- 智能展示 下方并列子按钮（无额外子按钮，保持原有逻辑） -->
-                  <ul class="arenbiao__sub-list" v-show="rightBtnExpand.smartShow">
-                  </ul>
-                </li>
-
-                <!-- 第二个主按钮：显示展示 -->
-                <li class="arenbiao__main-item" @mousedown="changDa" @mouseup="changXiao">
-                  <p class="arenbiao__text" @click="xianshizhanshis">
-                    显示展示
-                  </p>
-
-                  <!-- 显示展示 下方并列子按钮：报警信息、路线图、实时监控 -->
-                  <ul class="arenbiao__sub-list" v-if="xianshizhanshi">
-                    <li class="arenbiao__sub-item" @click="shijian" @mousedown="changDa" @mouseup="changXiao">
-                      <p class="arenbiao__text">报警信息</p>
-                    </li>
-                    <li class="arenbiao__sub-item" @click="changeMark" :class="{ active: mtag }" @mousedown="changDa"
-                      @mouseup="changXiao">
-                      <p class="arenbiao__text">路线图</p>
-                    </li>
-                    <li class="arenbiao__sub-item" :class="{ active: isaddCesiumLabel }" @click="addCesiumLabel"
-                      @mousedown="changDa" @mouseup="changXiao">
-                      <p class="arenbiao__text">实时监控</p>
-                    </li>
-                  </ul>
-                </li>
-
-                <!-- 第三个主按钮：系统按钮 -->
-                <li class="arenbiao__main-item" @mousedown="changDa" @mouseup="changXiao">
-                  <p class="arenbiao__text" @click="xitongzhanshis">系统按钮</p>
-
-                  <!-- 系统按钮 下方并列子按钮：全景、切换方向、停止、返回 -->
-                  <ul class="arenbiao__sub-list" v-if="xitongzhanshi">
-                    <li class="arenbiao__sub-item" :class="{
-                      'arenbiao__item--active': buttonStatus.panorama,
-                    }" @click="togglePanorama" @mousedown="changDa" @mouseup="changXiao">
-                      <p class="arenbiao__text">
-                        {{ buttonStatus.panorama ? "关闭" : "全景" }}
-                      </p>
-                    </li>
-                    <!-- <li class="arenbiao__sub-item" @click="changeDirection" @mousedown="changDa" @mouseup="changXiao">
-                      <p class="arenbiao__text">{{ currentDirection }}</p>
-                    </li> -->
-                    <li class="arenbiao__sub-item" @click="tingzhi" @mousedown="changDa" @mouseup="changXiao">
-                      <p class="arenbiao__text">
-                        {{ tingzhifeixing ? "继续" : "停止" }}
-                      </p>
-                    </li>
-                    <li class="arenbiao__sub-item" @click="fanhui" @mousedown="changDa" @mouseup="changXiao">
-                      <p class="arenbiao__text">返回</p>
-                    </li>
-                  </ul>
-                </li>
-
-                <!-- 第四个主按钮：数据展示 -->
-                <li class="arenbiao__main-item" @click="toggleDataPanel" @mousedown="changDa" @mouseup="changXiao">
-                  <p class="arenbiao__text">
-                    {{ showDataPanel ? "关闭数据" : "数据展示" }}
-                  </p>
-                </li>
-              </ul>
-              <!-- 自定义列表（原有，保留不变） -->
-              <div class="arenbiao1" v-if="showCustomList">
-                <ul class="custom-options__list">
-                  <!-- 一级分类：A馆/B馆/其他（互斥展开） -->
-                  <li class="custom-category__item" v-for="(category, catIndex) in customOptions" :key="catIndex">
-                    <div class="custom-category__title" @click="toggleCustomCategory(catIndex)"
-                      :class="{ disabled: category.disabled }">
-                      <span>{{ category.label }}</span>
-                      <span class="category-arrow">{{
-                        category.expanded ? "▼" : "▶"
-                      }}</span>
-                    </div>
-                    <ul class="custom-options__children" v-if="category.expanded">
-                      <li class="custom-options__item" v-for="(item, index) in category.children" :key="index"
-                        @click="handleCustomItemClick(item.value)">
-                        {{ item.label }}
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
-
-            </div>
-          </div>
-
           <!-- 数据展示模块 -->
           <DataPanel v-if="showDataPanel" />
 
@@ -2352,8 +1966,7 @@ const changXiao = function (e: MouseEvent): void {
           <!-- 地图容器 -->
           <div class="chart">
             <vMap ref="vMapRef" @liandongss="liandong" @pointName="handleCruisePointChange" @flytotingzhi="flytotingzhi"
-              @parsedDatas="handleWsData" @play-video-fusion="playRTCVideoStream" :showSystem="xitongzhanshi"
-              @close-video="closeVideo" />
+              @parsedDatas="handleWsData" @play-video-fusion="playRTCVideoStream" @close-video="closeVideo" />
           </div>
 
           <!-- 视频弹窗 -->
@@ -2387,12 +2000,6 @@ const changXiao = function (e: MouseEvent): void {
                 <h3 class="popup-title">警告信息</h3>
                 <!-- <button class="popup-close" @click="closePopup">×</button> -->
               </div>
-              <!-- <div class="popup-body">
-                <img :src="'http://192.162.46.61' + eveWarn" class="popup-image" />
-              </div> -->
-              <!-- <div class="popup-footer">
-                <button class="popup-button cancel-btn" @click="closePopup">退出</button>
-              </div> -->
             </div>
           </div>
 
@@ -2419,14 +2026,16 @@ const changXiao = function (e: MouseEvent): void {
             <!-- 搜索栏（固定在头部下方，不随列表滚动） -->
             <div class="popup-search-bar">
               <div class="search-row">
-                <input type="text" v-model="searchAlarmParams.cameraName" placeholder="按相机名称搜索"
+                <input type="text" v-model="searchAlarmParams.cameraName" placeholder="相机名称"
                   class="search-input name-input" />
                 <input type="datetime-local" v-model="searchAlarmParams.beginTime" class="search-input time-input" />
                 <span style="color: #00c6ff">至</span>
                 <input type="datetime-local" v-model="searchAlarmParams.endTime" class="search-input time-input" />
-                <button class="search-btn" @click="handleAlarmSearch">
+                <!-- <button class="search-btn" >
                   搜索
-                </button>
+                </button> -->
+                <el-button class="alarm-search-btn" type="primary" :icon="Search"
+                  @click="handleAlarmSearch"></el-button>
               </div>
             </div>
 
@@ -2462,10 +2071,9 @@ const changXiao = function (e: MouseEvent): void {
             </div>
           </div>
 
-          <div class="chain-msg-popup1" v-show="showChainMsgPopup1">
+          <!-- <div class="chain-msg-popup1" v-show="showChainMsgPopup1">
             <div class="popup-header">
               <h3 class="popup-title">报警信息</h3>
-              <!-- <button class="popup-close" @click="closeChainMsgPopup">×</button> -->
             </div>
             <div class="popup-body">
               <div class="msg-item" v-for="item in chainMsgList1" :key="item.id || item.msgId || item.index">
@@ -2497,7 +2105,8 @@ const changXiao = function (e: MouseEvent): void {
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
+
           <div class="cruise-tip" v-if="currentCruiseName">
             {{ currentCruise }}
           </div>
@@ -2527,6 +2136,124 @@ const changXiao = function (e: MouseEvent): void {
 </template>
 
 <style scoped lang="scss">
+/* 新增：智能展示按钮 (保持不变) */
+.smart-display-btn {
+  position: absolute;
+  top: 2vw;
+  right: 10%;
+  transform: translateX(-50%);
+  z-index: 999999;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 1px solid #00c6ff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.smart-display-btn:hover {
+  background: rgba(0, 198, 255, 0.8);
+  transform: translateX(-50%) scale(1.05);
+}
+
+/* 优化：智能展示面板 */
+.smart-display-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  // 高度根据内容自适应，或者固定一个高度
+  // min-height: 15vh; 
+  background: rgba(0, 0, 0, 0.3); // 背景稍微加深一点突显图片
+  border-top: 2px solid #00c6ff;
+  padding: 0.12rem; // 左右增加padding，防止滚动条贴边
+  box-sizing: border-box;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.smart-display-close {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 30px;
+  color: #fff;
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* 优化：容器改为 Flex 布局，实现单行横向滚动 */
+.smart-display-grid {
+  display: flex;
+  flex-direction: row; // 横向排列
+  overflow-x: auto; // 开启横向滚动
+  gap: 0.12rem; // 卡片间距
+  width: 100%;
+  align-items: center;
+
+  // 隐藏滚动条但保留功能 (可选，如果不喜欢默认滚动条样式)
+  &::-webkit-scrollbar {
+    height: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #00c6ff;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+}
+
+/* 优化：单个展示项 */
+.smart-display-item {
+  position: relative; // 为绝对定位的文字做参照
+  width: 10vw; // 固定宽度
+  height: 8vw; // 固定高度
+  flex-shrink: 0; // 防止被压缩，保证宽度固定
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  overflow: hidden;
+  border: 1px solid rgba(0, 198, 255, 0.3);
+
+  // 背景图设置
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  &:hover {
+    transform: scale(1.05); // 悬浮放大
+    border-color: #00c6ff;
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.6);
+    z-index: 2;
+  }
+
+  // 文字样式：浮动在底部，带透明浅色背景
+  p {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0.1rem;
+    background: rgba(255, 255, 255, 0.2); // 透明浅色背景
+    color: #fff; // 黑色文字
+    font-size: 0.18rem;
+    font-weight: bold;
+    text-align: center;
+    backdrop-filter: blur(2px); // 背景模糊效果，提升文字可读性
+  }
+}
+
+
+
 // 方向按钮容器样式
 .direction-buttons-container {
   position: absolute;
@@ -2674,58 +2401,6 @@ const changXiao = function (e: MouseEvent): void {
   transform: translateY(-50%);
 }
 
-// 右侧主按钮列表（3个主按钮）
-.arenbiao__right-main-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  gap: 0; // 主按钮之间无间距，保持原有样式
-
-  // 主按钮样式（继承原有arenbiao__item样式，新增相对定位用于子按钮布局）
-  .arenbiao__main-item {
-    @extend .arenbiao__item;
-    position: relative; // 子按钮绝对定位参考
-    cursor: pointer;
-
-    // 主按钮鼠标移入高亮（保留原有hover效果）
-    &:hover {
-      transform: scale(1.05);
-    }
-  }
-}
-
-.arenbiao__sub-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  // width: 10vw;
-  display: flex;
-  flex-direction: column;
-  gap: 0; // 【极致紧凑】无间距
-  position: absolute;
-  top: 0.6rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 99999;
-
-  // 子按钮样式
-  .arenbiao__sub-item {
-    @extend .arenbiao__item;
-    // min-width: 5.8vw;
-    height: 2vw;
-    padding: 0;
-    margin: 0;
-    // line-height: 2.0vw;
-    font-size: 0.7vw;
-    margin-bottom: -1.5vw;
-  }
-}
-
-// 隐藏原有右侧列表样式（不再使用）
-.arenbiao__right-list {
-  display: none;
-}
 
 // 基础样式
 * {
@@ -2786,9 +2461,47 @@ main {
   background: url('@/assets/img/顶部导航栏.png') no-repeat;
   background-size: 100% 100%;
   /* 强制拉伸填充，可能变形 */
-  background-repeat: no-repeat !important;
   display: flex;
   flex-direction: row;
+  align-items: center; // 垂直居中
+  padding: 0 4vw;
+  box-sizing: border-box; // 确保padding不会增加总宽度
+
+
+  // 新增：child-menu 样式
+  .child-menu {
+    flex: 1; // 让每个菜单项平分宽度
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff; // 文字默认白色
+    font-size: 1vw; // 根据大屏适配调整字号
+    letter-spacing: 0.1vw; // 增加字间距，提升科技感
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+
+    // 鼠标悬浮效果
+    &:hover {
+      color: #00c6ff; // 悬浮变为主题青色
+      text-shadow: 0 0 10px rgba(0, 198, 255, 0.8); // 添加发光效果
+      transform: scale(1.05); // 略微放大
+    }
+
+    // 添加白色 | 间隔符，排除最后一个元素
+    &:not(:last-child)::after {
+      content: '|';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #ffffff;
+      opacity: 0.8; // 稍微透明，避免喧宾夺主
+      font-weight: 300;
+      pointer-events: none; // 防止点击间隔符触发事件
+    }
+  }
 }
 
 // 底部ABC馆按钮容器样式
@@ -2797,52 +2510,53 @@ main {
   bottom: 2vw;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 999999;
+  z-index: 999;
   display: flex;
   justify-content: center;
-  gap: 2vw; // 按钮之间的间距
-}
+  // gap: 2vw; // 按钮之间的间距
 
-.abc-buttons-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  gap: 2vw;
-}
+  .abc-buttons-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 2vw;
+    // 【新增】添加平滑过渡动画，持续时间 0.5秒，使用 ease-in-out 缓动函数
+    transition: bottom 0.5s ease-in-out;
 
-.abc-button {
-  @extend .arenbiao__item; // 继承原有按钮样式
-  min-width: 5.8vw;
-  height: 4.4vw;
-  background-image: url("../assets/img/按钮new.png") !important;
-  // background-size: 100% 100% !important;
-  // background-repeat: no-repeat !important;
-  border-radius: 0.4vw;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
+    .abc-button {
+      width: 4vw;
+      height: 3vw;
+      background: url("@/assets/img/按钮new.png");
+      background-size: 100% 100%;
+      // background-repeat: no-repeat;
+      border-radius: 0.4vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
 
-  &:hover {
-    transform: scale(1.05);
+      &:hover {
+        transform: scale(1.05);
+      }
+
+      // 激活状态样式
+      &.active {
+        background-image: url("@/assets/img/btn-active.png") !important;
+        // box-shadow: 0 0 15px rgba(0, 198, 255, 0.6);
+        transform: scale(1.08);
+      }
+
+      .button-text {
+        // margin-top: 0.5vw;
+        padding: 0;
+        text-align: center;
+        color: white;
+        font-size: 0.8vw;
+      }
+    }
   }
-
-  // 激活状态样式
-  &.active {
-    background-image: url("../assets/img/btn-active.png") !important;
-    // box-shadow: 0 0 15px rgba(0, 198, 255, 0.6);
-    transform: scale(1.08);
-  }
-}
-
-.button-text {
-  // margin-top: 0.5vw;
-  padding: 0;
-  text-align: center;
-  color: white;
-  font-size: 0.8vw;
 }
 
 .cruise-tip {
@@ -2869,94 +2583,6 @@ main {
   position: relative;
 }
 
-// 按钮容器样式
-.arenbiao {
-  position: absolute;
-  top: 2vw;
-  left: -2.3vw;
-  right: -1vw;
-  z-index: 999999;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 2.3vw;
-  box-sizing: border-box;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-
-  &--show {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  &__left-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    gap: 0;
-
-    .arenbiao__main-item {
-      @extend .arenbiao__item;
-      position: relative;
-      cursor: pointer;
-
-      &:hover {
-        transform: scale(1.05);
-      }
-    }
-  }
-
-  &__right-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-  }
-
-  &__right-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    gap: 0;
-  }
-
-  &__item {
-    min-width: 5.8vw;
-    height: 4.4vw;
-    // background-color: rgba(255, 255, 255, 0.9);
-    background-image: url("../assets/img/按钮new.png") !important;
-    background-size: 100% 100% !important;
-    /* 强制拉伸填充，可能变形 */
-    background-repeat: no-repeat !important;
-    border-radius: 0.4vw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    // box-shadow: 0 0.1vw 0.4vw rgba(0, 0, 0, 0.1);
-    font-size: 0.8vw;
-
-    &--active {
-      background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-      color: white;
-      box-shadow: 0 0.2vw 0.8vw rgba(24, 144, 255, 0.4);
-    }
-
-    &:hover {
-      transform: scale(1.05);
-      // background-color: #e6f7ff;
-    }
-  }
-
-  &__text {
-    margin-top: 0.5vw;
-    padding: 0;
-    text-align: center;
-    color: white;
-  }
-}
 
 // 切换模型
 .switchModel {
@@ -3030,121 +2656,6 @@ main {
         border-left: 0.2vw solid #ff3333;
       }
     }
-  }
-}
-
-// 自定义列表样式
-.arenbiao1 {
-  z-index: 999;
-  margin-top: 0.5vw;
-  margin-right: 12vw;
-  background-color: #0f100f;
-  padding: 0.3vw 1vw;
-  border-radius: 0.4vw;
-  border: 5px solid #215c82;
-  overflow-y: auto;
-  min-width: 10vw;
-  color: #fff;
-  box-shadow: 0 0.2vw 0.6vw rgba(0, 0, 0, 0.15);
-
-  &::-webkit-scrollbar {
-    width: 0.3vw;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 0.15vw;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 0.15vw;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #999;
-  }
-}
-
-// 自定义选项根列表
-.custom-options {
-  &__list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  // 二级选项列表
-  &__children {
-    margin: 0.2vw 0 0.2vw 1.5vw;
-    padding: 0;
-    list-style: none;
-  }
-
-  // 二级选项项（点击触发）
-  &__item {
-    display: flex;
-    align-items: center;
-    margin: 0.4vw 0;
-    padding: 0.3vw 0.6vw;
-    font-size: 0.7vw;
-    border-radius: 0.3vw;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-      background: rgba(24, 144, 255, 0.2);
-      color: #00c6ff;
-      transform: translateX(0.2vw);
-    }
-  }
-
-  // 移除所有复选框相关样式
-}
-
-// 一级分类标题样式
-.custom-category__item {
-  margin: 0.5vw 0;
-}
-
-.custom-category__title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.4vw 0.8vw;
-  background: rgba(24, 144, 255, 0.1);
-  border-radius: 0.3vw;
-  cursor: pointer;
-  font-size: 0.8vw;
-  font-weight: 600;
-  color: #00c6ff;
-  border: 1px solid #215c82;
-  transition: all 0.2s ease;
-
-  &:not(.disabled):hover {
-    background: rgba(24, 144, 255, 0.2);
-    color: #1890ff;
-  }
-}
-
-.category-arrow {
-  font-size: 0.6vw;
-  transition: transform 0.2s ease;
-  // 新增：展开时箭头旋转
-  transform: rotate(0deg);
-
-  // 父元素展开时，箭头旋转90度
-  .custom-category__title[aria-expanded="true"] & {
-    transform: rotate(90deg);
-  }
-}
-
-// 优化分类标题的可访问性（可选）
-.custom-category__title {
-
-  // 新增 aria 属性，配合样式和可访问性
-  &[aria-expanded="true"] {
-    background: rgba(24, 144, 255, 0.3);
   }
 }
 
@@ -3546,7 +3057,7 @@ main {
   position: fixed;
   top: 7vw;
   left: 1.5vw;
-  width: 22vw;
+  width: 25vw;
   max-height: 78vh;
   background: rgba(0, 15, 30, 0.98);
   border: 1px solid #00c6ff;
@@ -3596,7 +3107,7 @@ main {
     padding: 8px 10px;
     background: rgba(0, 30, 55, 0.9);
     border-bottom: 1px solid #00c6ff;
-    flex-shrink: 0; // 防止被压缩
+    // flex-shrink: 0; // 防止被压缩
 
     .search-row {
       display: flex;
@@ -3614,7 +3125,7 @@ main {
 
         &.time-input {
           flex: none;
-          width: 130px;
+          width: 100px;
         }
 
         &.name-input {
@@ -3622,18 +3133,37 @@ main {
         }
       }
 
-      .search-btn {
-        padding: 4px 12px;
-        background: #00c6ff;
-        border: none;
-        border-radius: 4px;
-        color: #000;
+      /* 替换原来的 .search-btn，使用 :deep() 穿透修改 element-plus 默认样式 */
+      .alarm-search-btn {
+        flex-shrink: 0;
+        /* 防止被挤压 */
+        height: 26px;
+        /* 与 input 高度对齐 */
+        min-width: 40px;
+        /* 保证图标按钮不会太窄 */
+        padding: 0 10px !important;
+        margin: 0 !important;
+        background-color: #00c6ff !important;
+        border: 1px solid #00c6ff !important;
+        color: #000 !important;
+        font-size: 12px !important;
+        border-radius: 4px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
-        font-size: 12px;
         transition: all 0.2s;
 
         &:hover {
+          background-color: #33d1ff !important;
+          border-color: #33d1ff !important;
           transform: scale(1.05);
+        }
+
+        /* 穿透修改 Element Plus 内部图标颜色和大小 */
+        :deep(.el-icon) {
+          color: #000 !important;
+          font-size: 14px !important;
         }
       }
     }
@@ -3768,15 +3298,6 @@ main {
 
 // 响应式调整
 @media screen and (max-width: 768px) {
-  .arenbiao {
-    padding: 0 20px !important;
-
-    &__item {
-      min-width: 80px !important;
-      height: 40px !important;
-      font-size: 14px !important;
-    }
-  }
 
   .video-container {
     width: 80vw !important;
@@ -3790,53 +3311,6 @@ main {
   html,
   body {
     font-size: clamp(20px, 1vw, 30px);
-  }
-
-  .arenbiao {
-    position: absolute;
-    margin-top: -5vh;
-    left: 7vw;
-    right: 7vw;
-    padding: 0 2vw;
-
-    &__item {
-      min-width: 4vw;
-      height: 1.3vw;
-      font-size: 0.5vw;
-      border-radius: 0.5vw;
-    }
-
-    &__left-list,
-    &__right-list {
-      gap: 3vw;
-    }
-  }
-
-  .arenbiao1 {
-    max-height: 13vw;
-    min-width: 6vw;
-    padding: 0.2vw 1vw;
-    font-size: 5rem;
-    overflow: hidden;
-  }
-
-  .custom-options {
-    &__item {
-      font-size: 0.4vw;
-    }
-
-    &__checkbox {
-      width: 0.6vw;
-      height: 0.6vw;
-    }
-
-    &__confirm {
-      position: relative;
-      top: -23vh;
-      width: 100%;
-      padding: 0.2vw 0;
-      font-size: 0.4vw;
-    }
   }
 
   .video-container {
@@ -4116,42 +3590,27 @@ main {
     font-size: clamp(20px, 1vw, 30px);
   }
 
-  .arenbiao {
-    &__item {
-      min-width: 3.5vw;
-      height: 2vw;
-      // margin-top: -5%;
-      // background-color: rgba(255, 255, 255, 0.9);
-      background-image: url("../assets/img/按钮new.png") !important;
-      // background-size: 100% 100% !important;
-      /* 强制拉伸填充，可能变形 */
-      // background-repeat: no-repeat !important;
-      border-radius: 0.4vw;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      // box-shadow: 0 0.1vw 0.4vw rgba(0, 0, 0, 0.1);
-      font-size: 0.5vw;
-
-      &--active {
-        background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-        color: white;
-        box-shadow: 0 0.2vw 0.8vw rgba(24, 144, 255, 0.4);
-      }
-
-      &:hover {
-        transform: scale(1.05);
-        // background-color: #e6f7ff;
-      }
-    }
+  // 菜单高度
+  .menu-container {
+    top: 6vw;
   }
 
-  .arenbiao__sub-item {
-    // min-width: 5.8vw;
-    margin-top: 5px !important;
-    // margin-bottom: 0.01rem !important;
+  // 底部巡航菜单
+  .smart-display-item {
+    width: 8vw; // 固定宽度
+    height: 6vw; // 固定高度
+    border-radius: 8px;
+
+    // 文字样式：浮动在底部，带透明浅色背景
+    p {
+      // padding: 0.1rem;
+      // background: rgba(255, 255, 255, 0.2); // 透明浅色背景
+      // color: #fff; // 黑色文字
+      font-size: 0.18rem;
+      // font-weight: bold;
+      // text-align: center;
+      // backdrop-filter: blur(2px); // 背景模糊效果，提升文字可读性
+    }
   }
 
   .video-container {
@@ -4205,171 +3664,28 @@ main {
     font-size: clamp(18px, 1vw, 30px);
   }
 
-  .arenbiao {
-    /* 左右按钮两端靠边对齐 */
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    width: 90%;
 
-
-
-    &__item {
-      min-width: 4vw;
-      height: 3vw;
-      margin-top: -5%;
-      margin-right: 0.4vw;
-      /* 按钮之间横向间隔 */
-      // background-color: rgba(255, 255, 255, 0.9);
-      background-image: url("../assets/img/按钮new.png") !important;
-      background-size: 100% 100% !important;
-      /* 强制拉伸填充，可能变形 */
-      // background-repeat: no-repeat !important;
-      border-radius: 0.4vw;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      // box-shadow: 0 0.1vw 0.4vw rgba(0, 0, 0, 0.1);
-      font-size: 0.42vw;
-
-      &--active {
-        background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-        color: white;
-        box-shadow: 0 0.2vw 0.8vw rgba(24, 144, 255, 0.4);
-      }
-
-      &:hover {
-        transform: scale(1.05);
-        // background-color: #e6f7ff;
-      }
-    }
-
-    .arenbiao__left-list {
-      margin-left: -3.6rem;
-    }
+  // 菜单高度
+  .menu-container {
+    top: 3vw;
   }
 
-  .arenbiao1 {
-    z-index: 999;
-    margin-top: 0.3vw;
-    background-color: #0f100f;
-    padding: 0.22vw 0.65vw;
-    border-radius: 0.3vw;
-    width: 4.4vw;
-    // height: 30vh;
-    border: 3px solid #215c82;
-    overflow-y: auto;
-    min-width: 3.2vw;
-    color: #fff;
-    font-size: 0.36vw;
-    line-height: 1.4;
-    box-shadow: 0 0.15vw 0.5vw rgba(0, 0, 0, 0.15);
+  // 底部巡航菜单
+  .smart-display-item {
+    width: 6vw; // 固定宽度
+    height: 4vw; // 固定高度
+    border-radius: 8px;
 
-    &::-webkit-scrollbar {
-      width: 0.2vw;
+    // 文字样式：浮动在底部，带透明浅色背景
+    p {
+      // padding: 0.1rem;
+      // background: rgba(255, 255, 255, 0.2); // 透明浅色背景
+      // color: #fff; // 黑色文字
+      font-size: 0.18rem;
+      // font-weight: bold;
+      // text-align: center;
+      // backdrop-filter: blur(2px); // 背景模糊效果，提升文字可读性
     }
-
-    &::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 0.1vw;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #ccc;
-      border-radius: 0.1vw;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background: #999;
-    }
-
-    /* 内部列表全局重置 */
-    .custom-options__list {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .custom-category__item {
-      margin: 0.1vw 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    /* ==========优化一级分类标题展示效果========== */
-    .custom-category__title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.24vw 0.2vw;
-      cursor: pointer;
-      white-space: nowrap;
-      background-color: rgba(33, 92, 130, 0.25);
-      border-radius: 0.2vw;
-      transition: background-color 0.2s ease;
-      font-weight: 500;
-
-      &:hover {
-        background-color: rgba(33, 92, 130, 0.45);
-      }
-
-      &.disabled {
-        opacity: 0.45;
-        cursor: not-allowed;
-      }
-
-      .category-arrow {
-        flex-shrink: 0;
-        margin-left: 0.15vw;
-        font-size: 0.32vw;
-      }
-    }
-
-    /* 二级子列表容器 */
-    .custom-options__children {
-      margin: 0.12vw 0 0.2vw 0;
-      padding: 0 0.25vw 0 0.45vw;
-      list-style: none;
-      border-left: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    /* 二级子选项 */
-    .custom-options__item {
-      padding: 0.16vw 0.05vw;
-      line-height: 1.3;
-      cursor: pointer;
-      white-space: nowrap;
-      border-radius: 0.15vw;
-      transition: background-color 0.2s ease;
-
-      &:hover {
-        background-color: rgba(255, 255, 255, 0.12);
-      }
-    }
-  }
-
-  .arenbiao__sub-item {
-    // min-width: 5.8vw;
-    margin-top: 3px !important;
-    margin-bottom: 0 !important;
-    line-height: 1.35;
-  }
-
-  .arenbiao__sub-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    // width: 10vw;
-    display: flex;
-    flex-direction: column;
-    gap: 0; // 【极致紧凑】无间距
-    position: absolute;
-    top: 2.2vw;
-    left: 53%;
-    transform: translateX(-50%);
-    z-index: 99999;
   }
 
   .video-container {
@@ -4415,7 +3731,7 @@ main {
     bottom: 1vw;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 999999;
+    z-index: 999;
     display: flex;
     justify-content: center;
     gap: 2vw; // 按钮之间的间距
@@ -4692,84 +4008,6 @@ main {
 }
 
 @media screen and (width: 3128px) and (height: 1760px) {
-  .arenbiao {
-    position: absolute;
-    top: 2vw;
-    left: -2.3vw;
-    right: -1vw;
-    z-index: 999999;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 2.3vw;
-    box-sizing: border-box;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-
-    &--show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    &__left-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      gap: 0;
-    }
-
-    &__right-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-    }
-
-    &__right-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      gap: 0;
-    }
-
-    &__item {
-      min-width: 6.3vw;
-      height: 4.8vw;
-      margin-top: -5%;
-      // background-color: rgba(255, 255, 255, 0.9);
-      background-image: url("../assets/img/按钮new.png") !important;
-      background-size: 100% 100% !important;
-      /* 强制拉伸填充，可能变形 */
-      // background-repeat: no-repeat !important;
-      border-radius: 0.4vw;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      // box-shadow: 0 0.1vw 0.4vw rgba(0, 0, 0, 0.1);
-      font-size: 0.9vw;
-
-      &--active {
-        background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-        color: white;
-        box-shadow: 0 0.2vw 0.8vw rgba(24, 144, 255, 0.4);
-      }
-
-      &:hover {
-        transform: scale(1.05);
-        // background-color: #e6f7ff;
-      }
-    }
-
-    &__text {
-      margin-top: 0.5vw;
-      padding: 0;
-      text-align: center;
-      color: white;
-    }
-  }
 
   // 新增：链消息弹窗样式（暗黑风格，不影响原有样式）
   .chain-msg-popup {
@@ -5016,215 +4254,6 @@ main {
 // 横屏超高清大屏额外适配
 @media screen and (width: 11520px) and (height: 2160px) {
 
-  // 按钮容器样式
-  .arenbiao {
-    position: absolute;
-    top: 0.2vw;
-    left: -2vw;
-    right: -1vw;
-    margin-top: -2%;
-    z-index: 999999;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 2.3vw;
-    box-sizing: border-box;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-
-    &--show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    &__left-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      gap: 0;
-    }
-
-    &__right-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-    }
-
-    &__right-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      gap: 0;
-    }
-
-    &__item {
-      min-width: 5.8vw;
-      height: 2.4vw;
-      padding-bottom: 0.15vw;
-      // background-color: rgba(255, 255, 255, 0.9);
-      background-image: url("../assets/img/按钮new.png") !important;
-      background-size: 100% 100% !important;
-      /* 强制拉伸填充，可能变形 */
-      // background-repeat: no-repeat !important;
-      border-radius: 0.4vw;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      // box-shadow: 0 0.1vw 0.4vw rgba(0, 0, 0, 0.1);
-      font-size: 0.6vw;
-
-      &--active {
-        background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-        color: white;
-        box-shadow: 0 0.2vw 0.8vw rgba(24, 144, 255, 0.4);
-      }
-
-      &:hover {
-        transform: scale(1.05);
-        // background-color: #e6f7ff;
-      }
-    }
-
-    &__text {
-      margin-top: 0.5vw;
-      padding: 0;
-      text-align: center;
-      color: white;
-    }
-  }
-
-  .arenbiao1 {
-    z-index: 999;
-    margin-top: 0.5vw;
-    background-color: #0f100f;
-    padding: 0.3vw 1vw;
-    border-radius: 0.4vw;
-    width: 10vw;
-    // height: 30vh;
-    border: 5px solid #215c82;
-    overflow-y: auto;
-    min-width: 4vw;
-    color: #fff;
-    box-shadow: 0 0.2vw 0.6vw rgba(0, 0, 0, 0.15);
-
-    &::-webkit-scrollbar {
-      width: 0.3vw;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 0.15vw;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #ccc;
-      border-radius: 0.15vw;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background: #999;
-    }
-  }
-
-  // 自定义选项根列表
-  .custom-options {
-    &__list {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    // 二级选项列表
-    &__children {
-      margin: 0.2vw 0 0.2vw 1.5vw;
-      padding: 0;
-
-      list-style: none;
-    }
-
-    // 二级选项项（点击触发）
-    &__item {
-      display: flex;
-      align-items: center;
-      margin: 0.4vw 0;
-      padding: 0.3vw 0.6vw;
-      font-size: 0.5vw;
-      border-radius: 0.3vw;
-      cursor: pointer;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: rgba(24, 144, 255, 0.2);
-        color: #00c6ff;
-        transform: translateX(0.2vw);
-      }
-    }
-
-    // 移除所有复选框相关样式
-  }
-
-  // 一级分类标题样式
-  .custom-category__item {
-    margin: 0.3vw 0;
-  }
-
-  .custom-category__title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.2vw 0.8vw;
-    background: rgba(24, 144, 255, 0.1);
-    border-radius: 0.3vw;
-    cursor: pointer;
-    font-size: 0.6vw;
-    font-weight: 600;
-    color: #00c6ff;
-    border: 1px solid #215c82;
-    transition: all 0.2s ease;
-
-    // 禁用状态样式（灰显 + 禁止点击）
-    &.disabled {
-      background: rgba(100, 100, 100, 0.1);
-      color: #666;
-      border-color: #444;
-      cursor: not-allowed;
-
-      &:hover {
-        background: rgba(100, 100, 100, 0.1);
-      }
-    }
-
-    &:not(.disabled):hover {
-      background: rgba(24, 144, 255, 0.2);
-      color: #1890ff;
-    }
-  }
-
-  .category-arrow {
-    font-size: 0.6vw;
-    transition: transform 0.2s ease;
-    // 新增：展开时箭头旋转
-    transform: rotate(0deg);
-
-    // 父元素展开时，箭头旋转90度
-    .custom-category__title[aria-expanded="true"] & {
-      transform: rotate(90deg);
-    }
-  }
-
-  // 优化分类标题的可访问性（可选）
-  .cust om-category__title {
-
-    // 新增 aria 属性，配合样式和可访问性
-    &[aria-expanded="true"] {
-      background: rgba(24, 144, 255, 0.3);
-    }
-  }
-
   .chain-msg-popup {
     position: fixed;
     top: 3vw;
@@ -5270,6 +4299,21 @@ main {
         &:hover {
           color: #ff4d4f;
           transform: scale(1.1);
+        }
+      }
+    }
+
+    .popup-search-bar {
+      .search-row {
+        .alarm-search-btn {
+          height: 60px !important;
+          min-width: 90px;
+          padding: 0 24px !important;
+          font-size: 0.4rem !important;
+
+          :deep(.el-icon) {
+            font-size: 0.5rem !important;
+          }
         }
       }
     }
@@ -5472,16 +4516,6 @@ main {
     right: 1.5vw;
   }
 
-  // .video-container {
-  //   top: 40vh;
-  //   right: 15vw;
-  // }
-
-  .arenbiao {
-    top: 2vw;
-    padding: 0 1.8vw;
-  }
-
   // 视频弹窗样式
   .video-container {
     width: 20vw;
@@ -5584,265 +4618,6 @@ main {
     height: 1vw;
   }
 
-  // 按钮容器样式
-  .arenbiao {
-    position: absolute;
-    top: 0.2vw;
-    left: -2vw;
-    right: -1vw;
-    margin-top: -2%;
-    z-index: 999999;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 2.3vw;
-    box-sizing: border-box;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-
-    &--show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    &__left-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      gap: 0;
-    }
-
-    &__right-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-    }
-
-    &__right-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      gap: 0;
-    }
-
-    &__item {
-      min-width: 5.8vw;
-      height: 2.4vw;
-      padding-bottom: 0.15vw;
-      // background-color: rgba(255, 255, 255, 0.9);
-      background-image: url("../assets/img/按钮new.png") !important;
-      background-size: 100% 100% !important;
-      /* 强制拉伸填充，可能变形 */
-      // background-repeat: no-repeat !important;
-      border-radius: 0.4vw;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      // box-shadow: 0 0.1vw 0.4vw rgba(0, 0, 0, 0.1);
-      font-size: 0.6vw;
-
-      &--active {
-        background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-        color: white;
-        box-shadow: 0 0.2vw 0.8vw rgba(24, 144, 255, 0.4);
-      }
-
-      &:hover {
-        transform: scale(1.05);
-        // background-color: #e6f7ff;
-      }
-    }
-
-    &__text {
-      margin-top: 0.5vw;
-      padding: 0;
-      text-align: center;
-      color: white;
-    }
-  }
-
-  // 右侧主按钮列表（3个主按钮）
-  .arenbiao__right-main-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    gap: 0; // 主按钮之间无间距，保持原有样式
-
-    // 主按钮样式（继承原有arenbiao__item样式，新增相对定位用于子按钮布局）
-    .arenbiao__main-item {
-      @extend .arenbiao__item;
-      position: relative; // 子按钮绝对定位参考
-      cursor: pointer;
-
-      // 主按钮鼠标移入高亮（保留原有hover效果）
-      &:hover {
-        transform: scale(1.05);
-      }
-    }
-  }
-
-  .arenbiao__sub-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0; // 【极致紧凑】无间距
-    position: absolute;
-    top: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-
-    // 子按钮样式
-    .arenbiao__sub-item {
-      @extend .arenbiao__item;
-      // min-width: 5.8vw;
-      // height: 2.0vw;
-      padding: 0;
-      margin: 0;
-      // line-height: 2.0vw;
-      font-size: 0.7vw;
-      margin-bottom: -0.7vw;
-    }
-  }
-
-  .arenbiao1 {
-    position: fixed;
-    right: 1.3vw;
-    top: 2.5vw;
-    z-index: 999;
-    margin-top: 0.5vw;
-    background-color: #0f100f;
-    padding: 0.3vw 1vw;
-    border-radius: 0.4vw;
-    width: 10vw;
-    // height: 30vh;
-    border: 5px solid #215c82;
-    overflow-y: auto;
-    min-width: 4vw;
-    color: #fff;
-    box-shadow: 0 0.2vw 0.6vw rgba(0, 0, 0, 0.15);
-
-    &::-webkit-scrollbar {
-      width: 0.3vw;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 0.15vw;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #ccc;
-      border-radius: 0.15vw;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background: #999;
-    }
-  }
-
-  // 自定义选项根列表
-  .custom-options {
-    &__list {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    // 二级选项列表
-    &__children {
-      margin: 0.2vw 0 0.2vw 1.5vw;
-      padding: 0;
-
-      list-style: none;
-    }
-
-    // 二级选项项（点击触发）
-    &__item {
-      display: flex;
-      align-items: center;
-      margin: 0.4vw 0;
-      padding: 0.3vw 0.6vw;
-      font-size: 0.5vw;
-      border-radius: 0.3vw;
-      cursor: pointer;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: rgba(24, 144, 255, 0.2);
-        color: #00c6ff;
-        transform: translateX(0.2vw);
-      }
-    }
-
-    // 移除所有复选框相关样式
-  }
-
-  // 一级分类标题样式
-  .custom-category__item {
-    margin: 0.3vw 0;
-  }
-
-  .custom-category__title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.2vw 0.8vw;
-    background: rgba(24, 144, 255, 0.1);
-    border-radius: 0.3vw;
-    cursor: pointer;
-    font-size: 0.6vw;
-    font-weight: 600;
-    color: #00c6ff;
-    border: 1px solid #215c82;
-    transition: all 0.2s ease;
-
-    // 禁用状态样式（灰显 + 禁止点击）
-    &.disabled {
-      background: rgba(100, 100, 100, 0.1);
-      color: #666;
-      border-color: #444;
-      cursor: not-allowed;
-
-      &:hover {
-        background: rgba(100, 100, 100, 0.1);
-      }
-    }
-
-    &:not(.disabled):hover {
-      background: rgba(24, 144, 255, 0.2);
-      color: #1890ff;
-    }
-  }
-
-  .category-arrow {
-    font-size: 0.6vw;
-    transition: transform 0.2s ease;
-    // 新增：展开时箭头旋转
-    transform: rotate(0deg);
-
-    // 父元素展开时，箭头旋转90度
-    .custom-category__title[aria-expanded="true"] & {
-      transform: rotate(90deg);
-    }
-  }
-
-  // 优化分类标题的可访问性（可选）
-  .cust om-category__title {
-
-    // 新增 aria 属性，配合样式和可访问性
-    &[aria-expanded="true"] {
-      background: rgba(24, 144, 255, 0.3);
-    }
-  }
-
   .chain-msg-popup {
     position: fixed;
     top: 2vw;
@@ -5922,18 +4697,15 @@ main {
           }
         }
 
-        .search-btn {
-          padding: 13px 30px;
-          background: #00c6ff;
-          border: none;
-          border-radius: 4px;
-          color: #000;
-          cursor: pointer;
-          font-size: 0.25rem;
-          transition: all 0.2s;
+        /* 替换原来的 .search-btn */
+        .alarm-search-btn {
+          height: 48px !important;
+          min-width: 80px;
+          padding: 0 30px !important;
+          font-size: 0.25rem !important;
 
-          &:hover {
-            transform: scale(1.05);
+          :deep(.el-icon) {
+            font-size: 0.3rem !important;
           }
         }
       }
@@ -6136,23 +4908,6 @@ main {
     top: 19vh;
     right: 1.5vw;
     // display: block;
-
-    // .video-plugin {
-    //   width: 100%;
-    //   height: 100%;
-    //   padding-top: 1.5vw;
-    //   display: none;
-    // }
-  }
-
-  // .video-container {
-  //   top: 40vh;
-  //   right: 15vw;
-  // }
-
-  .arenbiao {
-    top: 2vw;
-    padding: 0 1.8vw;
   }
 
   // 视频弹窗样式
