@@ -35,8 +35,8 @@ const showSmartDisplay = ref(false);
 const smartDisplayItems = ref([
   { label: 'A馆北侧', value: ['q2'], image: '/src/assets/img/A馆北侧.png' },
   { label: 'A馆南侧', value: ['q1'], image: '/src/assets/img/A馆南侧.png' },
-  { label: 'A馆序厅一楼', value: ['q30'], image: '/src/assets/img/A馆序厅一楼.png' },
-  { label: 'A馆序厅二楼', value: ['q31'], image: '/src/assets/img/A馆序厅二楼.png' },
+  { label: 'A馆序厅一楼', value: ['q30'], image: '/src/assets/img/序厅一楼.png' },
+  { label: 'A馆序厅二楼', value: ['q31'], image: '/src/assets/img/序厅二楼.png' },
   { label: 'B馆北侧', value: ['q4', 'q6'], image: '/src/assets/img/B馆北侧.png' },
   { label: 'B馆中间', value: ['q3', 'q9'], image: '/src/assets/img/B馆中间.png' },
   { label: 'B馆南侧', value: ['q7', 'q5'], image: '/src/assets/img/B馆南侧.png' },
@@ -44,11 +44,11 @@ const smartDisplayItems = ref([
   { label: 'C馆中间', value: ['q42'], image: '/src/assets/img/C馆中间.png' },
   { label: 'C馆北侧', value: ['q43'], image: '/src/assets/img/C馆北侧.png' },
   { label: '北会', value: ['q44'], image: '/src/assets/img/北会.png' },
-  { label: '生态连廊', value: ['q33'], image: '/src/assets/img/生态连廊.png' },
-  { label: '报告', value: ['q38'], image: '/src/assets/img/报告.png' },
+  { label: '生态连廊', value: ['q33'], image: '/src/assets/img/ST.png' },
+  { label: '报告', value: ['q38'], image: '/src/assets/img/报告厅.png' },
   { label: '登录厅', value: ['q39'], image: '/src/assets/img/登录厅.png' },
   { label: '西广场', value: ['q40'], image: '/src/assets/img/西广场.png' },
-  { label: 'AB馆连廊', value: ['q32'], image: '/src/assets/img/AB馆连廊.png' },
+  { label: 'AB馆连廊', value: ['q32'], image: '/src/assets/img/AB.png' },
 ]);
 
 // 是否显示停止
@@ -110,6 +110,7 @@ const handleSmartDisplayItemClick = (value: string[]) => {
     setTimeout(() => vMapRef.value?.Erxun("entity23"), 1000);
   } else if (value[0] == "q44") {
     vMapRef.value?.removeModelById(3);
+    vMapRef.value?.beihui();
   }
 };
 

@@ -9,8 +9,11 @@ import ModelCol from "../../assets/js/modelColCar.js";
 import ModelColCarbaogao from "../../assets/js/ModelColCarbaogao.js";
 import ModelColCarxuting from "../../assets/js/ModelColCarxuting.js";
 import ModelColQiao from "../../assets/js/ModelColQiao.js";
+import { useCameraFly } from '@/utils/cesiumFly';  //引入飞行
 // 获取状态
 const viewportStore = useViewportStore();
+// 初始化飞行控制器，传入获取 viewer 的方法
+const { flyToView } = useCameraFly(() => viewer);
 const isSpecialViewport = computed(() => viewportStore.isSpecialViewport);
 // 子传父
 const emits = defineEmits([
@@ -2263,6 +2266,43 @@ let trailer38Ref = ref();
 //   }
 // };
 
+// 北会飞行
+const beihui = () => {
+  if (isSpecialViewport.value === 1) {
+    viewer.camera.flyTo({
+      //定位到范围中心点
+      destination: {
+        x: -2191526.567577822,
+        y: 4392091.659490352,
+        z: 4059237.1305910945
+      },
+      orientation: {
+        pitch: -0.6986306560699496,
+        heading: 1.029713186672386,
+        roll: 0.0,
+      },
+      duration: 3,
+    });
+  } else if (isSpecialViewport.value === false) {
+    viewer.camera.flyTo({
+      //定位到范围中心点
+      destination: {
+        x: -2191526.567577822,
+        y: 4392091.659490352,
+        z: 4059237.1305910945
+      },
+      orientation: {
+        pitch: -0.6986306560699496,
+        heading: 1.029713186672386,
+        // heading: testHeading,//左右方向
+        // pitch: testPitch, //上下方向
+        roll: 0.0,
+      },
+      duration: 3,
+    });
+  }
+}
+
 // 视频播放器
 let shipin;
 let shipins;
@@ -2278,7 +2318,6 @@ let QuanJing = function (e, idArray) {
     } else if (isSpecialViewport.value === false) {
       xuting();
     }
-
     getxuting();
     // console.log("------",11111)
   } else if (idArray == "q30") {
@@ -2319,11 +2358,6 @@ let QuanJing = function (e, idArray) {
     ABlianlang();
     // getbaogaoting()
   } else if (idArray == "q38") {
-    // console.log("------",11111)
-    // closeAllWebSockets()
-    // dengluting()
-    // DT()
-    // getbaogaoting()
     if (isSpecialViewport.value === true) {
       dengluting1();
       // vMapRef.value?.()
@@ -2420,39 +2454,7 @@ let QuanJing = function (e, idArray) {
   } else if (idArray == "q41" || idArray == "q42" || idArray == "q43") {
   } else if (idArray == "q44") {
     // 北会
-    if (isSpecialViewport.value === 1) {
-      viewer.camera.flyTo({
-        //定位到范围中心点
-        destination: {
-          x: -2191526.567577822,
-          y: 4392091.659490352,
-          z: 4059237.1305910945
-        },
-        orientation: {
-          pitch: -0.6986306560699496,
-          heading: 1.029713186672386,
-          roll: 0.0,
-        },
-        duration: 0,
-      });
-    } else if (isSpecialViewport.value === false) {
-      viewer.camera.flyTo({
-        //定位到范围中心点
-        destination: {
-          x: -2191526.567577822,
-          y: 4392091.659490352,
-          z: 4059237.1305910945
-        },
-        orientation: {
-          pitch: -0.6986306560699496,
-          heading: 1.029713186672386,
-          // heading: testHeading,//左右方向
-          // pitch: testPitch, //上下方向
-          roll: 0.0,
-        },
-        duration: 0,
-      });
-    }
+    beihui();
   }
 
   // 定义所有视频实体配置 ---- 小屏
@@ -3914,7 +3916,6 @@ let xuting = () => {
 };
 
 let xuting2 = () => {
-  // console.log("------2222测试", 11111)
   viewer.camera.flyTo({
     //定位到范围中心点
     destination: {
@@ -5372,6 +5373,7 @@ defineExpose({
   nanmian,
   shangmian,
   Erxun,
+  beihui, //北会飞行
   stopErxun,
   continueErxun,
   // ===== 新增：动态区域显示/隐藏 =====
