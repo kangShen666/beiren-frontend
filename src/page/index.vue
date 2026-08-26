@@ -27,6 +27,9 @@ import {
   init,
 } from "../assets/HangKai";
 
+// 新增：标记是否为初始化加载全景
+const isInitialLoad = ref(true);
+
 // 新增：智能展示数据
 const showSmartDisplay = ref(false);
 const smartDisplayItems = ref([
@@ -205,7 +208,7 @@ const risk = reactive({
 
 // 获取到cesium的全部导出的方法
 const vMapRef = useTemplateRef<VMapExposed>("vMapRef");
-const videoRef = useTemplateRef("webrtc");
+const videoRef = useTemplateRef("videoRef");
 
 // 飞行控制相关 - 移除弹窗和时间选择逻辑
 let flightSpeed = ref<number>(8); // 默认8秒，不再提供修改
@@ -824,6 +827,9 @@ const toggleOuter = () => {
 //   }
 // };
 
+
+
+
 let QJSP = ref("");
 // 全景按钮
 const togglePanorama = () => {
@@ -874,9 +880,17 @@ const togglePanorama = () => {
     vMapRef.value?.getshengtailianlang();
     vMapRef.value?.getbaogaoting();
     vMapRef.value?.getxuting();
-    // vMapRef.value?.removeModelById(3);
     // 缓慢升高移除
-    vMapRef.value?.removeModelWithAnimation(3, { raiseHeight: 65, duration: 2500 });
+    // 判断是否是初始化加载
+    if (isInitialLoad.value) {
+      // 首次 onMounted 执行时：直接移除，无动画
+      vMapRef.value?.removeModelById(3);
+      // 标记初始化完成，下次点击将走 else 分支
+      isInitialLoad.value = false;
+    } else {
+      // 之后点击全景按钮时：缓慢升高移除，带动画
+      vMapRef.value?.removeModelWithAnimation(3, { raiseHeight: 65, duration: 2500 });
+    }
     buttonStatus.value.outer = false;
   }
 };
@@ -982,8 +996,8 @@ const resetHallC = async () => {
 };
 
 // 弹窗拖动事件
-const x = ref(0);
-const y = ref(0);
+const x = ref(200);
+const y = ref(100);
 let startX = 0;
 let startY = 0;
 let dragging = false;
@@ -1836,8 +1850,9 @@ const handleCruisePointChange = (pointName) => {
 // 11520 2160
 
 onUnmounted(() => {
-  window.removeEventListener("resize", handleResize);
-
+  // window.removeEventListener("resize", handleResize);
+  // 增加安全清理（如果用户拖拽途中切走页面）
+  stopDrag();
   stopChainMsgPolling();
 });
 
@@ -1955,7 +1970,7 @@ const changXiao = function (e: MouseEvent): void {
           <!-- 移除飞行控制面板弹窗 -->
 
           <!-- 联动视频 -->
-          <div class="liandongshipin" v-if="ldsp">
+          <!-- <div class="liandongshipin" v-if="ldsp">
             <div id="videoRefId" class="video-ref">
               <div class="video-plugin" id="divPlugin" ref="player"></div>
               <div class="fangxiang">
@@ -1964,7 +1979,7 @@ const changXiao = function (e: MouseEvent): void {
                 </button>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <!-- 地图容器 -->
           <div class="chart">
@@ -1974,23 +1989,19 @@ const changXiao = function (e: MouseEvent): void {
 
           <!-- 视频弹窗 -->
           <div v-if="isShow.isShowVideo" class="video-container" ref="videoRef"
-            :style="{ left: `${x}px`, top: `${y}px` }" style="position: absolute" @mousedown="startDrag">
+            :style="{ left: `${x}px`, top: `${y}px` }" style="position: absolute">
             <!-- 名字显示区域 -->
-            <div class="name-display">{{ videoName || "摄像头01" }}</div>
+            <div class="name-display" @mousedown="startDrag">{{ videoName || "摄像头01" }}</div>
 
-            <!-- 关闭按钮 -->
-            <button class="video-container__close" aria-label="关闭视频" @click="closeHisVideo">
-              <img src="../assets/img/close.png" alt="关闭" class="close-icon-image" />
-            </button>
+            <div class="video-container__close" @click="closeHisVideo">退出</div>
 
             <!-- 视频播放器 -->
             <div class="player-container">
-              <div class="player-item">
-                <div class="player-box" id="player_box1"></div>
-              </div>
+              <!-- <div class="player-item"> -->
+              <div class="player-box" id="player_box1"></div>
+              <!-- </div> -->
             </div>
 
-            <!-- <button class="video-container__play" @click="onPlayer(url)" v-if="!isPlay">播放</button> -->
           </div>
 
           <div class="popup-mask" v-show="showPopup" @click.self="closePopup">
@@ -2725,27 +2736,33 @@ main {
   width: 40vw;
   height: 50vh;
   z-index: 9999;
-  position: absolute;
-  right: 9vw;
-  top: 12vh;
-  background-image: url("../assets/img/border_1.png");
+  // position: absolute;
+  // right: 9vw;
+  // top: 12vh;
+  background-image: url("../assets/img/video.png");
   background-size: 100% 100%;
   background-repeat: no-repeat;
   border-radius: 0.4vw;
   overflow: hidden;
-  box-shadow: 0 0.2vw 1vw rgba(0, 0, 0, 0.3);
+  // 【新增】关键代码：使用 drop-shadow 让非透明像素发光
+  // 这会给整个背景图的边缘加上光晕
+  filter: drop-shadow(0 0 10px rgba(0, 198, 255, 0.8)) brightness(1.2); //稍微提亮原图
+
+  // box-shadow: 0 0 15px rgba(0, 198, 255, 0.3); // 外层辅助光晕
+  // border: 1px solid rgba(0, 198, 255, 0.3); // 增加一圈细边框强化轮廓
+  // box-shadow: 0 0.2vw 1vw rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
+  color: #fff;
+  font-size: clamp(0.7vw, 1.2vw, 0.8vw);
+  font-weight: bold;
 
   .name-display {
     position: absolute;
-    top: 0.6vw;
+    top: 1vw;
     left: 50%;
     transform: translate(-50%);
     z-index: 100;
-    color: #fff;
-    font-size: clamp(0.7vw, 1.2vw, 0.8vw);
-    font-weight: bold;
     padding: 0.25vw 0.6vw;
     border-radius: 0.75vw;
     text-shadow: 0.05vw 0.05vw 0.1vw rgba(0, 0, 0, 0.8);
@@ -2753,14 +2770,17 @@ main {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+     // 新增：提示可拖拽
+    cursor: move;
+    user-select: none; // 防止拖拽时选中文字
   }
 
   &__close {
     position: absolute;
-    top: 0.5vw;
-    right: 0.75vw;
+    top: 1vw;
+    right: 0.8vw;
     z-index: 100;
-    width: 2vw;
+    width: 4.5vw;
     height: 2vw;
     // border: 0.1vw solid #ddd;
     // border-radius: 50%;
@@ -2768,37 +2788,30 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
-    // transition: all 0.2s ease;
-    // background: transparent;
-    background: transparent;
-    border: none;
-    padding: 0;
-
-    .close-icon-image {
-      width: 1vw;
-      height: 1vw;
-      // object-fit: contain;
-      // filter: brightness(0.3);
-    }
+    padding-left: 0.1rem;
+    background-image: url("../assets/img/exit.png");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    // 【新增】关键代码：使用 drop-shadow 让非透明像素发光
+    // 这会给整个背景图的边缘加上光晕
+    // filter: drop-shadow(0 0 10px rgba(0, 198, 255, 0.8)) 
+    //         brightness(1.2); //稍微提亮原图
   }
 
   .player-container {
-    padding-top: 3vw;
+    padding: 0.12rem;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100%;
 
-    .player-item {
-      width: 98%;
-      height: 96%;
-
-      .player-box {
-        width: 100%;
-        height: 100%;
-        background-color: #000;
-      }
+    .player-box {
+      width: 100%;
+      height: 100%;
+      background-color: #000;
     }
+
   }
 
   &__play {
@@ -3613,38 +3626,25 @@ main {
   }
 
   .video-container {
-    width: 30vw !important;
-    height: 60vh !important;
-    z-index: 999999;
-    position: absolute;
-    right: 9vw;
-    top: 14vh;
-    background-image: url("../assets/img/border_1.png");
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    border-radius: 0.4vw;
-    overflow: hidden;
-    box-shadow: 0 0.2vw 1vw rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
+    width: 30vw;
+    height: 60vh;
+    font-size: 0.25rem;
 
-    .player-container {
-      padding-top: 1.4vw;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
+    // z-index: 999999;
+    // position: absolute;
+    // right: 9vw;
+    // top: 14vh;
 
-      .player-item {
-        width: 95%;
-        height: 90%;
+    .name-display {
+      top: 0.5vw;
+    }
 
-        .player-box {
-          width: 100%;
-          height: 100%;
-          background-color: #000;
-        }
-      }
+    &__close {
+      top: 0.7vw;
+      // padding-left: 0.1rem;
+      // right: 0.2vw;
+      width: 3vw;
+      height: 1.2vw;
     }
   }
 
@@ -3688,38 +3688,19 @@ main {
   }
 
   .video-container {
-    width: 20vw !important;
-    height: 60vh !important;
-    z-index: 999999;
-    position: absolute;
-    right: 9vw;
-    top: 14vh;
-    background-image: url("../assets/img/border_1.png");
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    border-radius: 0.4vw;
-    overflow: hidden;
-    box-shadow: 0 0.2vw 1vw rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
+    width: 20vw;
+    height: 60vh;
+    font-size: 0.25rem;
 
-    .player-container {
-      padding-top: 1.4vw;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
+    .name-display {
+      top: 0.2vw;
+    }
 
-      .player-item {
-        width: 95%;
-        height: 90%;
-
-        .player-box {
-          width: 100%;
-          height: 100%;
-          background-color: #000;
-        }
-      }
+    &__close {
+      top: 0.4vw;
+      right: 0.2vw;
+      width: 2.2vw;
+      height: 1.2vw;
     }
   }
 
@@ -4519,78 +4500,59 @@ main {
   .video-container {
     width: 20vw;
     height: 53vh;
-    z-index: 9999;
-    position: absolute;
-    right: 7.7vw;
-    top: 30vh;
-    background-image: url("../assets/img/border_1.png");
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    border-radius: 0.4vw;
-    overflow: hidden;
-    box-shadow: 0 0.2vw 1vw rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
+    // z-index: 9999;
+    // position: absolute;
+    // right: 7.7vw;
+    // top: 30vh;
+    // background-image: url("../assets/img/border_1.png");
+    // background-size: 100% 100%;
+    // background-repeat: no-repeat;
+    // border-radius: 0.4vw;
+    // overflow: hidden;
+    // box-shadow: 0 0.2vw 1vw rgba(0, 0, 0, 0.3);
+    // display: flex;
+    // flex-direction: column;
 
     .name-display {
-      position: absolute;
-      top: 0.6vw;
-      left: 50%;
-      transform: translate(-50%);
-      z-index: 100;
-      // color: #fff;
-      font-size: clamp(0.7vw, 1.2vw, 0.8vw);
-      font-weight: bold;
-      padding: 0.25vw 0.6vw;
-      border-radius: 0.75vw;
-      text-shadow: 0.05vw 0.05vw 0.1vw rgba(0, 0, 0, 0.8);
-      max-width: 10vw;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      // position: absolute;
+      // top: 0.6vw;
+      // left: 50%;
+      // transform: translate(-50%);
+      // z-index: 100;
+      // // color: #fff;
+      // font-size: clamp(0.7vw, 1.2vw, 0.8vw);
+      // font-weight: bold;
+      // padding: 0.25vw 0.6vw;
+      // border-radius: 0.75vw;
+      // text-shadow: 0.05vw 0.05vw 0.1vw rgba(0, 0, 0, 0.8);
+      // max-width: 10vw;
+      // white-space: nowrap;
+      // overflow: hidden;
+      // text-overflow: ellipsis;
     }
 
     &__close {
-      position: absolute;
-      top: -0.3vw;
-      right: 0.5vw;
-      z-index: 100;
-      width: 2vw;
-      height: 2vw;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      background: transparent;
-      border: none;
+      // position: absolute;
+      // top: -0.3vw;
+      // right: 0.5vw;
+      // z-index: 100;
+      // width: 2vw;
+      // height: 2vw;
+      // border-radius: 50%;
+      // cursor: pointer;
+      // display: flex;
+      // align-items: center;
+      // justify-content: center;
+      // padding: 0;
+      // background: transparent;
+      // border: none;
 
-      .close-icon-image {
-        width: 1vw;
-        height: 1vw;
-        // object-fit: contain;
-        // filter: brightness(0.3);
-      }
-    }
-
-    .player-container {
-      padding-top: 1.4vw;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-
-      .player-item {
-        width: 95%;
-        height: 90%;
-
-        .player-box {
-          width: 100%;
-          height: 100%;
-          background-color: #000;
-        }
-      }
+      // .close-icon-image {
+      //   width: 1vw;
+      //   height: 1vw;
+      //   // object-fit: contain;
+      //   // filter: brightness(0.3);
+      // }
     }
 
     &__play {
@@ -4610,407 +4572,407 @@ main {
 }
 
 // 横屏超高清大屏额外适配
-@media screen and (width: 5760px) and (height: 1080px) {
+// @media screen and (width: 5760px) and (height: 1080px) {
 
-  .direction-button {
-    min-width: 1vw;
-    height: 1vw;
-  }
+//   .direction-button {
+//     min-width: 1vw;
+//     height: 1vw;
+//   }
 
-  .chain-msg-popup {
-    position: fixed;
-    top: 2vw;
-    left: 1.7vw;
-    width: 21.3vw;
-    max-height: 90vh;
-    background: rgba(0, 15, 30, 0.98);
-    border: 1px solid #00c6ff;
-    border-radius: 8px;
-    z-index: 99999;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
+//   .chain-msg-popup {
+//     position: fixed;
+//     top: 2vw;
+//     left: 1.7vw;
+//     width: 21.3vw;
+//     max-height: 90vh;
+//     background: rgba(0, 15, 30, 0.98);
+//     border: 1px solid #00c6ff;
+//     border-radius: 8px;
+//     z-index: 99999;
+//     overflow: hidden;
+//     box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
 
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0, 40, 60, 0.8);
-      border-bottom: 1px solid #00c6ff;
+//     .popup-header {
+//       display: flex;
+//       justify-content: space-between;
+//       align-items: center;
+//       padding: 12px 16px;
+//       background: rgba(0, 40, 60, 0.8);
+//       border-bottom: 1px solid #00c6ff;
 
-      .popup-title {
-        color: #00c6ff;
-        font-size: 0.46rem;
-        font-weight: 600;
-        margin: 0;
-      }
+//       .popup-title {
+//         color: #00c6ff;
+//         font-size: 0.46rem;
+//         font-weight: 600;
+//         margin: 0;
+//       }
 
-      .popup-close {
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        transition: all 0.2s;
+//       .popup-close {
+//         background: transparent;
+//         border: none;
+//         color: #ffffff;
+//         font-size: 20px;
+//         cursor: pointer;
+//         width: 24px;
+//         height: 24px;
+//         display: flex;
+//         align-items: center;
+//         justify-content: center;
+//         padding: 0;
+//         transition: all 0.2s;
 
-        &:hover {
-          color: #ff4d4f;
-          transform: scale(1.1);
-        }
-      }
-    }
+//         &:hover {
+//           color: #ff4d4f;
+//           transform: scale(1.1);
+//         }
+//       }
+//     }
 
-    .popup-search-bar {
-      padding: 8px 10px;
-      background: rgba(0, 30, 55, 0.9);
-      border-bottom: 1px solid #00c6ff;
-      flex-shrink: 0; // 防止被压缩
+//     .popup-search-bar {
+//       padding: 8px 10px;
+//       background: rgba(0, 30, 55, 0.9);
+//       border-bottom: 1px solid #00c6ff;
+//       flex-shrink: 0; // 防止被压缩
 
-      .search-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+//       .search-row {
+//         display: flex;
+//         align-items: center;
+//         gap: 8px;
 
-        .search-input {
-          flex: 1;
-          padding: 13px 30px;
-          border: 1px solid #00c6ff;
-          border-radius: 4px;
-          background: rgba(0, 15, 30, 0.8);
-          color: #fff;
-          font-size: 0.25rem;
+//         .search-input {
+//           flex: 1;
+//           padding: 13px 30px;
+//           border: 1px solid #00c6ff;
+//           border-radius: 4px;
+//           background: rgba(0, 15, 30, 0.8);
+//           color: #fff;
+//           font-size: 0.25rem;
 
-          &.time-input {
-            flex: none;
-            width: 200px;
-          }
+//           &.time-input {
+//             flex: none;
+//             width: 200px;
+//           }
 
-          &.name-input {
-            width: 50px;
-          }
-        }
+//           &.name-input {
+//             width: 50px;
+//           }
+//         }
 
-        /* 替换原来的 .search-btn */
-        .alarm-search-btn {
-          height: 48px !important;
-          min-width: 80px;
-          padding: 0 30px !important;
-          font-size: 0.25rem !important;
+//         /* 替换原来的 .search-btn */
+//         .alarm-search-btn {
+//           height: 48px !important;
+//           min-width: 80px;
+//           padding: 0 30px !important;
+//           font-size: 0.25rem !important;
 
-          :deep(.el-icon) {
-            font-size: 0.3rem !important;
-          }
-        }
-      }
-    }
+//           :deep(.el-icon) {
+//             font-size: 0.3rem !important;
+//           }
+//         }
+//       }
+//     }
 
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      max-height: calc(75vh - 50px);
+//     .popup-body {
+//       padding: 16px;
+//       overflow-y: auto;
+//       max-height: calc(75vh - 50px);
 
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
+//       &::-webkit-scrollbar {
+//         width: 6px;
+//       }
 
-      &::-webkit-scrollbar-track {
-        background: rgba(0, 30, 50, 0.5);
-        border-radius: 3px;
-      }
+//       &::-webkit-scrollbar-track {
+//         background: rgba(0, 30, 50, 0.5);
+//         border-radius: 3px;
+//       }
 
-      &::-webkit-scrollbar-thumb {
-        background: #00c6ff;
-        border-radius: 3px;
-      }
+//       &::-webkit-scrollbar-thumb {
+//         background: #00c6ff;
+//         border-radius: 3px;
+//       }
 
-      .msg-item {
-        padding: 12px;
-        margin-bottom: 12px;
-        background: rgba(0, 25, 45, 0.7);
-        border-radius: 6px;
-        border-left: 3px solid #00c6ff;
+//       .msg-item {
+//         padding: 12px;
+//         margin-bottom: 12px;
+//         background: rgba(0, 25, 45, 0.7);
+//         border-radius: 6px;
+//         border-left: 3px solid #00c6ff;
 
-        .msg-content {
-          color: #ffffff;
-          font-size: 0.3rem;
-          line-height: 1.6;
-          margin-bottom: 10px;
+//         .msg-content {
+//           color: #ffffff;
+//           font-size: 0.3rem;
+//           line-height: 1.6;
+//           margin-bottom: 10px;
 
-          .label {
-            color: #00c6ff;
-            font-weight: 600;
-            margin-right: 4px;
-          }
-        }
+//           .label {
+//             color: #00c6ff;
+//             font-weight: 600;
+//             margin-right: 4px;
+//           }
+//         }
 
-        .msg-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
+//         .msg-actions {
+//           display: flex;
+//           gap: 8px;
+//           justify-content: flex-end;
 
-          .action-btn {
-            padding: 2px 30px;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.3rem;
-            cursor: pointer;
-            transition: all 0.2s;
+//           .action-btn {
+//             padding: 2px 30px;
+//             border: none;
+//             border-radius: 4px;
+//             font-size: 0.3rem;
+//             cursor: pointer;
+//             transition: all 0.2s;
 
-            &:hover {
-              transform: scale(1.05);
-            }
+//             &:hover {
+//               transform: scale(1.05);
+//             }
 
-            &.confirm {
-              background: #00c6ff;
-              color: #000000;
-            }
+//             &.confirm {
+//               background: #00c6ff;
+//               color: #000000;
+//             }
 
-            &.reject {
-              background: #ff4d4f;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
-  }
+//             &.reject {
+//               background: #ff4d4f;
+//               color: #ffffff;
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
 
-  .chain-msg-popup1 {
-    position: fixed;
-    top: 2.5vw;
-    right: 1.7vw;
-    width: 14vw;
-    max-height: 78vh;
-    background: rgba(0, 15, 30, 0.98);
-    border: 1px solid #00c6ff;
-    border-radius: 8px;
-    z-index: 99999;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
+//   .chain-msg-popup1 {
+//     position: fixed;
+//     top: 2.5vw;
+//     right: 1.7vw;
+//     width: 14vw;
+//     max-height: 78vh;
+//     background: rgba(0, 15, 30, 0.98);
+//     border: 1px solid #00c6ff;
+//     border-radius: 8px;
+//     z-index: 99999;
+//     overflow: hidden;
+//     box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
 
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0, 40, 60, 0.8);
-      border-bottom: 1px solid #00c6ff;
+//     .popup-header {
+//       display: flex;
+//       justify-content: space-between;
+//       align-items: center;
+//       padding: 12px 16px;
+//       background: rgba(0, 40, 60, 0.8);
+//       border-bottom: 1px solid #00c6ff;
 
-      .popup-title {
-        color: #00c6ff;
-        font-size: 0.4rem;
-        font-weight: 600;
-        margin: 0;
-      }
+//       .popup-title {
+//         color: #00c6ff;
+//         font-size: 0.4rem;
+//         font-weight: 600;
+//         margin: 0;
+//       }
 
-      .popup-close {
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        transition: all 0.2s;
+//       .popup-close {
+//         background: transparent;
+//         border: none;
+//         color: #ffffff;
+//         font-size: 20px;
+//         cursor: pointer;
+//         width: 24px;
+//         height: 24px;
+//         display: flex;
+//         align-items: center;
+//         justify-content: center;
+//         padding: 0;
+//         transition: all 0.2s;
 
-        &:hover {
-          color: #ff4d4f;
-          transform: scale(1.1);
-        }
-      }
-    }
+//         &:hover {
+//           color: #ff4d4f;
+//           transform: scale(1.1);
+//         }
+//       }
+//     }
 
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      max-height: calc(75vh - 50px);
+//     .popup-body {
+//       padding: 16px;
+//       overflow-y: auto;
+//       max-height: calc(75vh - 50px);
 
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
+//       &::-webkit-scrollbar {
+//         width: 6px;
+//       }
 
-      &::-webkit-scrollbar-track {
-        background: rgba(0, 30, 50, 0.5);
-        border-radius: 3px;
-      }
+//       &::-webkit-scrollbar-track {
+//         background: rgba(0, 30, 50, 0.5);
+//         border-radius: 3px;
+//       }
 
-      &::-webkit-scrollbar-thumb {
-        background: #00c6ff;
-        border-radius: 3px;
-      }
+//       &::-webkit-scrollbar-thumb {
+//         background: #00c6ff;
+//         border-radius: 3px;
+//       }
 
-      .msg-item {
-        padding: 12px;
-        margin-bottom: 12px;
-        background: rgba(0, 25, 45, 0.7);
-        border-radius: 6px;
-        border-left: 3px solid #00c6ff;
+//       .msg-item {
+//         padding: 12px;
+//         margin-bottom: 12px;
+//         background: rgba(0, 25, 45, 0.7);
+//         border-radius: 6px;
+//         border-left: 3px solid #00c6ff;
 
-        .msg-content {
-          color: #ffffff;
-          font-size: 0.3rem;
-          line-height: 1.6;
-          margin-bottom: 10px;
+//         .msg-content {
+//           color: #ffffff;
+//           font-size: 0.3rem;
+//           line-height: 1.6;
+//           margin-bottom: 10px;
 
-          .label {
-            color: #00c6ff;
-            font-weight: 600;
-            margin-right: 4px;
-          }
-        }
+//           .label {
+//             color: #00c6ff;
+//             font-weight: 600;
+//             margin-right: 4px;
+//           }
+//         }
 
-        .msg-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
+//         .msg-actions {
+//           display: flex;
+//           gap: 8px;
+//           justify-content: flex-end;
 
-          .action-btn {
-            padding: 2px 25px;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.3rem;
-            cursor: pointer;
-            transition: all 0.2s;
+//           .action-btn {
+//             padding: 2px 25px;
+//             border: none;
+//             border-radius: 4px;
+//             font-size: 0.3rem;
+//             cursor: pointer;
+//             transition: all 0.2s;
 
-            &:hover {
-              transform: scale(1.05);
-            }
+//             &:hover {
+//               transform: scale(1.05);
+//             }
 
-            &.confirm {
-              background: #00c6ff;
-              color: #000000;
-            }
+//             &.confirm {
+//               background: #00c6ff;
+//               color: #000000;
+//             }
 
-            &.reject {
-              background: #ff4d4f;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
-  }
+//             &.reject {
+//               background: #ff4d4f;
+//               color: #ffffff;
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
 
-  .liandongshipin {
-    height: 60vh;
-    width: 20vw;
-    top: 19vh;
-    right: 1.5vw;
-    // display: block;
-  }
+//   .liandongshipin {
+//     height: 60vh;
+//     width: 20vw;
+//     top: 19vh;
+//     right: 1.5vw;
+//     // display: block;
+//   }
 
-  // 视频弹窗样式
-  .video-container {
-    width: 20vw;
-    height: 70vh;
-    z-index: 9999;
-    position: absolute;
-    right: 1.7vw;
-    top: 15vh;
-    background-image: url("../assets/img/border_1.png");
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    border-radius: 0.4vw;
-    overflow: hidden;
-    box-shadow: 0 0.2vw 1vw rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
+//   // 视频弹窗样式
+//   .video-container {
+//     width: 20vw;
+//     height: 70vh;
+//     // z-index: 9999;
+//     // position: absolute;
+//     // right: 1.7vw;
+//     // top: 15vh;
+//     // background-image: url("../assets/img/border_1.png");
+//     // background-size: 100% 100%;
+//     // background-repeat: no-repeat;
+//     // border-radius: 0.4vw;
+//     // overflow: hidden;
+//     // box-shadow: 0 0.2vw 1vw rgba(0, 0, 0, 0.3);
+//     // display: flex;
+//     // flex-direction: column;
 
-    .name-display {
-      position: absolute;
-      top: 0vw;
-      left: 50%;
-      transform: translate(-50%);
-      z-index: 100;
-      // color: #fff;
-      font-size: clamp(0.7vw, 1.2vw, 0.8vw);
-      font-weight: bold;
-      padding: 0.25vw 0.6vw;
-      border-radius: 0.75vw;
-      text-shadow: 0.05vw 0.05vw 0.1vw rgba(0, 0, 0, 0.8);
-      max-width: 10vw;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+//     .name-display {
+//       position: absolute;
+//       top: 0vw;
+//       left: 50%;
+//       transform: translate(-50%);
+//       z-index: 100;
+//       // color: #fff;
+//       font-size: clamp(0.7vw, 1.2vw, 0.8vw);
+//       font-weight: bold;
+//       padding: 0.25vw 0.6vw;
+//       border-radius: 0.75vw;
+//       text-shadow: 0.05vw 0.05vw 0.1vw rgba(0, 0, 0, 0.8);
+//       max-width: 10vw;
+//       white-space: nowrap;
+//       overflow: hidden;
+//       text-overflow: ellipsis;
+//     }
 
-    &__close {
-      position: absolute;
-      top: -0.1vw;
-      right: 0.5vw;
-      z-index: 100;
-      width: 2vw;
-      height: 2vw;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      background: transparent;
-      border: none;
+//     &__close {
+//       position: absolute;
+//       top: -0.1vw;
+//       right: 0.5vw;
+//       z-index: 100;
+//       width: 2vw;
+//       height: 2vw;
+//       border-radius: 50%;
+//       cursor: pointer;
+//       display: flex;
+//       align-items: center;
+//       justify-content: center;
+//       padding: 0;
+//       background: transparent;
+//       border: none;
 
-      .close-icon-image {
-        width: 1vw;
-        height: 1vw;
-        // object-fit: contain;
-        // filter: brightness(0.3);
-      }
-    }
+//       .close-icon-image {
+//         width: 1vw;
+//         height: 1vw;
+//         // object-fit: contain;
+//         // filter: brightness(0.3);
+//       }
+//     }
 
-    .player-container {
-      padding-top: 1.4vw;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
+//     .player-container {
+//       padding-top: 1.4vw;
+//       display: flex;
+//       justify-content: center;
+//       align-items: center;
+//       height: 100%;
 
-      .player-item {
-        width: 98%;
-        height: 96%;
+//       .player-item {
+//         width: 98%;
+//         height: 96%;
 
-        .player-box {
-          width: 100%;
-          height: 100%;
-          background-color: #000;
-        }
-      }
-    }
+//         .player-box {
+//           width: 100%;
+//           height: 100%;
+//           background-color: #000;
+//         }
+//       }
+//     }
 
-    &__play {
-      position: absolute;
-      bottom: 0.5vw;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 0.4vw 0.8vw;
-      background: #1890ff;
-      color: white;
-      border: none;
-      border-radius: 0.2vw;
-      cursor: pointer;
-      font-size: 0.7vw;
-    }
-  }
+//     &__play {
+//       position: absolute;
+//       bottom: 0.5vw;
+//       left: 50%;
+//       transform: translateX(-50%);
+//       padding: 0.4vw 0.8vw;
+//       background: #1890ff;
+//       color: white;
+//       border: none;
+//       border-radius: 0.2vw;
+//       cursor: pointer;
+//       font-size: 0.7vw;
+//     }
+//   }
 
-  .cruise-tip {
-    position: absolute;
-    top: 0.7vw;
-    right: 33vw;
-    font-size: 0.3rem;
-    padding: 2px 10px;
-    z-index: 9;
-    color: #fff;
-    background-color: #000;
-  }
-}
+//   .cruise-tip {
+//     position: absolute;
+//     top: 0.7vw;
+//     right: 33vw;
+//     font-size: 0.3rem;
+//     padding: 2px 10px;
+//     z-index: 9;
+//     color: #fff;
+//     background-color: #000;
+//   }
+// }
 </style>
