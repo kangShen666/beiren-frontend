@@ -1572,9 +1572,6 @@ onUnmounted(() => {
   stopChainMsgPolling();
 });
 
-let handleWsData = (parsedData) => {
-  // 处理WebSocket数据逻辑
-};
 // 按下按钮效果
 const changDa = function (e: MouseEvent): void {
   const target = e.target as HTMLElement | null;
@@ -1682,7 +1679,7 @@ const changXiao = function (e: MouseEvent): void {
           <!-- 地图容器 -->
           <div class="chart">
             <vMap ref="vMapRef" @liandongss="liandong" @pointName="handleCruisePointChange" @flytotingzhi="flytotingzhi"
-              @parsedDatas="handleWsData" @play-video-fusion="playRTCVideoStream" @close-video="closeVideo" />
+             @play-video-fusion="playRTCVideoStream" @close-video="closeVideo" />
           </div>
 
           <!-- 视频弹窗 -->

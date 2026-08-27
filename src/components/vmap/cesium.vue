@@ -19,9 +19,9 @@ const isSpecialViewport = computed(() => viewportStore.isSpecialViewport);
 const emits = defineEmits([
   "playVideoFusion",
   "liandongss",
-  "parsedDatas",
   "pointName",
   "close-video",
+  "flytotingzhi"
 ]);
 // 设置Cesium的静态资源路径
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_TOKEN;
@@ -605,7 +605,6 @@ const initCesium = () => {
   // 新增：初始化模型动画控制器
   modelAnimator = createModelAnimator(viewer, modelConfigs, loadedModels, MODEL_POSITION);
 
-
   (viewer.cesiumWidget.creditContainer as HTMLElement).style.display = "none"; // 隐藏版本号
   // 右键旋转
   viewer.scene.screenSpaceCameraController.zoomEventTypes = [
@@ -621,15 +620,6 @@ const initCesium = () => {
     Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK, // 移除左键双击事件
   );
   //点击事件
-  // var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-  // handler.setInputAction(function (click: { position: any }) {
-  //   var pick = viewer.scene.pick(click.position);
-  //   console.log(pick?.id.item);
-
-  //   if (arrarea.includes(pick?.id.id)) {
-  //     emits("liandongss", pick?.id.item)
-  //   }
-  // }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
   var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
   handler.setInputAction(function (click: { position: any }) {
     // 获取当前相机高度
@@ -1506,7 +1496,6 @@ const loadModel = async (
 
     // 先清除之前的模型
     clearCurrentModel();
-    // textArea();
     // 合并配置
     const finalConfig = { ...MODEL_CONFIG, ...options };
 
@@ -1956,43 +1945,6 @@ const ld = (option = null) => {
   }
 };
 
-//提示
-const textArea = function () {
-  // A馆
-  let text = viewer.entities.add({
-    position: Cesium.Cartesian3.fromDegrees(116.521566, 39.778913, 20),
-    label: {
-      text: "1000", // 标签文本
-      font: "17pt sans-serif",
-      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-      outlineWidth: 2,
-      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-      pixelOffset: new Cesium.Cartesian2(0, -20),
-      fillColor: Cesium.Color.RED,
-      outlineColor: Cesium.Color.BLACK,
-      showBackground: true,
-      backgroundColor: Cesium.Color.fromAlpha(Cesium.Color.BLACK, 0.7),
-    },
-  });
-  viewer.zoomTo(text);
-  //登录厅 116.519666,  39.778965
-  let text1 = viewer.entities.add({
-    position: Cesium.Cartesian3.fromDegrees(116.519666, 39.778965, 20),
-    label: {
-      text: "120", // 标签文本
-      font: "17pt sans-serif",
-      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-      outlineWidth: 2,
-      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-      pixelOffset: new Cesium.Cartesian2(0, -20),
-      fillColor: Cesium.Color.RED,
-      outlineColor: Cesium.Color.BLACK,
-      showBackground: true,
-      backgroundColor: Cesium.Color.fromAlpha(Cesium.Color.BLACK, 0.7),
-    },
-  });
-  viewer.zoomTo(text1);
-};
 
 // 点击获取经纬度（包含3D模型高度）
 const clickHandlers = (event: any) => {
@@ -4227,9 +4179,6 @@ const getRadarDatarc = () => {
   websocket.onmessage = (event: MessageEvent) => {
     try {
       let parsedData = JSON.parse(event.data);
-      // console.log("--------", parsedData)
-      // let parsedDatas = JSON.parse(parsedData);
-      // console.log(parsedDatas+"SHUJU");
 
       if (Array.isArray(parsedData)) {
         modelInstance.update(parsedData);
@@ -4440,10 +4389,8 @@ const closeWebSocket = () => {
 
 // 组件挂载时初始化
 onMounted(() => {
-  // ld("r1")
   initCesium();
   // QuanJing();
-  // loadModel('/model/br10.glb')
   loadModelById(1);
   // loadModelById(2);
   loadModelById(3);
