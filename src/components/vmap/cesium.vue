@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useViewportStore } from '@/stores/module/viewportStore';
 import type { HotspotEntity, TreePoint } from "@/type/vMap";
+import { useCameraFly } from '@/utils/cesiumFly'; //引入飞行
 import { createModelAnimator } from "@/utils/modelAnimation.ts"; //模型动画
 import axios from "axios";
 import * as Cesium from "cesium";
@@ -9,7 +10,6 @@ import ModelCol from "../../assets/js/modelColCar.js";
 import ModelColCarbaogao from "../../assets/js/ModelColCarbaogao.js";
 import ModelColCarxuting from "../../assets/js/ModelColCarxuting.js";
 import ModelColQiao from "../../assets/js/ModelColQiao.js";
-import { useCameraFly } from '@/utils/cesiumFly';  //引入飞行
 // 获取状态
 const viewportStore = useViewportStore();
 // 初始化飞行控制器，传入获取 viewer 的方法
@@ -689,7 +689,7 @@ const initCesium = () => {
         }, 1000);
       } else if (pick?.id?.id == "r6") {
         // QuanJing(false, ["q42"])
-        waiwei();
+        flyToView("waiwei");
         getRadarDatarc();
 
         removeModelById(3);
@@ -845,112 +845,7 @@ const initCesium = () => {
   });
 
   // 根据分辨率飞向不同位置
-  if (isSpecialViewport.value === true) {
-    // 4K 分辨率 (11520×2160) 的视角
-    viewer.camera.flyTo({
-      destination: {
-        // 116.515382, // 经度
-        // 39.777405,  // 纬度
-        // 500.0       // 更高的飞行高度（适合4K大屏）
-
-        // x: -2191350.7767224913,
-        // y: 4392460.095103426,
-        // z: 4059004.7763357223,
-
-        x: -2191636.5104259043,
-        y: 4392560.046771221,
-        z: 4058821.997722278,
-      },
-      orientation: {
-        // heading: Cesium.Math.toRadians(30), // 调整朝向
-        // pitch: Cesium.Math.toRadians(-45), // 更陡的俯视角
-
-        // pitch: -0.2031167444309625,
-        // heading: 0.9713604468870427,
-        pitch: -0.24936876418225218,
-        heading: 0.3816129574690388,
-
-        roll: 0,
-      },
-      duration: 0,
-    });
-  } else if (isSpecialViewport.value === false) {
-    // 默认分辨率（如 1920×1080）的视角
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191696.636244873,
-        y: 4392209.281509875,
-        z: 4058994.2914847224,
-      },
-      orientation: {
-        pitch: -0.24936875863887709,
-        heading: 0.3816129569025355,
-        roll: 0.0,
-      },
-      duration: 0,
-    });
-  } else if (isSpecialViewport.value === 1) {
-    // 4K 分辨率 (11520×2160) 的视角
-    viewer.camera.flyTo({
-      destination: {
-        // 116.515382, // 经度
-        // 39.777405,  // 纬度
-        // 500.0       // 更高的飞行高度（适合4K大屏）
-
-        // x: -2191350.7767224913,
-        // y: 4392460.095103426,
-        // z: 4059004.7763357223,
-
-        x: -2191636.5104259043,
-        y: 4392560.046771221,
-        z: 4058821.997722278,
-      },
-      orientation: {
-        // heading: Cesium.Math.toRadians(30), // 调整朝向
-        // pitch: Cesium.Math.toRadians(-45), // 更陡的俯视角
-
-        // pitch: -0.2031167444309625,
-        // heading: 0.9713604468870427,
-        pitch: -0.24936876418225218,
-        heading: 0.3816129574690388,
-
-        roll: 0,
-      },
-      duration: 0,
-    });
-  } else if (isSpecialViewport.value === 3) {
-    // (5120 960) 的视角
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        "x": -2192041.8925166554,
-        "y": 4392947.348207702,
-        "z": 4058837.8093856033,
-      },
-      orientation: {
-        "pitch": -0.5490836041021585,
-        "heading": 0.13975488222862786,
-        roll: 0.0,
-      },
-    });
-  } else if (isSpecialViewport.value === 4) {
-    // (3840 1080) 的视角
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191670.46019153,
-        y: 4392302.66344621,
-        z: 4058942.4012337034
-      },
-      orientation: {
-        pitch: -0.21959760824311214,
-        heading: 0.3427460709843402,
-        roll: 0.0,
-      },
-      duration: 3,
-    });
-  }
+  flyToView("initStart");
 
   viewer.cesiumWidget.screenSpaceEventHandler.setInputAction(
     clickHandlers,
@@ -1026,22 +921,6 @@ const addHotspot = (hotspotList: HotspotEntity[]) => {
     }
   });
   enableHotspotClick();
-  // {x: -2191736.3094851333, y: 4392172.650035219, z: 4059084.368847259, pitch: -0.5702609508624539, heading: 0.32466408362774235}
-  // viewer.camera.flyTo({
-  //   //定位到范围中心点
-  //   destination: {
-  //     x: -2191736.3094851333,
-  //     y: 4392172.650035219,
-  //     z: 4059084.368847259,
-  //   },
-  //   orientation: {
-  //     pitch: -0.5702609508624539,
-  //     heading: 0.32466408362774235,
-  //     // heading: testHeading,//左右方向
-  //     // pitch: testPitch, //上下方向
-  //     roll: 0.0,
-  //   },
-  // });
 };
 
 const gaodidianliandong = (hotspotList: HotspotEntity[]) => {
@@ -2309,153 +2188,153 @@ let shipins;
 
 let QuanJing = function (e, idArray) {
   //序厅二楼飞行视角
-  if (idArray == "q31") {
-    // closeAllWebSockets()
-    if (isSpecialViewport.value === true) {
-      xuting2();
-    } else if (isSpecialViewport.value === 1) {
-      xuting();
-    } else if (isSpecialViewport.value === false) {
-      xuting();
-    }
-    getxuting();
-    // console.log("------",11111)
-  } else if (idArray == "q30") {
-    //序厅一楼飞行视角
-    // closeAllWebSockets()
-    if (isSpecialViewport.value === true) {
-      xutingyilou2();
-      // console.log("------", 11111)
-    } else if (isSpecialViewport.value === 1) {
-      // console.log("------", 222)
-      xutingyilou2();
-    } else if (isSpecialViewport.value === false) {
-      //小屏
-      xutingyilou1();
-      // console.log("------", 333)
-    }
+  // if (idArray == "q31") {
+  //   // closeAllWebSockets()
+  //   if (isSpecialViewport.value === true) {
+  //     xuting2();
+  //   } else if (isSpecialViewport.value === 1) {
+  //     xuting();
+  //   } else if (isSpecialViewport.value === false) {
+  //     xuting();
+  //   }
+  //   getxuting();
+  //   // console.log("------",11111)
+  // } else if (idArray == "q30") {
+  //   //序厅一楼飞行视角
+  //   // closeAllWebSockets()
+  //   if (isSpecialViewport.value === true) {
+  //     xutingyilou2();
+  //     // console.log("------", 11111)
+  //   } else if (isSpecialViewport.value === 1) {
+  //     // console.log("------", 222)
+  //     xutingyilou2();
+  //   } else if (isSpecialViewport.value === false) {
+  //     //小屏
+  //     xutingyilou1();
+  //     // console.log("------", 333)
+  //   }
 
-    getxuting();
-    // console.log("------",11111)
-  } else if (idArray == "q33") {
-    // closeAllWebSockets()
+  //   getxuting();
+  //   // console.log("------",11111)
+  // } else if (idArray == "q33") {
+  //   // closeAllWebSockets()
 
-    if (isSpecialViewport.value === true) {
-      shengtailianlang();
-    } else if (isSpecialViewport.value === 1) {
-      shengtailianlang2();
-    } else if (isSpecialViewport.value === false) {
-      shengtailianlang();
-    }
-    getshengtailianlang();
-  } else if (idArray == "q34") {
-    // closeAllWebSockets()
-    // baogaoting()
-    getbaogaoting();
-  } else if (idArray == "q32") {
-    // console.log("------",11111)
-    // closeAllWebSockets()
-    ABlianlang();
-    // getbaogaoting()
-  } else if (idArray == "q38") {
-    if (isSpecialViewport.value === true) {
-      dengluting1();
-      // vMapRef.value?.()
-    } else if (isSpecialViewport.value === 1) {
-      // vMapRef.value?.Bguannei()
-      dengluting2();
-    } else if (isSpecialViewport.value === false) {
-      // vMapRef.value?.Bguannei()
-      dengluting();
-    }
-  } else if (idArray == "q39") {
-    if (isSpecialViewport.value === true) {
-      dating1();
-      // vMapRef.value?.()
-    } else if (isSpecialViewport.value === false) {
-      // vMapRef.value?.Bguannei()
-      dating();
-    }
-    // getbaogaoting()
-  } else if (idArray == "q31") {
-    if (isSpecialViewport.value === 1) {
-      viewer.camera.flyTo({
-        //定位到范围中心点
-        destination: {
-          x: -2191871.9873331613,
-          y: 4391858.154635156,
-          z: 4059189.7051673406,
-        },
-        orientation: {
-          pitch: -0.13210296444420178,
-          heading: 3.978323984439869,
-          // heading: testHeading,//左右方向
-          // pitch: testPitch, //上下方向
-          roll: 0.0,
-        },
-        duration: 0,
-      });
-    } else if (isSpecialViewport.value === false) {
-      viewer.camera.flyTo({
-        //定位到范围中心点
-        destination: {
-          x: -2191874.9881703043,
-          y: 4391857.545383535,
-          z: 4059191.676812438,
-        },
-        orientation: {
-          pitch: -0.2736152758198662,
-          heading: 4.174016118084943,
-          // heading: testHeading,//左右方向
-          // pitch: testPitch, //上下方向
-          roll: 0.0,
-        },
-        duration: 0,
-      });
-    }
-    // getbaogaoting()
-  } else if (idArray == "q40") {
-    if (isSpecialViewport.value === 1) {
-      viewer.camera.flyTo({
-        //定位到范围中心点
-        destination: {
-          x: -2191657.9384788633,
-          y: 4392043.221343086,
-          z: 4059116.3404027424,
-        },
-        orientation: {
-          pitch: -0.44190701208566807,
-          heading: 5.729030297364806,
-          // heading: testHeading,//左右方向
-          // pitch: testPitch, //上下方向
-          roll: 0.0,
-        },
-        duration: 0,
-      });
-    } else if (isSpecialViewport.value === false) {
-      viewer.camera.flyTo({
-        //定位到范围中心点
-        destination: {
-          x: -2191695.1914906153,
-          y: 4392065.850788558,
-          z: 4059092.426385657,
-        },
-        orientation: {
-          pitch: -0.3243491626708854,
-          heading: 5.638998730755515,
-          // heading: testHeading,//左右方向
-          // pitch: testPitch, //上下方向
-          roll: 0.0,
-        },
-        duration: 0,
-      });
-    }
-    // getbaogaoting()
-  } else if (idArray == "q41" || idArray == "q42" || idArray == "q43") {
-  } else if (idArray == "q44") {
-    // 北会
-    beihui();
-  }
+  //   if (isSpecialViewport.value === true) {
+  //     shengtailianlang();
+  //   } else if (isSpecialViewport.value === 1) {
+  //     shengtailianlang2();
+  //   } else if (isSpecialViewport.value === false) {
+  //     shengtailianlang();
+  //   }
+  //   getshengtailianlang();
+  // } else if (idArray == "q34") {
+  //   // closeAllWebSockets()
+  //   // baogaoting()
+  //   getbaogaoting();
+  // } else if (idArray == "q32") {
+  //   // console.log("------",11111)
+  //   // closeAllWebSockets()
+  //   ABlianlang();
+  //   // getbaogaoting()
+  // } else if (idArray == "q38") {
+  //   if (isSpecialViewport.value === true) {
+  //     dengluting1();
+  //     // vMapRef.value?.()
+  //   } else if (isSpecialViewport.value === 1) {
+  //     // vMapRef.value?.Bguannei()
+  //     dengluting2();
+  //   } else if (isSpecialViewport.value === false) {
+  //     // vMapRef.value?.Bguannei()
+  //     dengluting();
+  //   }
+  // } else if (idArray == "q39") {
+  //   if (isSpecialViewport.value === true) {
+  //     dating1();
+  //     // vMapRef.value?.()
+  //   } else if (isSpecialViewport.value === false) {
+  //     // vMapRef.value?.Bguannei()
+  //     dating();
+  //   }
+  //   // getbaogaoting()
+  // } else if (idArray == "q31") {
+  //   if (isSpecialViewport.value === 1) {
+  //     viewer.camera.flyTo({
+  //       //定位到范围中心点
+  //       destination: {
+  //         x: -2191871.9873331613,
+  //         y: 4391858.154635156,
+  //         z: 4059189.7051673406,
+  //       },
+  //       orientation: {
+  //         pitch: -0.13210296444420178,
+  //         heading: 3.978323984439869,
+  //         // heading: testHeading,//左右方向
+  //         // pitch: testPitch, //上下方向
+  //         roll: 0.0,
+  //       },
+  //       duration: 0,
+  //     });
+  //   } else if (isSpecialViewport.value === false) {
+  //     viewer.camera.flyTo({
+  //       //定位到范围中心点
+  //       destination: {
+  //         x: -2191874.9881703043,
+  //         y: 4391857.545383535,
+  //         z: 4059191.676812438,
+  //       },
+  //       orientation: {
+  //         pitch: -0.2736152758198662,
+  //         heading: 4.174016118084943,
+  //         // heading: testHeading,//左右方向
+  //         // pitch: testPitch, //上下方向
+  //         roll: 0.0,
+  //       },
+  //       duration: 0,
+  //     });
+  //   }
+  //   // getbaogaoting()
+  // } else if (idArray == "q40") {
+  //   if (isSpecialViewport.value === 1) {
+  //     viewer.camera.flyTo({
+  //       //定位到范围中心点
+  //       destination: {
+  //         x: -2191657.9384788633,
+  //         y: 4392043.221343086,
+  //         z: 4059116.3404027424,
+  //       },
+  //       orientation: {
+  //         pitch: -0.44190701208566807,
+  //         heading: 5.729030297364806,
+  //         // heading: testHeading,//左右方向
+  //         // pitch: testPitch, //上下方向
+  //         roll: 0.0,
+  //       },
+  //       duration: 0,
+  //     });
+  //   } else if (isSpecialViewport.value === false) {
+  //     viewer.camera.flyTo({
+  //       //定位到范围中心点
+  //       destination: {
+  //         x: -2191695.1914906153,
+  //         y: 4392065.850788558,
+  //         z: 4059092.426385657,
+  //       },
+  //       orientation: {
+  //         pitch: -0.3243491626708854,
+  //         heading: 5.638998730755515,
+  //         // heading: testHeading,//左右方向
+  //         // pitch: testPitch, //上下方向
+  //         roll: 0.0,
+  //       },
+  //       duration: 0,
+  //     });
+  //   }
+  //   // getbaogaoting()
+  // } else if (idArray == "q41" || idArray == "q42" || idArray == "q43") {
+  // } else if (idArray == "q44") {
+  //   // 北会
+  //   beihui();
+  // }
 
   // 定义所有视频实体配置 ---- 小屏
   const videoEntities = [
@@ -3553,755 +3432,9 @@ let removeurl = () => {
   loadModel("/model/tm.glb");
 };
 
-//xiguangchang
-// x: -2191694.5651863837, y: 4392058.05044346, z: 4059096.6768851555, pitch: -0.3131900998027837, heading: 5.701736545269872
-
-//baoganting
-// x: -2191811.960930291, y: 4392004.635066421, z: 4059214.8322901623, pitch: -0.6804079718105802, heading: 4.053751963136043
-
-//dating
-// x: -2191707.754048705, y: 4392011.9413423035, z: 4059224.0020023263, pitch: -0.9920496064091333, heading: 4.1633006903791365
-
-// A馆内飞行
-// {x: -2191808.125210258, y: 4392013.848647462, z: 4059293.415413833, pitch: -1.246890216631376, heading: 2.5640768289781457}
-let Aguannei = () => {
-  // 小屏
-  if (isSpecialViewport.value == false) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191773.382724459,
-        y: 4391979.36304998,
-        z: 4059279.1015899694,
-      },
-      orientation: {
-        pitch: -0.9551560644871291,
-        heading: 2.566767870484196,
-        // heading: testHeading,//左右方向
-        // pitch: testPitch, //上下方向
-        roll: 0.0,
-      },
-      duration: 0,
-    });
-  } else if (isSpecialViewport.value == true) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191754.929845766,
-        y: 4392044.597399739,
-        z: 4059402.27628674,
-      },
-      orientation: {
-        pitch: -0.9551560669703392,
-        heading: 2.566767868210063,
-        roll: 0.0,
-      },
-    });
-  } else {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191769.3017378477,
-        y: 4392004.948745722,
-        z: 4059350.458073908,
-      },
-      orientation: {
-        pitch: -0.9860474659524856,
-        heading: 2.586916626704422,
-        roll: 0.0,
-      },
-    });
-  }
-};
-
-//B馆内飞行
-let Bguannei = () => {
-  if (isSpecialViewport.value == true) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        // x: -2191702.995073929,
-        // y: 4391968.430577081,
-        // z: 4059367.1258252957,
-        x: -2191703.95308627,
-        y: 4391979.8399913525,
-        z: 4059385.312306449,
-      },
-      orientation: {
-        // pitch: -0.9288079130087565,
-        // heading: 2.5748049959904766,
-
-        pitch: -0.9421037514174815,
-        heading: 2.5587037346329247,
-        // x: -2191673.5525984466, y: 4391977.860945423, z: 4059430.808706615, pitch: -1.3309745439037828, heading: 2.585703823802162
-        roll: 0.0,
-      },
-    });
-  } else if (isSpecialViewport.value == false) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191724.2570063905,
-        y: 4391959.080766884,
-        z: 4059328.6006266926,
-      },
-      orientation: {
-        pitch: -1.019332521800579,
-        heading: 2.570815595457847,
-        // heading: testHeading,//左右方向
-        // pitch: testPitch, //上下方向
-        roll: 0.0,
-      },
-      duration: 0,
-    });
-  } else {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        // x: -2191694.782915647,
-        // y: 4392006.658687779,
-        // z: 4059451.4933843003,
-        "x": -2191702.2003192166,
-        "y": 4391997.539540619,
-        "z": 4059394.7037824634,
-      },
-      orientation: {
-        // pitch: -1.4401477041091528,
-        // heading: 2.5563866504860893,
-        "pitch": -0.9860474754515951,
-        "heading": 2.586916617814014,
-        roll: 0.0,
-      },
-    });
-  }
 
 
-};
 
-
-//C馆内飞行
-let Cguannei = () => {
-  if (isSpecialViewport.value == true) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191673.5525984466,
-        y: 4391977.860945423,
-        z: 4059430.808706615,
-      },
-      orientation: {
-        pitch: -1.3309745439037828,
-        heading: 2.585703823802162,
-
-        // x: -2191673.5525984466, y: 4391977.860945423, z: 4059430.808706615, pitch: -1.3309745439037828, heading: 2.585703823802162
-        roll: 0.0,
-      },
-    });
-  } else if (isSpecialViewport.value == false) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191673.5525984466,
-        y: 4391977.860945423,
-        z: 4059430.808706615,
-      },
-      orientation: {
-        pitch: -1.3309745439037828,
-        heading: 2.585703823802162,
-        // heading: testHeading,//左右方向
-        // pitch: testPitch, //上下方向
-        roll: 0.0,
-      },
-      duration: 0,
-    });
-  } else {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        // x: -2191694.782915647,
-        // y: 4392006.658687779,
-        // z: 4059451.4933843003,
-        "x": -2191784.176437815,
-        "y": 4392200.335311995,
-        "z": 4059667.1954730963,
-      },
-      orientation: {
-        // pitch: -1.4401477041091528,
-        // heading: 2.5563866504860893,
-        "pitch": -1.4401477077800346,
-        "heading": 2.55638663197383,
-        roll: 0.0,
-      },
-    });
-  }
-
-};
-
-//AB馆内飞行
-let ABguannei = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      x: -2191812.21008981,
-      y: 4392002.843333074,
-      z: 4059287.25432384,
-    },
-    orientation: {
-      pitch: -1.2645279662330333,
-      heading: 2.5594586374049078,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-      roll: 0.0,
-    },
-  });
-};
-// {{x: -2191748.802947443, y: 4392186.225688886, z: 4059595.5232176734, pitch: -1.1230293953163293, heading: 2.56627419000521}}
-//AB馆内飞行
-let Qguannei = () => {
-  if (isSpecialViewport.value == true) {
-    viewer.camera.flyTo({
-      destination: {
-        x: -2191636.5104259043,
-        y: 4392560.046771221,
-        z: 4058821.997722278,
-      },
-      orientation: {
-        pitch: -0.24936876418225218,
-        heading: 0.3816129574690388,
-
-        roll: 0,
-      },
-      duration: 3.0,
-    });
-  } else if (isSpecialViewport.value == false) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191696.636244873,
-        y: 4392209.281509875,
-        z: 4058994.2914847224,
-      },
-      orientation: {
-        pitch: -0.24936875863887709,
-        heading: 0.3816129569025355,
-        roll: 0.0,
-      },
-    });
-  } else {
-    viewer.camera.flyTo({
-      destination: {
-        // x: -2191682.460827356,
-        // y: 4392443.805805931,
-        // z: 4058867.817731173,
-        "x": -2191682.4608273576,
-        "y": 4392443.805805932,
-        "z": 4058867.8177311732,
-      },
-      orientation: {
-        // pitch: -0.23649701798782896,
-        // heading: 0.3922481473302266,
-        "pitch": -0.2364970179878283,
-        "heading": 0.3922481473302266,
-        roll: 0,
-      },
-      duration: 3.0,
-    });
-  }
-
-
-};
-//外围鹰眼  
-let waiwei = () => {
-  console.log(isSpecialViewport.value);
-  if (isSpecialViewport.value == false) {
-    // 小屏
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        "x": -2192059.038351901,
-        "y": 4391877.505759474,
-        "z": 4059208.1273751687,
-      },
-      orientation: {
-        "pitch": -0.43476565828639746,
-        "heading": 4.961726147018309,
-        roll: 0.0,
-      },
-    });
-  } else {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2192071.5345584922,
-        y: 4391848.491066969,
-        z: 4059190.7394617787,
-      },
-      orientation: {
-        pitch: -0.3018831365594834,
-        heading: 4.891699137455037,
-        // heading: testHeading,//左右方向
-        // pitch: testPitch, //上下方向
-        roll: 0.0,
-      },
-    });
-  }
-
-};
-
-let shengtailianlang = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      x: -2191626.3409828995,
-      y: 4391958.258608755,
-      z: 4059199.5447252337,
-    },
-    orientation: {
-      pitch: -0.22259103150468995,
-      heading: 2.621236359497433,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-      roll: 0.0,
-    },
-  });
-};
-let shengtailianlang2 = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      // x: -2191626.3409828995, y: 4391958.258608755, z: 4059199.5447252337,
-      // x: -2191609.563920239, y: 4391954.019581999, z: 4059211.800107714,
-
-      // x: -2191871.9873331613, y: 4391858.154635156, z: 4059189.7051673406,
-
-      x: -2191609.563920239,
-      y: 4391954.019581999,
-      z: 4059211.800107714,
-    },
-    orientation: {
-      // pitch: -0.22259103150468995, heading: 2.621236359497433,
-      // pitch: -0.05223811043976556, heading: 2.4547294631336065,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-
-      // pitch: -0.13210296444420178, heading: 3.978323984439869,
-      pitch: -0.05223811043976556,
-      heading: 2.4547294631336065,
-
-      roll: 0.0,
-    },
-  });
-};
-let xuting = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      x: -2191874.9881703043,
-      y: 4391857.545383535,
-      z: 4059191.676812438,
-
-      // x: -2191871.9873331613, y: 4391858.154635156, z: 4059189.7051673406,
-    },
-    orientation: {
-      pitch: -0.2736152758198662,
-      heading: 4.174016118084943,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-
-      // pitch: -0.13210296444420178, heading: 3.978323984439869,
-
-      roll: 0.0,
-    },
-  });
-};
-
-let xuting2 = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      x: -2191871.9873331613,
-      y: 4391858.154635156,
-      z: 4059189.7051673406,
-    },
-    orientation: {
-      pitch: -0.13210296444420178,
-      heading: 3.978323984439869,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-      roll: 0.0,
-    },
-  });
-};
-let xutingyilou1 = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      x: -2191865.560423731,
-      y: 4391856.574464647,
-      z: 4059180.894753303,
-
-      // x: -2191871.9873331613, y: 4391858.154635156, z: 4059189.7051673406,
-    },
-    orientation: {
-      pitch: -0.26680060602608213,
-      heading: 4.163045401688904,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-
-      // pitch: -0.13210296444420178, heading: 3.978323984439869,
-
-      roll: 0.0,
-    },
-  });
-};
-let xutingyilou2 = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      x: -2191865.7060670736,
-      y: 4391857.067578937,
-      z: 4059182.294626689,
-
-      // x: -2191871.9873331613, y: 4391858.154635156, z: 4059189.7051673406,
-    },
-    orientation: {
-      pitch: -0.10211924908560444,
-      heading: 3.833160953474144,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-
-      // pitch: -0.13210296444420178, heading: 3.978323984439869,
-
-      roll: 0.0,
-    },
-  });
-};
-
-// let baogaoting = () => {
-//   viewer.camera.flyTo({ //定位到范围中心点
-//     destination: {
-//      x: -2191759.5332046617, y: 4392025.159197166, z: 4059154.9837243455,
-
-//     },
-//     orientation: {
-//        pitch: -0.8485890569267349, heading: 4.153691307764403,
-//       // heading: testHeading,//左右方向
-//       // pitch: testPitch, //上下方向
-//       roll: 0.0
-//     },
-//   })
-// }
-let ABlianlang = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      x: -2191824.0634073704,
-      y: 4391835.782166819,
-      z: 4059237.6056591473,
-    },
-    orientation: {
-      pitch: -0.2528161816516681,
-      heading: 4.119397549186182,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-      roll: 0.0,
-    },
-  });
-};
-let dengluting = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      // x: -2191753.293465523, y: 4392016.264269474, z: 4059141.637743813,
-      x: -2191756.324081106,
-      y: 4392022.14576318,
-      z: 4059146.416615525,
-    },
-    orientation: {
-      // pitch: -0.7143904061141706, heading: 4.146374556670438,
-      pitch: -0.8310856602008414,
-      heading: 4.128616957963097,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-      roll: 0.0,
-    },
-  });
-};
-
-let dengluting1 = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      // x: -2191753.293465523, y: 4392016.264269474, z: 4059141.637743813,
-      x: -2191819.066044863,
-      y: 4392023.5225752685,
-      z: 4059225.523272099,
-    },
-    orientation: {
-      // pitch: -0.7143904061141706, heading: 4.146374556670438,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-
-      pitch: -0.7877577338289514,
-      heading: 4.122138675496304,
-      roll: 0.0,
-    },
-  });
-};
-let dengluting2 = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      // x: -2191753.293465523, y: 4392016.264269474, z: 4059141.637743813,
-      // x: -2191819.066044863,
-      // y: 4392023.5225752685,
-      // z: 4059225.523272099,
-
-      x: -2191831.7328243772,
-      y: 4392021.584229738,
-      z: 4059215.75077741,
-    },
-    orientation: {
-      // pitch: -0.7143904061141706, heading: 4.146374556670438,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-
-      pitch: -0.7539006977946783,
-      heading: 4.101402316782472,
-      roll: 0.0,
-    },
-  });
-};
-
-let dating = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      x: -2191675.234808641,
-      y: 4391999.656825012,
-      z: 4059189.241195805,
-    },
-    orientation: {
-      // pitch: -0.7143904061141706, heading: 4.146374556670438,
-      pitch: -1.011953179722982,
-      heading: 4.141188101470657,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-      roll: 0.0,
-    },
-  });
-};
-let dating1 = () => {
-  viewer.camera.flyTo({
-    //定位到范围中心点
-    destination: {
-      // x: -2191630.782192244, y: 4392043.32264983, z: 4059187.032820698,
-      // x: -2191616.387248258,
-      // y: 4392114.927553018,
-      // z: 4059223.302983498,
-
-      x: -2191722.273334163,
-      y: 4392068.477296571,
-      z: 4059228.583873463,
-    },
-    orientation: {
-      // pitch: -0.9477834955855089, heading: 1.4000648198281294,
-
-      //     pitch: -0.9477834964034804,
-      //     heading: 1.4000648264320592,
-
-      //     x: -2191722.273334163,
-      // y: 4392068.477296571,
-      // z: 4059228.583873463,
-      pitch: -1.4039139847524233,
-      heading: 4.1189770972257005,
-      // heading: testHeading,//左右方向
-      // pitch: testPitch, //上下方向
-      roll: 0.0,
-    },
-  });
-};
-
-//四个不同的方向
-let ximian = () => {
-  if (isSpecialViewport.value === 3) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191278.303675688, y: 4392812.229852682, z: 4059046.6684551355,
-      },
-      orientation: {
-        pitch: -0.3602316656650504,
-        heading: 0.9903128608956218,
-        roll: 0.0,
-      },
-    });
-  } else if (isSpecialViewport.value === 4) {
-    // 财富中心18楼
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191429.2318405136,
-        y: 4392402.677917658,
-        z: 4059057.0870158547
-      },
-      orientation: {
-        pitch: -0.25977283196887346,
-        heading: 0.9282659528178412,
-        roll: 0.0,
-      },
-    });
-  } else {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191504.645466858,
-        y: 4392277.609431442,
-        z: 4059124.6065828544,
-      },
-      orientation: {
-        pitch: -0.3602316488728903,
-        heading: 0.9903128512517148,
-        roll: 0.0,
-      },
-    });
-  }
-};
-let nanmian = () => {
-  if (isSpecialViewport.value === 3) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2192368.586490291, y: 4392286.581656654, z: 4058850.4721331527,
-      },
-      orientation: {
-        pitch: -0.28609261202493097, heading: 5.729919095424682,
-        roll: 0.0,
-      },
-    });
-  } else if (isSpecialViewport.value === 4) {
-    // 财富中心18楼
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2192163.523579332,
-        y: 4392180.858116286,
-        z: 4058982.7348784995
-      },
-      orientation: {
-        pitch: -0.36331991629482285,
-        heading: 5.696281913720732,
-        roll: 0.0,
-      },
-    });
-  }
-  else {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191980.717291153,
-        y: 4392073.91878765,
-        z: 4059030.1045064195,
-      },
-      orientation: {
-        pitch: -0.3427254793876944,
-        heading: 5.739680860526109,
-        roll: 0.0,
-      },
-    });
-  }
-};
-let dongmian = () => {
-  if (isSpecialViewport.value === 3) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2192239.719333582, y: 4391595.066665006, z: 4059748.415913824,
-      },
-      orientation: {
-        pitch: -0.37189936147065494, heading: 4.15513881337373,
-        roll: 0.0,
-      },
-    });
-  } else if (isSpecialViewport.value === 4) {
-    // 财富中心18楼
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2192052.741121822,
-        y: 4391686.46812191,
-        z: 4059548.083350213
-      },
-      orientation: {
-        pitch: -0.3667508269403976,
-        heading: 4.111676304063763,
-        roll: 0.0,
-      },
-    });
-  }
-  else {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191963.218424804,
-        y: 4391743.878426999,
-        z: 4059427.959953717,
-      },
-      orientation: {
-        pitch: -0.3718993524373517,
-        heading: 4.155138807719275,
-        roll: 0.0,
-      },
-    });
-  }
-
-};
-let shangmian = () => {
-  if (isSpecialViewport.value === 3) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        "x": -2192124.014526871,
-        "y": 4393363.1629918935,
-        "z": 4060182.492908292,
-      },
-      orientation: {
-        "pitch": -1.3814758036472923,
-        "heading": 0.9814547467032746,
-        roll: 0.0,
-      },
-    });
-  } else if (isSpecialViewport.value === 4) {
-    // 财富中心18楼
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2192036.5583549114,
-        y: 4392733.370418103,
-        z: 4060084.578781242
-      },
-      orientation: {
-        pitch: -1.5618061318015193,
-        heading: 0.9919419658575537,
-        roll: 0.0,
-      },
-    });
-  } else {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191936.278289121,
-        y: 4392393.403596916,
-        z: 4059667.471697014,
-      },
-      orientation: {
-        pitch: -1.5618061318015073,
-        heading: 0.9919419658575439,
-        roll: 0.0,
-      },
-    });
-  }
-};
 
 function clearResources(vdo) {
   console.log(vdo);
@@ -5348,14 +4481,7 @@ defineExpose({
   loadModelById, //加载模型
   removeModelById, // 移除模型
   // click_draw_polygon_fn,
-
   changeMark,
-  Aguannei,
-  Bguannei,
-  Cguannei,
-  ABguannei,
-  Qguannei,
-  waiwei,
   // stopCruise,
   clearResources,
   setEntityVisibility,
@@ -5366,12 +4492,6 @@ defineExpose({
   getbaogaoting,
   getxuting,
   closeAllWebSockets,
-  shengtailianlang,
-  shengtailianlang2,
-  ximian,
-  dongmian,
-  nanmian,
-  shangmian,
   Erxun,
   beihui, //北会飞行
   stopErxun,
@@ -5386,6 +4506,10 @@ defineExpose({
   removeModelWithAnimation: (modelId: number, options?: { raiseHeight?: number; duration?: number }) => {
     modelAnimator?.removeModelWithAnimation(modelId, options);
   },
+  // 飞行方法
+  flyToView: (viewKey: string, duration?: number) => {
+    flyToView(viewKey, duration);
+  } 
 });
 </script>
 
