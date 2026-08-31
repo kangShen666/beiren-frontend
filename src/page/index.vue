@@ -6,6 +6,7 @@ import vMap from "@/components/vmap/cesium.vue";
 import { cameraMap } from "@/constants/map";
 import type { HotspotEntity, TreePoint } from "@/type/vMap";
 import { filterEmptyParams } from "@/utils/common";
+import { UI_VALUE_TO_CRUISE_ID } from "@/utils/cruiseFly"; //巡航
 import { Search } from '@element-plus/icons-vue';
 import axios from "axios";
 import dayjs from "dayjs";
@@ -23,6 +24,44 @@ import {
 // 新增：标记是否为初始化加载全景
 const isInitialLoad = ref(true);
 
+const smartItemRefs = ref<HTMLElement[]>([]);
+const setSmartItemRef = (el: any, i: number) => {
+  if (el) smartItemRefs.value[i] = el;
+};
+
+/** 根据 q 编码串同步高亮对应的智能展示项，并自动滚动到可视区 */
+const syncSmartHighlight = (uiValue: string) => {
+  const idx = smartDisplayItems.value.findIndex((it) => it.value.join(",") === uiValue);
+  if (idx < 0) return;
+  activeSmartItem.value = smartDisplayItems.value[idx].label;
+  nextTick(() => {
+    smartItemRefs.value[idx]?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",   // 横向滚动容器中把目标滚到中间
+      block: "nearest",
+    });
+  });
+};
+
+/* ---- 子组件巡航相关事件 ---- */
+const handleCruiseStart = () => {
+  showSmartDisplay.value = true;   // 场景内点击模型也要展开面板
+};
+const handleCruiseRegion = (uiValue: string) => syncSmartHighlight(uiValue);
+const handleCruiseFinished = () => {
+  activeSmartItem.value = "";  // 巡航结束时清除高亮
+  currentCruiseName.value = false;
+  tingzhifeixing.value = false;
+};
+
+// ✅ 新增：卡片徽标点击 → 暂停/继续（与原导航栏「停止」逻辑等价）
+const handleCruiseToggle = () => {
+  const st = vMapRef.value?.cruiseToggle();
+  if (st === null) return;
+  tingzhifeixing.value = st === "paused";
+  currentCruiseName.value = st === "running";
+};
+
 // 新增：智能展示数据
 const showSmartDisplay = ref(false);
 const smartDisplayItems = ref([
@@ -38,90 +77,67 @@ const smartDisplayItems = ref([
   { label: 'C馆北侧', value: ['q43'], image: '/src/assets/img/C馆北侧.png' },
   { label: '北会', value: ['q44'], image: '/src/assets/img/北会.png' },
   { label: '生态连廊', value: ['q33'], image: '/src/assets/img/ST.png' },
-  { label: '报告', value: ['q38'], image: '/src/assets/img/报告厅.png' },
+  { label: '报告厅', value: ['q38'], image: '/src/assets/img/报告厅.png' },
   { label: '登录厅', value: ['q39'], image: '/src/assets/img/登录厅.png' },
   { label: '西广场', value: ['q40'], image: '/src/assets/img/西广场.png' },
   { label: 'AB馆连廊', value: ['q32'], image: '/src/assets/img/AB.png' },
 ]);
 
-// 是否显示停止
-const showXun = ref(false);
 
 // 新增：智能展示切换
 const toggleSmartDisplay = () => {
-  // 开启/关闭按钮显示
-  showSmartDisplay.value = !showSmartDisplay.value;
-  // 开启/关闭停止继续、按钮
-  showXun.value = !showXun.value;
-  // 重置高亮显示
-  activeSmartItem.value = "";
+  const next = !showSmartDisplay.value;
+  showSmartDisplay.value = next;
+  if (!next) {
+    // ✅ 关闭面板 = 彻底结束巡航，相机不再被 prerender 接管
+    vMapRef.value?.cruiseStop();
+    activeSmartItem.value = "";
+    currentCruiseName.value = false;
+    tingzhifeixing.value = false;
+  }
 };
 
 // 新增：记录当前选中的智能展示项（用 label 唯一标识）
 const activeSmartItem = ref<string>("");
 
+/** 只需飞过去、不巡航的点位（原代码里调 flyToView 的那几个） */
+const ONLY_FLY_MAP: Record<string, string> = {
+  q39: "dating", q38: "dengluting", q44: "beihui", q40: "xiguangchang",
+};
+
 // 修改原点击处理函数
 const handleSmartDisplayItemClick = (value: string[], label: string) => {
   if (!value || value.length === 0) return;
 
+ // ✅ 核心修复：无论点哪类 div，先彻底停掉进行中的巡航，
+  //    释放 preRender 对相机的接管，flyToView 才能正常执行
+  vMapRef.value?.cruiseStop();
+
   // ✅ 新增：高亮当前选中项
   activeSmartItem.value = label;
+
 
   // ...原有逻辑保持不变
   tingzhifeixing.value = false;
   currentCruiseName.value = true;
-  buttonStatus.value = { outer: false, panorama: true };
-  // 原有飞行与模型逻辑
-  if (value[0] === "q1") {
-    vMapRef.value?.removeModelById(3);
-    // vMapRef.value?.flyToView("Aguannei");
-    setTimeout(() => vMapRef.value?.Erxun("entity2"), 1000);
-  } else if (value[0] === "q2") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity1"), 1000);
-  } else if (value[0] === "q7" && value[1] === "q5") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity3"), 1000);
-  } else if (value[0] === "q3" && value[1] === "q9") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity4"), 1000);
-  } else if (value[0] === "q4" && value[1] === "q6") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity5"), 1000);
-  } else if (value[0] === "q30") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity11"), 1000);
-  } else if (value[0] === "q31") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity16"), 1000);
-  } else if (value[0] == "q39") {
-    vMapRef.value?.removeModelById(3);
-    vMapRef.value?.flyToView("dating");
-  } else if (value[0] == "q38") {
-    vMapRef.value?.removeModelById(3);
-    vMapRef.value?.flyToView("dengluting");
-  } else if (value[0] == "q33") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity19"), 1000);
-  } else if (value[0] == "q32") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity20"), 1000);
-  } else if (value[0] == "q41") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity21"), 1000);
-  } else if (value[0] == "q42") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity22"), 1000);
-  } else if (value[0] == "q43") {
-    vMapRef.value?.removeModelById(3);
-    setTimeout(() => vMapRef.value?.Erxun("entity23"), 1000);
-  } else if (value[0] == "q44") {
-    vMapRef.value?.removeModelById(3);
-    vMapRef.value?.flyToView("beihui");
-  } else if (value[0] == "q40") {
-    vMapRef.value?.removeModelById(3);
-    vMapRef.value?.flyToView("xiguangchang");
+  buttonStatus.value.panorama = true;
+
+  vMapRef.value?.removeModelById(3);
+  // 只飞不巡航
+  const onlyFlyKey = ONLY_FLY_MAP[value[0]];
+  if (onlyFlyKey) {
+    currentCruise.value = label;
+    vMapRef.value?.flyToView(onlyFlyKey);
+    return;
   }
+
+  // 巡航：查映射表即可，没有任何业务 if-else
+  const cruiseId = UI_VALUE_TO_CRUISE_ID[value.join(",")];
+  if (!cruiseId) {
+    console.warn("[smartDisplay] 未注册的点位组合:", value.join(","));
+    return;
+  }
+  setTimeout(() => vMapRef.value?.cruiseStart(cruiseId), 800);
 };
 
 
@@ -821,49 +837,6 @@ const stopDrag = () => {
   document.removeEventListener("mouseup", stopDrag);
 };
 
-// let ldsp = ref(false);
-// let ips = ref("");
-
-let liandong = async (e: any, id: any) => {
-  console.log(e, "------------------", id);
-  // if (e.duankouhao.ip == ips.value) {
-  //   console.log(111111);
-  //   clickGoPreset(e.duankouhao.yuzhiwei);
-  // } else {
-  //   console.log(22222);
-
-  //   if (ldsp.value) {
-  //     clickStopRealPlay();
-  //     destroyPlugin();
-  //     ldsp.value = true;
-  //     controlCameraPTZ(e.duankouhao, id);
-  //   }
-  //   ldsp.value = true;
-  //   await controlCameraPTZ(e.duankouhao, id);
-  // }
-  // ips.value = e.duankouhao.ip;
-};
-
-// let controlCameraPTZ = async (e?: any, id?: any) => {
-//   console.log(ldsp.value);
-
-//   console.log("进入初始化");
-
-//   await nextTick();
-//   let videoRefIdElement = document.getElementById("videoRefId");
-//   // videoRefIdElement?.style.display = "none";
-//   if (videoRefIdElement) {
-//     let width = 200;
-//     let height = 200;
-//     data.ip = e.ip;
-//     data.port = "80";
-//     data.password = e.password;
-//     data.userName = e.admin;
-//     data.iChannelID = id;
-//     init(width, height, e);
-//   }
-// };
-
 // 报警数据
 let websockets: WebSocket[] = [];
 let getRadarpoeple = () => {
@@ -950,7 +923,6 @@ const isShow = reactive({
 const ButtonText = reactive({
   MenuText: false,
   AlertText: true,
-  videoText: true,
   shijian: false,
 });
 
@@ -1083,16 +1055,14 @@ const initPlayer = async () => {
     szBasePath: "/demo/", // 末尾加斜杠，与demo一致，避免资源路径拼接问题
     iMaxSplit: 16,
     iCurrentSplit: 1,
-    openDebug: true, // 先开启调试，方便排查问题，生产可关闭
+    openDebug: false, // 先开启调试，方便排查问题，生产可关闭
     bWndFull: true,
     oStyle: {
-      border: "#f21461",
-      borderSelect: "#f21461",
+      border: "transparent",
+      borderSelect: "transparent",
       background: "#000",
     },
   });
-  console.log("播放器实例:", player.value);
-
   // 绑定事件回调（对齐海康demo，重要！错误回调可帮助定位问题）
   // player.value.JS_SetWindowControlCallback({
   //   windowEventSelect: function (iWndIndex) {
@@ -1185,7 +1155,6 @@ const realplay = async (url: string, params?: HotspotEntity) => {
 
 // 封装海康播放器关闭方法
 const closeHisVideo = async () => {
-  console.log(player.value);
   if (player.value) {
     try {
       await player.value.JS_Stop();
@@ -1208,53 +1177,17 @@ const closeVideo = async () => {
 // 热点连接的函数
 const addCesiumLabel = async () => {
   QJSP.value = "";
-  ButtonText.videoText = !ButtonText.videoText;
-  const response = await fetch("/points.json");
-  const data: HotspotEntity[] = await response.json();
-  const idArray: string[] = data.map((item) => item.id);
-  if (!ButtonText.videoText) {
-    // vMapRef.value?.removeHotspotsByIds(idArray);
-    // vMapRef.value?.disableHotspotClick();
-    vMapRef.value?.addHotspot(data);
-    // vMapRef.value?.removeModelById(3);
-    // isaddCesiumLabel.value = true;
-  } else {
-    vMapRef.value?.removeHotspotsByIds(idArray);
-    // vMapRef.value?.disableHotspotClick();
-    // vMapRef.value?.loadModelById(3)
-    // isaddCesiumLabel.value = false;
-    addCesiumLabels();
-    addCesiumLabelsC();
-  }
+  vMapRef.value?.toggleAllHotspots(); // 子组件内部自行判断 展示/清除
 };
 
-//初始显示的实时监控
-const addCesiumLabels = async () => {
-  const response = await fetch("/pointss.json");
-  const data: HotspotEntity[] = await response.json();
-
-  vMapRef.value?.addHotspots(data);
-};
-
-//C管
-const addCesiumLabelsC = async () => {
-  const response = await fetch("/pointssC.json");
-  const data: HotspotEntity[] = await response.json();
-
-  vMapRef.value?.addHotspots(data);
-};
 const addCesiumLabelss = async () => {
   const response = await fetch("/gaodidian.json");
   const data: HotspotEntity[] = await response.json();
-  //  console.log(data,"111111111111111111");
-
   vMapRef.value?.gaodidianliandong(data);
 };
 const xutingerlou = async () => {
   const response = await fetch("/xutingerlou.json");
   const data: HotspotEntity[] = await response.json();
-  //  console.log(data,"111111111111111111");
-
   vMapRef.value?.gaodidianxutingerlou(data);
 };
 
@@ -1323,16 +1256,7 @@ let shijian = (e: any) => {
 };
 
 let tingzhifeixing = ref(false);
-let tingzhi = () => {
-  tingzhifeixing.value = !tingzhifeixing.value;
-  if (tingzhifeixing.value) {
-    vMapRef.value?.stopErxun();
-    currentCruiseName.value = false;
-  } else {
-    vMapRef.value?.continueErxun();
-    currentCruiseName.value = true;
-  }
-};
+
 let flytotingzhi = (id) => {
   // OpenModel1(['q2', 'q1', 'q4', 'q3', 'q7', 'q6', 'q5', 'q9', 'q8', 'q15', 'q18', 'q23', "q30", "q31", "q32", "q33", "q34", "q35", "q38", "q39", "q40"]);
   // buttonStatus.value.panorama = true;
@@ -1424,6 +1348,9 @@ const handleDirectionClick = (direction: number) => {
       activeSmartItem.value = "";
       vMapRef.value?.flyToView("shangmian");
       break;
+    case 5:
+      resetHallC();
+      break;
     default:
       break;
   }
@@ -1511,7 +1438,7 @@ const execMethodByUrl = async () => {
 // 页面初始化加载
 onMounted(() => {
   getRadarpoeple();
-  startChainMsgPolling();
+  // startChainMsgPolling();
 
   setTimeout(() => {
     isShow.isShows = false;
@@ -1539,8 +1466,6 @@ onMounted(() => {
         });
       }
     });
-    addCesiumLabels();
-    addCesiumLabelsC();
   }, 1500);
 
   setTimeout(() => {
@@ -1605,28 +1530,34 @@ const changXiao = function (e: MouseEvent): void {
         <div class="child-menu" @click="shijian">报警信息</div>
         <div class="child-menu" @click="changeMark">路线图</div>
         <div class="child-menu" @click="toggleDynamicAreas">展位图</div>
-        <div class="child-menu" @click="resetHallC">C馆回位</div>
+        <!-- <div class="child-menu" @click="resetHallC">C馆回位</div> -->
         <div class="child-menu" @click="toggleDataPanel">人流监控</div>
-        <div class="child-menu" v-if="showXun" @click="tingzhi">{{ tingzhifeixing ? "继续" : "停止" }}</div>
+        <div class="child-menu" :class="{ 'menu-active': showSmartDisplay }" @click="toggleSmartDisplay">
+          {{ showSmartDisplay ? "关闭巡航" : "漫游巡航" }}
+        </div>
       </div>
-
-      <!-- 按钮容器 -->
-      <div class="smart-display-btn" @click="toggleSmartDisplay">漫游巡航</div>
 
       <div class="smart-display-panel" v-if="showSmartDisplay">
         <div class="smart-display-grid">
-          <div class="smart-display-item" v-for="item in smartDisplayItems" :key="item.label"
-            :class="{ 'active': activeSmartItem === item.label }"
+          <div class="smart-display-item" v-for="(item, i) in smartDisplayItems" :key="item.label"
+            :ref="(el) => setSmartItemRef(el, i)" :class="{ 'active': activeSmartItem === item.label }"
             :style="{ backgroundImage: 'url(' + item.image + ')' }"
             @click="handleSmartDisplayItemClick(item.value, item.label)">
             <p>{{ item.label }}</p>
+
+            <!-- ✅ 新增：巡航中在该卡片右上角显示 停止/继续 徽标 -->
+            <span v-if="activeSmartItem === item.label" class="cruise-stop-badge" :class="{ 'paused': tingzhifeixing }"
+              @click.stop="handleCruiseToggle" :title="tingzhifeixing ? '继续巡航' : '暂停巡航'">
+              <i class="icon">{{ tingzhifeixing ? "▶" : "❚❚" }}</i>
+              <em>{{ tingzhifeixing ? "继续" : "停止" }}</em>
+            </span>
           </div>
         </div>
       </div>
 
 
       <!-- 底部ABC馆按钮容器 -->
-      <div class="abc-buttons-container" :style="{ bottom: showSmartDisplay ? 'calc(16vh + 2vw)' : '2vw' }">
+      <div class="abc-buttons-container" v-show="!showSmartDisplay">
         <ul class="abc-buttons-list">
           <li class="abc-button" :class="{ 'active': activeButton === 0 }" @click="toggleHallA(); activeButton = 0;">
             <p class="button-text">A馆</p>
@@ -1650,6 +1581,10 @@ const changXiao = function (e: MouseEvent): void {
       <!-- 方向按钮容器 -->
       <div class="direction-buttons-container">
         <ul class="direction-buttons-list">
+           <li class="direction-button" data-tooltip="C馆复位" :class="{ 'active': currentNum === 5 }"
+            @click="handleDirectionClick(5)" @mousedown="changDa" @mouseup="changXiao">
+            <div class="direction-button-bg bg-reset"></div>
+          </li>
           <li class="direction-button" data-tooltip="西面" :class="{ 'active': currentNum === 1 }"
             @click="handleDirectionClick(1)" @mousedown="changDa" @mouseup="changXiao">
             <div class="direction-button-bg bg-west"></div>
@@ -1678,8 +1613,9 @@ const changXiao = function (e: MouseEvent): void {
 
           <!-- 地图容器 -->
           <div class="chart">
-            <vMap ref="vMapRef" @liandongss="liandong" @pointName="handleCruisePointChange" @flytotingzhi="flytotingzhi"
-             @play-video-fusion="playRTCVideoStream" @close-video="closeVideo" />
+            <vMap ref="vMapRef" @pointName="handleCruisePointChange" @flytotingzhi="flytotingzhi"
+              @play-video-fusion="playRTCVideoStream" @close-video="closeVideo" @cruise-start="handleCruiseStart"
+              @cruise-region="handleCruiseRegion" @cruise-finished="handleCruiseFinished" />
           </div>
 
           <!-- 视频弹窗 -->
@@ -1688,7 +1624,7 @@ const changXiao = function (e: MouseEvent): void {
             <!-- 名字显示区域 -->
             <div class="name-display" @mousedown="startDrag">{{ videoName || "摄像头01" }}</div>
 
-            <div class="video-container__close" @click="closeHisVideo">退出</div>
+            <div class="video-container__close" @click="closeHisVideo">关闭</div>
 
             <!-- 视频播放器 -->
             <div class="player-container">
@@ -1815,25 +1751,6 @@ const changXiao = function (e: MouseEvent): void {
           <div class="cruise-tip" v-if="currentCruiseName">
             {{ currentCruise }}
           </div>
-          <!-- <div class="dibubutton">
-            
-            <ul class="operate-list">
-             
-              <li class="sigemian">
-                <p class="direction-btn" @click="changeDirection">
-                  {{ currentDirection }}
-                </p>
-              </li>
-              <li class="tingzhi" @click="tingzhi">
-                <p>停止</p>
-              </li>
-            
-              <li class="fanhui" @click="fanhui">
-                <p>返回</p>
-              </li>
-
-            </ul>
-          </div> -->
         </div>
       </div>
     </main>
@@ -1841,28 +1758,6 @@ const changXiao = function (e: MouseEvent): void {
 </template>
 
 <style scoped lang="scss">
-/* 新增：智能展示按钮 (保持不变) */
-.smart-display-btn {
-  position: absolute;
-  top: 2vw;
-  right: 10%;
-  transform: translateX(-50%);
-  z-index: 999999;
-  padding: 10px 20px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  border: 1px solid #00c6ff;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s;
-}
-
-.smart-display-btn:hover {
-  background: rgba(0, 198, 255, 0.8);
-  transform: translateX(-50%) scale(1.05);
-}
-
 /* 优化：智能展示面板 */
 .smart-display-panel {
   position: fixed;
@@ -1872,7 +1767,7 @@ const changXiao = function (e: MouseEvent): void {
   // 高度根据内容自适应，或者固定一个高度
   // min-height: 15vh; 
   background: rgba(0, 0, 0, 0.5); // 背景稍微加深一点突显图片
-  border-top: 1px solid #d1d2d2;
+  // border-top: 1px solid #d1d2d2;
   padding: 0.12rem; // 左右增加padding，防止滚动条贴边
   box-sizing: border-box;
   z-index: 999;
@@ -1889,6 +1784,7 @@ const changXiao = function (e: MouseEvent): void {
   gap: 0.12rem; // 卡片间距
   width: 100%;
   align-items: center;
+  padding: 0.05rem 0 0.1rem;
 
   // 隐藏滚动条但保留功能 (可选，如果不喜欢默认滚动条样式)
   &::-webkit-scrollbar {
@@ -1921,6 +1817,70 @@ const changXiao = function (e: MouseEvent): void {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+
+  // ✅ 贴片式 停止/继续 徽标（挂在 active 卡片右上角）
+  .cruise-stop-badge {
+    position: absolute;
+    top: 6px;
+    right: 30px; // 避开 .active::after 的 ◉ 角标
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: rgba(0, 40, 60, 0.85);
+    border: 1px solid #00e5ff;
+    color: #00e5ff;
+    font-size: 0.14rem;
+    line-height: 1.4;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+    animation: badgeGlow 2s ease-in-out infinite; // 与卡片呼吸光晕呼应
+    transition: all 0.2s ease;
+
+    .icon {
+      font-style: normal;
+      font-size: 0.12rem;
+    }
+
+    em {
+      font-style: normal;
+      letter-spacing: 1px;
+    }
+
+    &:hover {
+      background: #00e5ff;
+      color: #001018;
+      transform: scale(1.08);
+    }
+
+    // 暂停态：转为琥珀色，视觉上区分「已暂停，点我继续」
+    &.paused {
+      border-color: #ffb020;
+      color: #ffb020;
+      box-shadow: 0 0 8px rgba(255, 176, 32, 0.6);
+      animation: none;
+
+      &:hover {
+        background: #ffb020;
+        color: #201400;
+      }
+    }
+  }
+
+  @keyframes badgeGlow {
+
+    0%,
+    100% {
+      box-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+    }
+
+    50% {
+      box-shadow: 0 0 14px rgba(0, 229, 255, 0.95);
+    }
+  }
 
   p {
     position: absolute;
@@ -2051,6 +2011,10 @@ const changXiao = function (e: MouseEvent): void {
     top: 0;
     left: 0;
     z-index: 1;
+  }
+
+  .bg-reset {
+    background-image: url("../assets/img/复位.png");
   }
 
   .bg-west {
@@ -2257,6 +2221,17 @@ main {
       font-weight: 300;
       pointer-events: none; // 防止点击间隔符触发事件
     }
+  }
+
+  .child-menu.menu-active {
+    color: #00e5ff;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+
+    &::after {
+      display: none;
+    }
+
+    // 该项不显示右侧 | 分隔符（可按需去掉）
   }
 }
 
@@ -2551,6 +2526,13 @@ main {
     justify-content: center;
     align-items: center;
     height: 100%;
+
+    :deep(#player_box1),
+    :deep(#player_box1 *) {
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
 
     .player-box {
       width: 100%;
@@ -4247,13 +4229,9 @@ main {
     width: 20vw;
     height: 53vh;
 
-    .name-display {
-      
-    }
+    .name-display {}
 
-    &__close {
-      
-    }
+    &__close {}
 
     &__play {
       position: absolute;

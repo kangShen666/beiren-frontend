@@ -2,6 +2,7 @@
 import { useViewportStore } from '@/stores/module/viewportStore';
 import type { HotspotEntity, TreePoint } from "@/type/vMap";
 import { useCameraFly } from '@/utils/cesiumFly'; //引入飞行
+import { CruiseController, REGION_META, SCENE_MODEL_TO_CRUISE_ID } from '@/utils/cruiseFly'; //巡航
 import { createModelAnimator } from "@/utils/modelAnimation.ts"; //模型动画
 import axios from "axios";
 import * as Cesium from "cesium";
@@ -15,14 +16,53 @@ const viewportStore = useViewportStore();
 // 初始化飞行控制器，传入获取 viewer 的方法
 const { flyToView } = useCameraFly(() => viewer);
 const isSpecialViewport = computed(() => viewportStore.isSpecialViewport);
+
 // 子传父
 const emits = defineEmits([
   "playVideoFusion",
-  "liandongss",
   "pointName",
   "close-video",
-  "flytotingzhi"
+  "flytotingzhi",
+  "cruiseRegion",
+  "cruiseStart",
+  "cruiseFinished"
 ]);
+
+/* ---------- 巡航控制器 ---------- */
+const cruiseCtl = new CruiseController(
+  () => viewer,
+  () => {
+    const v = viewportStore.isSpecialViewport;
+    return v === true ? "big"
+      : v === 1 ? "san"
+        : v === 3 ? "middle"
+          : v === 4 ? "center"
+            : "small";
+  },
+);
+
+// 区域变化 → 上报父组件做高亮/tip；整条结束 → 上报父组件隐藏停止按钮
+cruiseCtl.setCallbacks({
+  onRegionChange: (key, name) => {
+    emits("pointName", name);                      // 顶部 tip 文案
+    emits("cruiseRegion", REGION_META[key].uiValue); // ✅ 之前漏发，导致高亮失效
+  },
+  onFinish: () => emits("cruiseFinished"),
+});
+
+const cruiseStart = (id: string) => cruiseCtl.start(id);
+const cruisePause = () => cruiseCtl.pause();
+const cruiseResume = () => cruiseCtl.resume();
+const cruiseToggle = (): "running" | "paused" | null => cruiseCtl.toggle();
+const cruiseStop = () => cruiseCtl.stop();
+
+// 每个 r 点位需要伴随的全景动作（仅保留确实需要的）
+const ridPanoramaAction: Record<string, string[]> = {
+  r1: ["q1"], r2: ["q2"], r3: ["q7", "q5"], r4: ["q3", "q9"], r5: ["q6", "q4"],
+  r7: ["q30"], r8: ["q31"], r11: ["q33"], r12: ["q32"],
+  r14: ["q41"], r15: ["q42"], r16: ["q43"],
+};
+
 // 设置Cesium的静态资源路径
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_TOKEN;
 
@@ -624,130 +664,31 @@ const initCesium = () => {
   handler.setInputAction(function (click: { position: any }) {
     // 获取当前相机高度
     var cameraHeight = viewer.camera.positionCartographic.height;
-
+    if (cameraHeight >= 100000) return;
     // 设置高度限制（例如1000米）
-    var heightLimit = 100000; // 根据需要调整这个值
 
-    // 只有当相机高度低于限制时才执行后续操作
-    if (cameraHeight < heightLimit) {
-      var pick = viewer.scene.pick(click.position);
-      // console.log(pick?.id.item);
-      // var yinyan = [1300, 1301, 1306, 1307, 1308, 1302, 1303, 1304, 1305, 10001];
-      // console.log(pick?.id.id);
+    var pick = viewer.scene.pick(click.position);
 
-      emits("flytotingzhi", pick?.id.id);
-      // if (arrarea.includes(pick?.id.id)) {
+    // emits("flytotingzhi", pick?.id.id);
 
-      //   if (yinyan.includes(pick?.id.id)) {
-      //     emits("liandongss", pick?.id.item, 2);
-      //   } else {
-      //     emits("liandongss", pick?.id.item, 1);
-      //   }
-      // }
-
-      if (pick?.id?.id == "r1") {
-        QuanJing(false, ["q1"]);
-        setTimeout(() => {
-          Erxun("entity2");
-        }, 1000);
-        removeModelById(3);
-      } else if (pick?.id?.id == "r2") {
-        QuanJing(false, ["q2"]);
-        removeModelById(3);
-        setTimeout(() => {
-          Erxun("entity1");
-        }, 1000);
-      } else if (pick?.id?.id == "r3") {
-        QuanJing(false, ["q7", "q5"]);
-
-        removeModelById(3);
-        setTimeout(() => {
-          Erxun("entity3");
-        }, 1000);
-      } else if (pick?.id?.id == "r4") {
-        QuanJing(false, ["q3", "q9"]);
-
-        setTimeout(() => {
-          Erxun("entity4");
-        }, 1000);
-      } else if (pick?.id?.id == "r5") {
-        QuanJing(false, ["q6", "q4"]);
-
-        removeModelById(3);
-        setTimeout(() => {
-          Erxun("entity5");
-        }, 1000);
-      } else if (pick?.id?.id == "r6") {
-        // QuanJing(false, ["q42"])
-        flyToView("waiwei");
-        getRadarDatarc();
-
-        removeModelById(3);
-        // Erxun("entity13")
-      } else if (pick?.id?.id == "r7") {
-        QuanJing(false, ["q30"]);
-
-        removeModelById(3);
-        setTimeout(() => {
-          Erxun("entity11");
-        }, 1000);
-      } else if (pick?.id?.id == "r8") {
-        QuanJing(false, ["q31"]);
-
-        removeModelById(3);
-        setTimeout(() => {
-          Erxun("entity16");
-        }, 1000);
-      } else if (pick?.id?.id == "r9") {
-        QuanJing(false, ["q39"]);
-
-        removeModelById(3);
-        // Erxun("entity1")
-      } else if (pick?.id?.id == "r10") {
-        QuanJing(false, ["q38"]);
-
-        removeModelById(3);
-        // Erxun("entity1")
-      } else if (pick?.id?.id == "r11") {
-        QuanJing(false, ["q33"]);
-
-        removeModelById(3);
-        setTimeout(() => {
-          Erxun("entity19");
-        }, 1000);
-      } else if (pick?.id?.id == "r12") {
-        QuanJing(false, ["q32"]);
-
-        removeModelById(3);
-        setTimeout(() => {
-          Erxun("entity20");
-        }, 1000);
-      } else if (pick?.id?.id == "r13") {
-        QuanJing(false, ["q40"]);
-
-        removeModelById(3);
-        // Erxun("entity1")
-      } else if (pick?.id?.id == "r14") {
-        QuanJing(false, ["q41"]);
-        removeModelById(3);
-        setTimeout(() => {
-          Erxun("entity21");
-        }, 1000);
-      } else if (pick?.id?.id == "r15") {
-        QuanJing(false, ["q42"]);
-
-        removeModelById(3);
-        setTimeout(() => {
-          Erxun("entity22");
-        }, 1000);
-      } else if (pick?.id?.id == "r16") {
-        QuanJing(false, ["q43"]);
-        removeModelById(3);
-        setTimeout(() => {
-          Erxun("entity23");
-        }, 1000);
-      }
+    const rid = pick?.id?.id;
+    if (rid === "r6") {                       // 外围鹰眼：保持原特殊逻辑
+      flyToView("waiwei");
+      getRadarDatarc();
+      removeModelById(3);
+      return;
     }
+
+    const cruiseId = SCENE_MODEL_TO_CRUISE_ID[rid];   // ✅ 一个映射替代全部 else-if
+    if (!cruiseId) return;
+
+    removeModelById(3);
+    const pv = ridPanoramaAction[rid];
+    if (pv) QuanJing(false, pv);
+
+    cruiseStop();                              // 互斥：停掉正在进行的其它巡航
+    setTimeout(() => cruiseStart(cruiseId), 800);
+    emits("cruiseStart", cruiseId);            // 让父组件打开面板 + 高亮 + 显示停止键
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
   viewer.scene.globe.enableLighting = false;
@@ -834,7 +775,7 @@ const initCesium = () => {
     }
   });
 
-  // 根据分辨率飞向不同位置
+  // 根据分辨率飞向不同初始视角
   flyToView("initStart");
 
   viewer.cesiumWidget.screenSpaceEventHandler.setInputAction(
@@ -857,6 +798,8 @@ const initCesium = () => {
   });
 };
 
+// ✅ 新增缓存数组（放在 addHotspot 函数上方）
+const legacyHotspotEntities: Cesium.Entity[] = [];
 // 热点连接
 const addHotspot = (hotspotList: HotspotEntity[]) => {
   if (!Array.isArray(hotspotList) || hotspotList.length === 0) {
@@ -869,8 +812,10 @@ const addHotspot = (hotspotList: HotspotEntity[]) => {
       if (!viewer) {
         return;
       }
+       // 先移除同 id 旧实体，防止重复点击堆积
+      viewer.entities.removeById(`hot_${id}`);
       // 1. 添加 Billboard（广告牌）
-      viewer.entities.add({
+      const entity =  viewer.entities.add({
         id: `hot_${id}`,
         // 使用 properties 来存储自定义数据
         properties: {
@@ -906,6 +851,7 @@ const addHotspot = (hotspotList: HotspotEntity[]) => {
           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 300), // 广告牌在距离视点 0 到 10,000 米时显示
         },
       });
+      legacyHotspotEntities.push(entity);   // ✅ 缓存引用
     } catch (error) {
       console.error(`添加热点时出错:`, error);
     }
@@ -1614,7 +1560,7 @@ const preloadAndResizeImage = async (
 
 const addHotspots = async (hotspotList: HotspotEntity[]) => {
   if (!Array.isArray(hotspotList) || hotspotList.length === 0) {
-    console.warn("热点数据为空或格式不正确111");
+    console.warn("热点数据为空或格式不正确");
     return;
   }
 
@@ -1753,6 +1699,53 @@ const addHotspots = async (hotspotList: HotspotEntity[]) => {
   enableHotspotClick();
 };
 
+let allHotspotsVisible = false;
+
+/** 高效清除：只删已记录的实体 + 摧毁悬停/点击 handler，不遍历全场景 */
+const clearAllHotspots = () => {
+  if (!viewer) return;
+  Object.keys(hotspotMainEntities).forEach((id) => {
+    viewer.entities.removeById(`hots_${id}`);
+    viewer.entities.removeById(`hotspot_child_${id}`);
+  });
+  Object.keys(hotspotMainEntities).forEach((id) => delete hotspotMainEntities[id]);
+  // ② 清 C 馆热点（addHotspot 缓存的 hot_ 实体）—— 不再遍历全场景
+  legacyHotspotEntities.forEach((entity) => {
+    if (entity && viewer.entities.contains(entity)) {
+      viewer.entities.remove(entity);
+    }
+  });
+  legacyHotspotEntities.length = 0;
+
+  // ③ 兜底：万一有遗漏的 hot_ 前缀实体，遍历时加类型守卫，
+  //    防止 id 为 number 的实体（gaodidianliandong 等创建）导致崩溃
+  viewer.entities.values
+    .filter((e) => typeof e.id === "string" && e.id.startsWith("hot_"))
+    .forEach((e) => viewer.entities.remove(e));
+  
+  currentHoveredHotspotId = null;
+  disableHotspotClick();                    // 关掉摄像头点击弹窗
+  if (handler) { handler.destroy(); handler = null; } // 关掉 MOUSE_MOVE 悬停
+  allHotspotsVisible = false;
+};
+
+/** 一次性加载 A馆+C馆 全部实时监控热点 */
+const showAllHotspots = async () => {
+  if (allHotspotsVisible) return;          // ✅ 已显示则不重复加载
+  const [ra, rb, rc] = await Promise.all([fetch("/pointss.json"), fetch("/pointssC.json"), fetch("/points.json")]);
+  const [listA, listB, listC] = await Promise.all([ra.json(), rb.json(), rc.json()]);
+  await addHotspots([...listA, ...listB]); // 合并后调一次，绕过 addHotspots 的去重守卫
+  await addHotspot(listC);
+  allHotspotsVisible = true;
+};
+
+/** 切换入口，供父组件调用 */
+const toggleAllHotspots = async () => {
+  if (allHotspotsVisible) { clearAllHotspots(); return false; }
+  await showAllHotspots();
+  return true;
+};
+
 // 保留原始数组数据
 const ld = (option = null) => {
   // 定义点位数据
@@ -1761,91 +1754,91 @@ const ld = (option = null) => {
       id: "r1",
       startLnt: 116.521555,
       startLat: 39.778948,
-      height: 4,
+      height: 0.1,
       name: "A馆南侧",
     },
     {
       id: "r2",
       startLnt: 116.521412,
       startLat: 39.779137,
-      height: 4,
+      height: 0.1,
       name: "A馆北侧",
     },
     {
       id: "r3",
       startLnt: 116.521734,
       startLat: 39.77978,
-      height: 4,
+      height: 0.1,
       name: "B馆南侧",
     },
     {
       id: "r4",
       startLnt: 116.520561,
       startLat: 39.779392,
-      height: 4,
+      height: 0.1,
       name: "B馆中间",
     },
     {
       id: "r5",
       startLnt: 116.521236,
       startLat: 39.779902,
-      height: 4,
+      height: 0.1,
       name: "B馆北侧",
     },
     {
       id: "r6",
       startLnt: 116.521971,
       startLat: 39.778485,
-      height: 4,
+      height: 0.1,
       name: "外围鹰眼",
     },
     {
       id: "r7",
       startLnt: 116.522313,
       startLat: 39.77909,
-      height: 4,
+      height: 0.1,
       name: "序厅一楼",
     },
     {
       id: "r8",
       startLnt: 116.52155,
       startLat: 39.778685,
-      height: 4,
+      height: 0.1,
       name: "序厅二楼",
     },
     {
       id: "r9",
       startLnt: 116.51959,
       startLat: 39.778925,
-      height: 4,
+      height: 0.1,
       name: "会客厅",
     },
     {
       id: "r10",
       startLnt: 116.520107,
       startLat: 39.778191,
-      height: 4,
+      height: 0.1,
       name: "报告厅",
     },
     {
       id: "r11",
       startLnt: 116.520437,
       startLat: 39.778444,
-      height: 9,
+      height: 0.1,
       name: "生态连廊",
     },
     {
       id: "r12",
       startLnt: 116.520925,
       startLat: 39.779154,
-      height: 9,
+      height: 0.1,
       name: "AB连廊",
     },
     {
       id: "r13",
       startLnt: 116.519153,
       startLat: 39.778731,
-      height: 4,
+      height: 0.1,
       name: "西广场",
     },
 
@@ -1854,21 +1847,21 @@ const ld = (option = null) => {
       id: "r14",
       startLnt: 116.52067,
       startLat: 39.780359,
-      height: 4,
+      height: 0.1,
       name: "C馆南侧",
     },
     {
       id: "r15",
       startLnt: 116.520454,
       startLat: 39.780628,
-      height: 4,
+      height: 0.1,
       name: "C馆中侧",
     },
     {
       id: "r16",
       startLnt: 116.520242,
       startLat: 39.78088,
-      height: 4,
+      height: 0.1,
       name: "C馆北间",
     },
   ];
@@ -1931,7 +1924,7 @@ const ld = (option = null) => {
         show: true,
       },
       billboard: {
-        image: "/tubiao2.png",
+        image: "/标签.png",
         width: 130,
         height: 90,
         pixelOffset: new Cesium.Cartesian2(0, -70),
@@ -2061,80 +2054,7 @@ function test1() {
 let trailer36Ref = ref();
 let trailer37Ref = ref();
 let trailer38Ref = ref();
-// const playFlv = () => {
-//   viewer.entities.add({
-//     id: "VIDEOFLV",
-//     polygon: {
-//       hierarchy: Cesium.Cartesian3.fromDegreesArray([
-//         // 您的多边形坐标
-//         116.520167384743, 39.77857112651094,
-//         116.52054188865283, 39.77810056082629,
-//         116.51994888364183, 39.777819278350144,
-//         116.51957559465453, 39.778263803135786,
-//       ]),
-//       material: trailer36Ref.value,
-//       clampToGround: true,
-//       height: 2, // 或者您的高度
-//       rotation: 0,
-//       stRotation: 148,
-//     },
-//   });
-//   // 获取 video 元素
-//   const videoEl = document.getElementById("videoElement");
 
-//   // 判断浏览器是否支持 flv.js
-//   if (FlvJs.isSupported()) {
-//     const flvPlayer = FlvJs.createPlayer({
-//       type: "flv",
-//       url: "http://172.160.114.20:10086/flv/live/16.flv", // 替换成你的 FLV 地址
-//       isLive: true, // 如果是直播流，请设置为true
-//     });
-//     flvPlayer.attachMediaElement(videoEl);
-//     flvPlayer.load();
-//     flvPlayer.play().catch((e) => {
-//       console.error("视频播放失败", e);
-//     });
-//   }
-// };
-
-// 北会飞行
-const beihui = () => {
-  if (isSpecialViewport.value === 1) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191526.567577822,
-        y: 4392091.659490352,
-        z: 4059237.1305910945
-      },
-      orientation: {
-        pitch: -0.6986306560699496,
-        heading: 1.029713186672386,
-        roll: 0.0,
-      },
-      duration: 3,
-    });
-  } else if (isSpecialViewport.value === false) {
-    viewer.camera.flyTo({
-      //定位到范围中心点
-      destination: {
-        x: -2191526.567577822,
-        y: 4392091.659490352,
-        z: 4059237.1305910945
-      },
-      orientation: {
-        pitch: -0.6986306560699496,
-        heading: 1.029713186672386,
-        // heading: testHeading,//左右方向
-        // pitch: testPitch, //上下方向
-        roll: 0.0,
-      },
-      duration: 3,
-    });
-  }
-}
-
-// 视频播放器
 let shipin;
 let shipins;
 
@@ -2285,7 +2205,6 @@ let QuanJing = function (e, idArray) {
   // } else if (idArray == "q41" || idArray == "q42" || idArray == "q43") {
   // } else if (idArray == "q44") {
   //   // 北会
-  //   beihui();
   // }
 
   // 定义所有视频实体配置 ---- 小屏
@@ -3384,10 +3303,6 @@ let removeurl = () => {
   loadModel("/model/tm.glb");
 };
 
-
-
-
-
 function clearResources(vdo) {
   console.log(vdo);
 
@@ -3498,661 +3413,6 @@ const rtcVideo = (vdo, url) => {
   shipin = webrtc;
   shipins = webrtcSendChannelInterval;
 };
-// ============================================================================
-// 巡航视角统一配置（重构版，点位可复用）
-// 说明：
-//   1. 每个区域的相机视角（若干关键帧 {x,y,z,pitch,heading}）全局只定义一次。
-//   2. 每条巡航路线只需按顺序排列「区域 key」，无需在每个 entity 里重复写点位，
-//      运行时会自动过滤当前视口不存在的区域。点位数量因此大幅减少。
-//   3. 名称直接取自「当前飞行区域」，与视角严格对应，修复 cruise-tip 显示错乱。
-// ============================================================================
-
-// 区域显示名称
-const CRUISE_VIEW_NAME = {
-  xuting1: "A馆序厅一楼",
-  xuting2: "A馆序厅二楼",
-  An: "A馆南侧",
-  Ab: "A馆北侧",
-  ABLL: "AB馆连廊",
-  Bdn: "B馆南侧",
-  Bdz: "B馆中间",
-  Bdb: "B馆北侧",
-  STLL: "生态连廊",
-  Cn: "C馆南侧",
-  Cz: "C馆中间",
-  Cb: "C馆北侧",
-};
-
-// ----- 小屏（1920x1080 等，isSpecialViewport === false）-----
-const CRUISE_VIEWS_SMALL = {
-  xuting1: [
-    { x: -2191865.560423731, y: 4391856.574464647, z: 4059180.894753303, pitch: -0.26680060602608213, heading: 4.163045401688904 },
-    { x: -2191777.1389767127, y: 4391959.054677476, z: 4059117.508203577, pitch: -0.2647373452789705, heading: 4.163892389567881 },
-  ],
-  xuting2: [
-    { x: -2191874.9881703043, y: 4391857.545383535, z: 4059191.676812438, pitch: -0.2736152758198662, heading: 4.174016118084943 },
-    { x: -2191799.3919010996, y: 4391945.368071937, z: 4059137.4750487804, pitch: -0.273615268799384, heading: 4.174016114785783 },
-  ],
-  An: [
-    { x: -2191857.762064247, y: 4391851.216336267, z: 4059207.8195358147, pitch: -0.273615278180126, heading: 4.133470091730841 },
-    { x: -2191780.1963419374, y: 4391942.7189201, z: 4059150.706300502, pitch: -0.2736152705132333, heading: 4.174016115591178 },
-  ],
-  Ab: [
-    { x: -2191837.840988996, y: 4391846.580846679, z: 4059218.7812181143, pitch: -0.27361528074335073, heading: 4.133470092831442 },
-    { x: -2191752.151682671, y: 4391945.003318864, z: 4059158.5603542, pitch: -0.2736152724206695, heading: 4.133470089257832 },
-  ],
-  ABLL: [
-    { x: -2191824.0634073704, y: 4391835.782166819, z: 4059237.6056591473, pitch: -0.2528161816516681, heading: 4.119397549186182 },
-    { x: -2191734.4241563617, y: 4391939.564567391, z: 4059174.01694426, pitch: -0.27361527455690693, heading: 4.1334700901750905 },
-  ],
-  Bdn: [
-    { x: -2191803.2847895636, y: 4391837.034217936, z: 4059245.2259718766, pitch: -0.27361528479024466, heading: 4.133470094569065 },
-    { x: -2191713.3910603435, y: 4391940.32628511, z: 4059182.0063548964, pitch: -0.2736152760535817, heading: 4.133470090817698 },
-  ],
-  Bdz: [
-    { x: -2191789.9405385195, y: 4391833.593338022, z: 4059256.154013882, pitch: -0.27361528630033405, heading: 4.133470095217476 },
-    { x: -2191698.585661897, y: 4391939.170719848, z: 4059191.2506338484, pitch: -0.2736152773311682, heading: 4.133470091366267 },
-  ],
-  Bdb: [
-    { x: -2191776.6745118657, y: 4391829.610455442, z: 4059267.6261500968, pitch: -0.27361528788557665, heading: 4.133470095898148 },
-    { x: -2191687.1620376883, y: 4391931.945995739, z: 4059205.2366176825, pitch: -0.2736152790999231, heading: 4.14505473224456 },
-  ],
-  STLL: [
-    { x: -2191626.3409828995, y: 4391958.258608755, z: 4059199.5447252337, pitch: -0.22259103150468995, heading: 2.621236359497433 },
-    { x: -2191712.8853393546, y: 4391986.103812453, z: 4059122.845985915, pitch: -0.21783786361586177, heading: 2.6156527318724034 },
-  ],
-  Cn: [
-    { x: -2191739.861679835, y: 4391821.475515011, z: 4059329.936194209, pitch: -1.0375815959304733, heading: 4.17402379001897 },
-    { x: -2191632.5453954535, y: 4391936.863001866, z: 4059265.871851614, pitch: -0.9168399844851431, heading: 4.130144181455908 },
-  ],
-  Cz: [
-    { x: -2191722.67124638, y: 4391824.376614587, z: 4059361.610021701, pitch: -1.1606125644047487, heading: 4.138551206120907 },
-    { x: -2191621.5355790686, y: 4391926.642681557, z: 4059284.62573192, pitch: -0.8155953535208664, heading: 4.135267649382904 },
-  ],
-  Cb: [
-    { x: -2191701.701896454, y: 4391818.946249625, z: 4059378.806771607, pitch: -1.160612566762115, heading: 4.138551214507572 },
-    { x: -2191587.6847169246, y: 4391918.087213729, z: 4059293.2294566855, pitch: -0.7442036787208162, heading: 4.159179237519195 },
-  ],
-};
-// ----- 大屏（11520x2160，isSpecialViewport === true）-----
-// 注意：大屏视口下生态连廊(STLL)与 C馆(Cn/Cz/Cb)未配置点位，巡航时会自动跳过。
-const CRUISE_VIEWS_BIG = {
-  xuting2: [
-    { x: -2191850.204253986, y: 4391872.035095663, z: 4059186.062354467, pitch: -0.5234032474088863, heading: 3.684829486796761 },
-    { x: -2191825.2306870394, y: 4391905.081299725, z: 4059163.7924988503, pitch: -0.5234032425931909, heading: 3.6848294851186463 },
-    { x: -2191791.2813096796, y: 4391941.105503058, z: 4059143.1465672636, pitch: -0.523403238128465, heading: 3.6848294835628232 },
-    { x: -2191768.859882694, y: 4391965.068316232, z: 4059129.325716969, pitch: -0.5234032351395559, heading: 3.6848294825212884 },
-  ],
-  An: [
-    { x: -2191851.882654214, y: 4391848.089689518, z: 4059204.507587001, pitch: -0.33895532792516625, heading: 4.0391208389122 },
-    { x: -2191802.9154021367, y: 4391905.4900134755, z: 4059169.650922555, pitch: -0.36469881006759275, heading: 4.057536330424101 },
-    { x: -2191745.1294403886, y: 4391973.048898168, z: 4059128.229008788, pitch: -0.3827192307583829, heading: 4.0740048069818515 },
-  ],
-  Ab: [
-    { x: -2191827.069284982, y: 4391848.906919208, z: 4059212.715590178, pitch: -0.20905793073725487, heading: 4.009119486301823 },
-    { x: -2191780.1421791194, y: 4391903.78664923, z: 4059178.6768301204, pitch: -0.20905792517677257, heading: 4.009119484910489 },
-    { x: -2191731.950528058, y: 4391959.911270552, z: 4059143.9723288515, pitch: -0.2090579195071478, heading: 4.009119483491845 },
-  ],
-  ABLL: [
-    { x: -2191816.8659931775, y: 4391841.449599456, z: 4059229.854928923, pitch: -0.2075651054048262, heading: 4.211258837014219 },
-    { x: -2191789.6032867865, y: 4391874.2444375735, z: 4059209.093356498, pitch: -0.20756510288550167, heading: 4.211258836045627 },
-    { x: -2191742.8599016885, y: 4391927.742920239, z: 4059176.4490664513, pitch: -0.20756509892404607, heading: 4.211258834522595 },
-  ],
-  Bdn: [
-    { x: -2191797.1577867344, y: 4391834.694502901, z: 4059240.812518247, pitch: -0.20861116735809548, heading: 3.990725170132234 },
-    { x: -2191747.552430843, y: 4391893.4952881895, z: 4059203.9775297884, pitch: -0.20861116121164813, heading: 3.990725168653698 },
-    { x: -2191698.305378552, y: 4391949.62678877, z: 4059169.8354079328, pitch: -0.20861115551415188, heading: 3.9907251672831348 },
-  ],
-  Bdz: [
-    { x: -2191784.449081554, y: 4391829.797225024, z: 4059252.6374086295, pitch: -0.2655300429707199, heading: 3.9657583994748102 },
-    { x: -2191726.815355025, y: 4391896.94646368, z: 4059211.104615742, pitch: -0.2655300358460968, heading: 3.9657583973808808 },
-    { x: -2191678.5398774953, y: 4391953.098934156, z: 4059176.678950699, pitch: -0.2809761331767724, heading: 3.9918661498845696 },
-  ],
-  Bdb: [
-    { x: -2191772.811265936, y: 4391825.302236272, z: 4059266.8517366457, pitch: -0.3526389963317018, heading: 3.8960179104074215 },
-    { x: -2191713.0043777823, y: 4391894.759600914, z: 4059223.9950768477, pitch: -0.3526389884444101, heading: 3.8960179076791723 },
-    { x: -2191664.8131625573, y: 4391951.045620354, z: 4059189.2113521285, pitch: -0.40412593364523586, heading: 3.9714818992729355 },
-  ],
-};
-
-// ----- 5760x1080（isSpecialViewport === 1）-----
-// 注意：该视口下 C馆(Cn/Cz/Cb)未配置点位，巡航时会自动跳过。
-const CRUISE_VIEWS_SAN = {
-  xuting1: [
-    { x: -2191865.7060670736, y: 4391857.067578937, z: 4059182.294626689, pitch: -0.10211924908560444, heading: 3.833160953474144 },
-    { x: -2191790.643440148, y: 4391942.323462089, z: 4059128.0728420047, pitch: -0.10211923768185827, heading: 3.833160967689527 },
-  ],
-  xuting2: [
-    { x: -2191871.9873331613, y: 4391858.154635156, z: 4059189.7051673406, pitch: -0.13210296444420178, heading: 3.978323984439869 },
-    { x: -2191819.703921018, y: 4391917.999124635, z: 4059153.1870941054, pitch: -0.13210295826455787, heading: 3.9783239835297866 },
-  ],
-  An: [
-    { x: -2191853.592393524, y: 4391849.726027105, z: 4059205.2531665387, pitch: -0.10983709195249025, heading: 4.038483152598138 },
-    { x: -2191783.6262582447, y: 4391931.857270204, z: 4059154.1263022246, pitch: -0.10983708435878503, heading: 4.03848315267791 },
-  ],
-  Ab: [
-    { x: -2191835.059618253, y: 4391844.498016035, z: 4059220.266051973, pitch: -0.11756014113769142, heading: 4.027884145446638 },
-    { x: -2191769.430122003, y: 4391919.328671621, z: 4059174.7396824006, pitch: -0.11756013386650865, heading: 4.027884144394415 },
-  ],
-  ABLL: [
-    { x: -2191822.7852451205, y: 4391833.902370928, z: 4059238.38876324, pitch: -0.11756014366878675, heading: 4.027884145604161 },
-    { x: -2191762.786497357, y: 4391907.727129515, z: 4059190.879443536, pitch: -0.1175601364443215, heading: 4.027884144767448 },
-  ],
-  Bdn: [
-    { x: -2191801.8546009064, y: 4391836.207263938, z: 4059245.3165048305, pitch: -0.11599974081254327, heading: 4.0382307749946404 },
-    { x: -2191733.05855172, y: 4391916.425290628, z: 4059195.6708375798, pitch: -0.11599973298476929, heading: 4.038230773853133 },
-  ],
-  Bdz: [
-    { x: -2191788.5398980123, y: 4391832.838743265, z: 4059256.1651669266, pitch: -0.11599974251074618, heading: 4.038230775242267 },
-    { x: -2191719.7125953566, y: 4391914.521138286, z: 4059204.9519546623, pitch: -0.11599973443598266, heading: 4.038230774064747 },
-  ],
-  Bdb: [
-    { x: -2191776.560364014, y: 4391828.52000048, z: 4059267.2769953376, pitch: -0.11599974973720695, heading: 4.012165263052713 },
-    { x: -2191704.056783164, y: 4391911.488875828, z: 4059216.373048525, pitch: -0.11599974155446047, heading: 4.012165261921213 },
-  ],
-  STLL: [
-    { x: -2191609.563920239, y: 4391954.019581999, z: 4059211.800107714, pitch: -0.05223811043976556, heading: 2.4547294631336065 },
-    { x: -2191686.3019441254, y: 4391979.345829029, z: 4059148.890909552, pitch: -0.08570464818421941, heading: 2.4604329690089966 },
-  ],
-};
-
-
-const CRUISE_VIEWS_MIDDLE = {
-  xuting1: [
-    { x: -2191865.7060670736, y: 4391857.067578937, z: 4059182.294626689, pitch: -0.10211924908560444, heading: 3.833160953474144 },
-    { x: -2191790.643440148, y: 4391942.323462089, z: 4059128.0728420047, pitch: -0.10211923768185827, heading: 3.833160967689527 },
-  ],
-  xuting2: [
-    { x: -2191871.9873331613, y: 4391858.154635156, z: 4059189.7051673406, pitch: -0.13210296444420178, heading: 3.978323984439869 },
-    { x: -2191819.703921018, y: 4391917.999124635, z: 4059153.1870941054, pitch: -0.13210295826455787, heading: 3.9783239835297866 },
-  ],
-  An: [
-    { x: -2191853.592393524, y: 4391849.726027105, z: 4059205.2531665387, pitch: -0.10983709195249025, heading: 4.038483152598138 },
-    { x: -2191783.6262582447, y: 4391931.857270204, z: 4059154.1263022246, pitch: -0.10983708435878503, heading: 4.03848315267791 },
-  ],
-  Ab: [
-    { x: -2191835.059618253, y: 4391844.498016035, z: 4059220.266051973, pitch: -0.11756014113769142, heading: 4.027884145446638 },
-    { x: -2191769.430122003, y: 4391919.328671621, z: 4059174.7396824006, pitch: -0.11756013386650865, heading: 4.027884144394415 },
-  ],
-
-  Bdn: [
-    { x: -2191801.8546009064, y: 4391836.207263938, z: 4059245.3165048305, pitch: -0.11599974081254327, heading: 4.0382307749946404 },
-    { x: -2191733.05855172, y: 4391916.425290628, z: 4059195.6708375798, pitch: -0.11599973298476929, heading: 4.038230773853133 },
-  ],
-  Bdz: [
-    { x: -2191788.5398980123, y: 4391832.838743265, z: 4059256.1651669266, pitch: -0.11599974251074618, heading: 4.038230775242267 },
-    { x: -2191719.7125953566, y: 4391914.521138286, z: 4059204.9519546623, pitch: -0.11599973443598266, heading: 4.038230774064747 },
-  ],
-  Bdb: [
-    { x: -2191776.560364014, y: 4391828.52000048, z: 4059267.2769953376, pitch: -0.11599974973720695, heading: 4.012165263052713 },
-    { x: -2191704.056783164, y: 4391911.488875828, z: 4059216.373048525, pitch: -0.11599974155446047, heading: 4.012165261921213 },
-  ],
-  Cn: [
-    {
-      "x": -2191793.383060866,
-      "y": 4391828.465112648,
-      "z": 4059416.7288915757,
-      "pitch": -0.8475892623713919,
-      "heading": 4.0825134840233375
-    }, {
-      "x": -2191699.79119681,
-      "y": 4391882.821104431,
-      "z": 4059312.5300057824,
-      "pitch": -0.44113361371024107,
-      "heading": 4.135904291309523
-    }],
-  Cz: [
-    {
-      "x": -2191753.0391099313,
-      "y": 4391888.164525584,
-      "z": 4059413.919575522,
-      "pitch": -1.4605107711473786,
-      "heading": 4.12651665030858
-    }, {
-      "x": -2191695.5054864376,
-      "y": 4391894.7808376085,
-      "z": 4059374.2723496533,
-      "pitch": -0.6445037155596642,
-      "heading": 4.089347744639515
-    }],
-  Cb: [
-    {
-      "x": -2191747.612091036,
-      "y": 4391883.386012675,
-      "z": 4059457.9422178366,
-      "pitch": -1.3421144109932004,
-      "heading": 4.12760906911168
-    }, {
-      "x": -2191683.922745105,
-      "y": 4391935.057033398,
-      "z": 4059418.966512324,
-      "pitch": -0.9328235942604293,
-      "heading": 4.092936665386214
-    }
-  ],
-};
-
-// 财富中心18
-const CRUISE_VIEWS_CENTER = {
-  xuting1: [
-    { x: -2191865.7060670736, y: 4391857.067578937, z: 4059182.294626689, pitch: -0.10211924908560444, heading: 3.833160953474144 },
-    { x: -2191790.643440148, y: 4391942.323462089, z: 4059128.0728420047, pitch: -0.10211923768185827, heading: 3.833160967689527 },
-  ],
-  xuting2: [
-    { x: -2191871.9873331613, y: 4391858.154635156, z: 4059189.7051673406, pitch: -0.13210296444420178, heading: 3.978323984439869 },
-    { x: -2191819.703921018, y: 4391917.999124635, z: 4059153.1870941054, pitch: -0.13210295826455787, heading: 3.9783239835297866 },
-  ],
-  An: [
-    {
-      "x": -2191866.6211736198,
-      "y": 4391851.522831841,
-      "z": 4059221.708316238,
-      "pitch": -0.39816355973717443,
-      "heading": 4.088522949450766
-    },
-    {
-      "x": -2191788.0464643133,
-      "y": 4391943.950647526,
-      "z": 4059164.132506584,
-      "pitch": -0.3981635512410162,
-      "heading": 4.088522944485585
-    }
-  ],
-  Ab: [
-    {
-      "x": -2191851.8629883695,
-      "y": 4391843.584653343,
-      "z": 4059238.2659231657,
-      "pitch": -0.39816356218034477,
-      "heading": 4.088522950878495
-    },
-    {
-      "x": -2191768.5984158874,
-      "y": 4391938.098823174,
-      "z": 4059176.669666783,
-      "pitch": -0.3981635538161059,
-      "heading": 4.088522945990425
-    },],
-
-  Bdn: [
-    {
-      "x": -2191804.3485440444,
-      "y": 4391840.136608158,
-      "z": 4059251.4399710516,
-      "pitch": -0.5011371247271907,
-      "heading": 4.0801771812851255
-    },
-    {
-      "x": -2191710.2029175004,
-      "y": 4391949.436038492,
-      "z": 4059184.0163306743,
-      "pitch": -0.5011371146634334,
-      "heading": 4.080177173759306
-    }],
-  Bdz: [
-    {
-      "x": -2191785.050655734,
-      "y": 4391837.507670057,
-      "z": 4059255.23296429,
-      "pitch": -0.3930150078576198,
-      "heading": 4.062436755870774
-    },
-    {
-      "x": -2191696.629602864,
-      "y": 4391942.664834565,
-      "z": 4059192.3654479897,
-      "pitch": -0.3930149976833932,
-      "heading": 4.06243675032163
-    }],
-  Bdb: [
-    {
-      "x": -2191777.932684785,
-      "y": 4391830.389375065,
-      "z": 4059269.9432133893,
-      "pitch": -0.3930150095410183,
-      "heading": 4.062436756788999
-    },
-    {
-      "x": -2191683.0380641674,
-      "y": 4391941.391948858,
-      "z": 4059201.081181628,
-      "pitch": -0.3930149990156713,
-      "heading": 4.062436751048265
-    }
-  ],
-  Cn: [
-    {
-      x: -2191731.112129056,
-      y: 4391817.428396797,
-      z: 4059324.5281401896,
-      pitch: -0.6199921260461796,
-      heading: 4.0511180529568405
-    }, {
-      x: -2191640.975932403,
-      y: 4391922.220369304,
-      z: 4059258.9197757808,
-      pitch: -0.60635062018651,
-      heading: 4.059758707492876
-    }],
-  Cz: [
-    {
-      x: -2191711.0612801453,
-      y: 4391808.361189432,
-      z: 4059344.884631618,
-      pitch: -0.5445666993545881,
-      heading: 4.082689697823561
-    }, {
-      x: -2191618.712626907,
-      y: 4391911.45687236,
-      z: 4059283.2031521266,
-      pitch: -0.5445666901812345,
-      heading: 4.082689690198721
-    }],
-  Cb: [
-    {
-      x: -2191685.2612481294,
-      y: 4391802.469818159,
-      z: 4059365.1882607136,
-      pitch: -0.5445667023739,
-      heading: 4.0826897003332223
-    }, {
-      x: -2191597.328721372,
-      y: 4391904.962582959,
-      z: 4059301.774728886,
-      pitch: -0.5445666929433353,
-      heading: 4.082689692494578
-    }
-  ],
-};
-
-
-// 视口 → 视图字典
-const CRUISE_VIEWS = {
-  small: CRUISE_VIEWS_SMALL, // isSpecialViewport.value === false
-  big: CRUISE_VIEWS_BIG, // isSpecialViewport.value === true
-  san: CRUISE_VIEWS_SAN, // isSpecialViewport.value === 1
-  middle: CRUISE_VIEWS_MIDDLE, // C馆4楼3联屏
-  center: CRUISE_VIEWS_CENTER  // 财富中心18楼
-};
-
-// 巡航路线：实体 -> 途经区域 key 的有序列表
-// （按小屏全量顺序定义；运行时会自动过滤当前视口缺失的区域）
-const CRUISE_ROUTES = {
-  entity1: { name: "A馆北侧", views: ["Ab", "Bdn", "Bdz", "Bdb", "Cn", "Cz", "Cb", "An"] },
-  entity2: { name: "A馆南侧", views: ["An", "Ab", "Bdn", "Bdz", "Bdb", "Cn", "Cz", "Cb"] },
-  entity3: { name: "B馆南侧", views: ["Bdn", "Bdz", "Bdb", "Cn", "Cz", "Cb", "An", "Ab"] },
-  entity4: { name: "B馆中间", views: ["Bdz", "Bdb", "Cn", "Cz", "Cb", "An", "Ab", "Bdn"] },
-  entity5: { name: "B馆北侧", views: ["Bdb", "Cn", "Cz", "Cb", "An", "Ab", "Bdn", "Bdz"] },
-  entity11: { name: "A馆序厅一楼", views: ["xuting1"] },
-  entity16: { name: "A馆序厅二楼", views: ["xuting2"] },
-  entity19: { name: "生态连廊", views: ["STLL"] },
-  entity20: { name: "AB馆连廊", views: ["ABLL"] },
-  entity21: { name: "C馆南侧", views: ["Cn", "Cz", "Cb", "An", "Ab", "Bdn", "Bdz", "Bdb"] },
-  entity22: { name: "C馆中间", views: ["Cz", "Cb", "An", "Ab", "Bdn", "Bdz", "Bdb", "Cn"] },
-  entity23: { name: "C馆北侧", views: ["Cb", "An", "Ab", "Bdn", "Bdz", "Bdb", "Cn", "Cz"] },
-};
-
-// ----------------------------------------------------------------------------
-// 巡航核心逻辑（重构版）
-// 名称直接取「当前飞行区域」的视图名，与视角严格对应
-// ----------------------------------------------------------------------------
-let cruiseStatess = {
-  currentFlyingId: null, // 正在飞行的实体 ID
-  pauseFlyingId: null, // 已暂停的实体 ID
-};
-
-// 根据视口返回视图字典
-function getCruiseViews() {
-  if (isSpecialViewport.value === true) return CRUISE_VIEWS.big;
-  if (isSpecialViewport.value === 1) return CRUISE_VIEWS.san;
-  if (isSpecialViewport.value === 3) return CRUISE_VIEWS.middle;
-  if (isSpecialViewport.value === 4) return CRUISE_VIEWS.center;
-  return CRUISE_VIEWS.small;
-}
-
-// 上报当前区域名称（子传父，用于 cruise-tip 展示）
-function reportPointName(name) {
-  if (typeof emits === "function") {
-    emits("pointName", name);
-  }
-}
-
-// 构建巡航点序列：把区域 key 展开为关键帧，并过滤当前视口缺失的区域
-// 返回 [{ name, points:[{x,y,z,pitch,heading}] }, ...]
-function buildCruiseRoute(id) {
-  const views = getCruiseViews();
-  const routeCfg = CRUISE_ROUTES[id];
-  if (!routeCfg) return null;
-
-  const route = [];
-  routeCfg.views.forEach((key) => {
-    const pts = views[key];
-    if (pts && Array.isArray(pts) && pts.length > 0) {
-      route.push({ name: CRUISE_VIEW_NAME[key] || key, points: pts });
-    }
-  });
-  return route;
-}
-
-// 通用巡航飞行核心逻辑（供开始/继续调用，不重置索引）
-function startFlyCore(id) {
-  if (!id) {
-    console.error("必须传入实体ID");
-    return false;
-  }
-
-  const route = buildCruiseRoute(id);
-  if (!route || route.length === 0) {
-    console.error(`未找到实体${id}的巡航路线或当前视口无对应点位`);
-    return false;
-  }
-
-  const stateKey = `er_${id}`;
-  if (!cruiseStatess[stateKey]) {
-    cruiseStatess[stateKey] = {
-      groupIndex: 0, // 当前区域索引
-      pointIndex: 0, // 当前区域内关键帧索引
-      isFlying: false,
-      currentFlight: null,
-    };
-  }
-
-  const state = cruiseStatess[stateKey];
-  state.isFlying = true;
-  cruiseStatess.currentFlyingId = id;
-  cruiseStatess.pauseFlyingId = null;
-
-  const fly = () => {
-    if (state.groupIndex >= route.length) {
-      console.log(`实体${id}巡航完成`);
-      state.isFlying = false;
-      state.groupIndex = 0;
-      state.pointIndex = 0;
-      state.currentFlight = null;
-      cruiseStatess.currentFlyingId = null;
-      cruiseStatess.pauseFlyingId = null;
-      return;
-    }
-
-    const group = route[state.groupIndex];
-    const point = group.points[state.pointIndex];
-
-    // 进入新区域第一帧时，上报当前区域名称（与视角严格对应）
-    if (state.pointIndex === 0) {
-      reportPointName(group.name);
-    }
-
-    const flyDuration = state.pointIndex === 0 ? 3 : 30; // 区域首帧快飞，其余慢飞驻留
-
-    state.currentFlight = viewer.camera.flyTo({
-      destination: { x: point.x, y: point.y, z: point.z },
-      maximumHeight: 5,
-      duration: flyDuration,
-      orientation: { heading: point.heading, pitch: point.pitch },
-      complete: function () {
-        state.pointIndex++;
-        if (state.pointIndex >= group.points.length) {
-          state.pointIndex = 0;
-          state.groupIndex++;
-        }
-        if (state.groupIndex < route.length && state.isFlying) {
-          fly();
-        } else {
-          state.isFlying = false;
-          state.currentFlight = null;
-          cruiseStatess.currentFlyingId = null;
-          cruiseStatess.pauseFlyingId = null;
-        }
-      },
-      cancel: function () {
-        console.log(`实体${id}巡航被手动取消`);
-        state.isFlying = false;
-        state.currentFlight = null;
-        cruiseStatess.currentFlyingId = null;
-        cruiseStatess.pauseFlyingId = id;
-      },
-      easingFunction: Cesium.EasingFunction.LINEAR_NONE,
-    });
-  };
-
-  fly();
-  return true;
-}
-
-// 重新开始巡航（Erxun）
-function Erxun(id) {
-  if (!id) {
-    console.error("必须传入实体ID");
-    return;
-  }
-
-  // 1. 先停止【飞行中/暂停中】的其他实体（互斥）
-  if (cruiseStatess.currentFlyingId && cruiseStatess.currentFlyingId !== id) {
-    stopErxun(cruiseStatess.currentFlyingId);
-  }
-  if (cruiseStatess.pauseFlyingId && cruiseStatess.pauseFlyingId !== id) {
-    stopErxun(cruiseStatess.pauseFlyingId);
-  }
-
-  // 2. 初始化状态，重置索引
-  const stateKey = `er_${id}`;
-  cruiseStatess[stateKey] = cruiseStatess[stateKey] || {
-    groupIndex: 0,
-    pointIndex: 0,
-    isFlying: false,
-    currentFlight: null,
-  };
-  const state = cruiseStatess[stateKey];
-
-  if (state.isFlying) {
-    stopErxun(id);
-    console.warn(`实体${id}正在巡航中，已先停止原有巡航并重新开始`);
-  }
-
-  state.groupIndex = 0;
-  state.pointIndex = 0;
-
-  // 3. 启动前立即上报起始区域名称（保证首屏名称正确）
-  const route = buildCruiseRoute(id);
-  if (route && route.length > 0) {
-    reportPointName(route[0].name);
-  }
-
-  startFlyCore(id);
-}
-
-// 停止巡航（暂停）
-function stopErxun(id) {
-  const targetId =
-    id || cruiseStatess.currentFlyingId || cruiseStatess.pauseFlyingId;
-  if (!targetId) {
-    console.warn("[stopErxun] 当前无飞行/暂停的巡航实体，无需停止");
-    return;
-  }
-
-  const stateKey = `er_${targetId}`;
-  if (!cruiseStatess[stateKey]) {
-    console.warn(`[stopErxun] 实体${targetId}无巡航状态，已自动初始化`);
-    cruiseStatess[stateKey] = {
-      groupIndex: 0,
-      pointIndex: 0,
-      isFlying: false,
-      currentFlight: null,
-    };
-  }
-  const state = cruiseStatess[stateKey];
-
-  if (state.isFlying) {
-    viewer.camera.cancelFlight();
-    state.isFlying = false;
-    state.currentFlight = null;
-    cruiseStatess.currentFlyingId = null;
-    cruiseStatess.pauseFlyingId = targetId;
-    console.log(
-      `[stopErxun] 成功：已暂停实体${targetId}的巡航，暂停在第${state.groupIndex}个区域`,
-    );
-  } else if (cruiseStatess.pauseFlyingId === targetId) {
-    console.warn(`[stopErxun] 实体${targetId}已处于暂停状态，无需重复停止`);
-  } else {
-    console.warn(`[stopErxun] 实体${targetId}当前未在飞行/暂停`);
-  }
-}
-
-// 继续巡航
-function continueErxun(id) {
-  const targetId = id || cruiseStatess.pauseFlyingId;
-  if (!targetId) {
-    console.error(
-      "【continueErxun】错误：当前无任何暂停的巡航实体，请先启动巡航并暂停！",
-    );
-    return;
-  }
-
-  const stateKey = `er_${targetId}`;
-  if (!cruiseStatess[stateKey]) {
-    console.error(`【continueErxun】错误：实体${targetId}无巡航记录，已自动初始化`);
-    cruiseStatess[stateKey] = {
-      groupIndex: 0,
-      pointIndex: 0,
-      isFlying: false,
-      currentFlight: null,
-    };
-    return;
-  }
-  const state = cruiseStatess[stateKey];
-
-  if (state.isFlying) {
-    console.warn(`【continueErxun】警告：实体${targetId}正在巡航中，无需重复继续`);
-    return;
-  }
-  if (cruiseStatess.pauseFlyingId !== targetId) {
-    console.error(
-      `【continueErxun】错误：实体${targetId}非当前暂停实体，当前暂停实体为：${cruiseStatess.pauseFlyingId}`,
-    );
-    return;
-  }
-
-  console.log(
-    `【continueErxun】成功：开始继续实体${targetId}的巡航，从第${state.groupIndex}个区域出发`,
-  );
-  startFlyCore(targetId);
-}
-
-// 方式1：监听整个文档的鼠标移动（最常用，页面任意位置移动都触发）
-// document.addEventListener('mousemove', function (event) {
-//   // 打印1111，可附带鼠标坐标方便调试
-//   stopErxun()
-// });
-
-// cesium贴图（给视频融合经纬度）
-// const click_draw_polygon_fn = () => {
-//   if (!viewer) {
-//     console.warn("viewer 未初始化，无法绘制多边形");
-//     return;
-//   }
-//   // 调用 click_draw_polygon 函数
-//   click_draw_polygon(viewer);
-// };
 
 let isConnected = ref(false); // WebSocket 连接状态
 let models = reactive<any>([]); // 存放模型实例
@@ -4395,9 +3655,6 @@ onMounted(() => {
   // loadModelById(2);
   loadModelById(3);
   ld();
-
-  // listenMouseMove()
-  // updateInitPointName();
 });
 
 // 组件卸载时清理资源
@@ -4405,6 +3662,7 @@ onUnmounted(() => {
   if (viewer) {
     viewer.destroy();
     // viewer = null
+    cruiseCtl.dispose();
   }
 });
 
@@ -4412,6 +3670,7 @@ onUnmounted(() => {
 defineExpose({
   addHotspot,
   addHotspots,
+  toggleAllHotspots, //实时监控切换
   gaodidianliandong,
   gaodidianxutingerlou,
   gaodidianxutingerlouC,
@@ -4439,10 +3698,6 @@ defineExpose({
   getbaogaoting,
   getxuting,
   closeAllWebSockets,
-  Erxun,
-  beihui, //北会飞行
-  stopErxun,
-  continueErxun,
   // ===== 新增：动态区域显示/隐藏 =====
   showDynamicAreas,
   removeDynamicAreas,
@@ -4456,7 +3711,12 @@ defineExpose({
   // 飞行方法
   flyToView: (viewKey: string, duration?: number) => {
     flyToView(viewKey, duration);
-  } 
+  },
+  cruiseStart,
+  cruisePause,
+  cruiseResume,
+  cruiseToggle,
+  cruiseStop
 });
 </script>
 

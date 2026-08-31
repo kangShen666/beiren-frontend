@@ -8,6 +8,14 @@
  *    巡航路线只引用「区域 key」，运行时自动过滤当前视口不存在的区域。
  * 3. 单例式 class 封装，事件回调上抛（onRegionChange/onFinish），
  *    由组件层负责 UI 高亮联动。
+ * 
+ *  *
+ * v2 变更：
+ * 1. 每个区域进入前插入一段 "transition" 飞行动画：
+ *    位置沿 lerp 路径 + 正弦抬升弧线（先拉高/拉远再压低逼近 → 视觉上的
+ *    "先缩小视角再放大"），姿态用 smoothstep 缓动，观感更像无人机进场。
+ * 2. 区域高亮上报改在 transition 段开始时触发 → 高亮与飞行动画同步。
+ * 3. 首段起点不再是"瞬移"，而是从相机当前姿态起飞。
  */
 import * as Cesium from "cesium";
 
@@ -33,10 +41,12 @@ type RegionViews = Partial<Record<CruiseRegionKey, CruiseViewpoint[]>>;
 export type CruiseViewportKind = "big" | "small" | "san" | "middle" | "center";
 
 export interface CruiseOptions {
-  /** 跨区域换场飞行时长（秒），默认 4 */
+  /** 换场飞行动画时长（秒），默认 4 */
   enterDuration?: number;
-  /** 区域内两固定视角之间的驻留飞行时长（秒），默认 24 */
+  /** 区域内驻留巡航时长（秒），默认 24 */
   stayDuration?: number;
+  /** 飞行动画最大抬升高度（米），默认 600 */
+  maxBumpHeight?: number;
 }
 
 /* ====================== 区域元信息 ====================== */
@@ -306,21 +316,22 @@ const VIEWPORT_VIEWS: Record<CruiseViewportKind, RegionViews> = {
 /* ====================== 巡航控制器 ====================== */
 
 interface Waypoint {
-  /** 非 null 表示这是一个区域的起点（用于跨层高亮上报 + 换场判定） */
   regionKey: CruiseRegionKey | null;
   view: CruiseViewpoint;
 }
 
+type SegmentKind = "transition" | "cruise";
+
 interface Segment {
-  from: Waypoint; to: Waypoint;
-  duration: number;            // 秒
-  startTime: number;           // 时间轴上的起始秒
+  from: Waypoint;
+  to: Waypoint;
+  kind: SegmentKind;
+  duration: number;   // 秒
+  startTime: number;  // 时间轴起始秒
 }
 
 export interface CruiseCallbacks {
-  /** 进入新区域时触发（key 用于面板高亮，name 用于 tip 展示） */
   onRegionChange?: (key: CruiseRegionKey, name: string) => void;
-  /** 整条巡航结束 */
   onFinish?: () => void;
 }
 
@@ -328,8 +339,8 @@ export class CruiseController {
   private opts: Required<CruiseOptions>;
   private resolveViewport: () => CruiseViewportKind;
 
-  private timeline: Waypoint[] = [];
   private segments: Segment[] = [];
+  private lastWaypoint: Waypoint | null = null;
   private totalDuration = 0;
 
   private progress = 0;
@@ -342,6 +353,12 @@ export class CruiseController {
   private viewerGetter: () => Cesium.Viewer | undefined;
   private cb: CruiseCallbacks = {};
 
+  // 复用临时对象，避免每帧分配
+  private tmpFrom = new Cesium.Cartesian3();
+  private tmpTo = new Cesium.Cartesian3();
+  private tmpPos = new Cesium.Cartesian3();
+  private tmpUp = new Cesium.Cartesian3();
+
   constructor(
     getViewer: () => Cesium.Viewer | undefined,
     resolveViewport: () => CruiseViewportKind,
@@ -349,120 +366,118 @@ export class CruiseController {
   ) {
     this.viewerGetter = getViewer;
     this.resolveViewport = resolveViewport;
-    this.opts = { enterDuration: 4, stayDuration: 24, ...options };
+    this.opts = {
+      enterDuration: 4,
+      stayDuration: 24,
+      maxBumpHeight: 600,
+      ...options,
+    };
   }
 
   /* ---------------- 对外 API ---------------- */
 
-  /** 注册事件回调 */
-  setCallbacks(cb: CruiseCallbacks) {
-    this.cb = cb;
-  }
+  setCallbacks(cb: CruiseCallbacks) { this.cb = cb; }
 
-  /** 开始一条新巡航（重复调用会重置并从头开始） */
+  /** 开始一条新巡航（从相机当前位置起飞） */
   start(cruiseId: string): boolean {
     const viewer = this.viewerGetter();
-    if (!viewer) {
-      console.warn("[CruiseController] viewer 未初始化");
-      return false;
-    }
+    if (!viewer) { console.warn("[CruiseController] viewer 未初始化"); return false; }
+
     const routeKeys = ROUTES[cruiseId];
-    if (!routeKeys) {
-      console.warn(`[CruiseController] 未找到巡航ID "${cruiseId}"`);
-      return false;
-    }
+    if (!routeKeys) { console.warn(`[CruiseController] 未找到巡航ID "${cruiseId}"`); return false; }
 
     const views = VIEWPORT_VIEWS[this.resolveViewport()] ?? {};
-    this.timeline = [];
 
-    // 展开为路径点序列，自动过滤当前视口不存在的区域
-    routeKeys.forEach((key) => {
-      const pts = views[key];
-      if (!pts || !pts.length) return; // 该视口没配此区域 → 跳过
-      pts.forEach((view, i) => {
-        this.timeline.push({ regionKey: i === 0 ? key : null, view });
-      });
-    });
+    // 过滤当前视口不存在的区域
+    const regions = routeKeys.filter((k) => views[k]?.length);
 
-    if (this.timeline.length < 2) {
+    // 1. 起点 = 相机当前姿态（不再瞬移）
+    const cam = viewer.camera;
+    const origin: Waypoint = {
+      regionKey: null,
+      view: {
+        x: cam.position.x, y: cam.position.y, z: cam.position.z,
+        pitch: cam.pitch, heading: cam.heading,
+      },
+    };
+
+    // 2. 构建分段：每个区域 = 1 段 transition 飞入 + (N-1) 段 cruise 驻留
+    this.segments = [];
+    this.totalDuration = 0;
+    let prev: Waypoint = origin;
+
+    for (const key of regions) {
+      const pts = views[key]!;
+
+      const head: Waypoint = { regionKey: key, view: pts[0] };
+      this.pushSegment(prev, head, "transition");
+      let cur = head;
+
+      for (let i = 1; i < pts.length; i++) {
+        const next: Waypoint = { regionKey: null, view: pts[i] };
+        this.pushSegment(cur, next, "cruise");
+        cur = next;
+      }
+      prev = cur;
+    }
+
+    this.lastWaypoint = prev;
+
+    if (this.segments.length === 0) {
       console.warn(`[CruiseController] ${cruiseId} 在当前视口无可巡航线段`);
       return false;
     }
 
-    // 构建分段：到达区域头（下一 WP 是头）为跨区快飞，其余为区域内驻留慢飞
-    this.segments = [];
-    this.totalDuration = 0;
-    for (let i = 0; i < this.timeline.length - 1; i++) {
-      const toWp = this.timeline[i + 1];
-      const dur = toWp.regionKey ? this.opts.enterDuration : this.opts.stayDuration;
-      this.segments.push({
-        from: this.timeline[i],
-        to: toWp,
-        duration: dur,
-        startTime: this.totalDuration,
-      });
-      this.totalDuration += dur;
-    }
-
     this.emittedKeys.clear();
     this.finished = false;
-
-    // 直接定位到第一个路径点（瞬时到位）
-    this.applyWaypoint(this.timeline[0].view);
-    const head = this.timeline[0];
-    if (head.regionKey) {
-      this.emitRegion(head.regionKey);
-    }
-
     this.attachTick();
+
     this.progress = 0;
     this.playing = true;
     this.lastTs = performance.now();
     return true;
   }
 
-  /** 暂停（只是冻结时间轴，不做任何相机打断操作 → 绝对无速度畸变） */
-  pause() {
-    this.playing = false;
-  }
+  /** 暂停（冻结时间轴，飞行动画/巡航均无速度畸变） */
+  pause() { this.playing = false; }
 
-  /** 继续（从冻结点原地接走，无需重算路径） */
+  /** 继续 */
   resume() {
     if (this.finished || !this.segments.length) return;
     this.playing = true;
     this.lastTs = performance.now();
   }
 
-  /** 暂停/继续 一键切换，返回切换后的状态 */
   toggle(): "running" | "paused" | null {
     if (!this.segments.length || this.finished) return null;
     this.playing ? this.pause() : this.resume();
     return this.playing ? "running" : "paused";
   }
 
-  /** 是否正在播放 */
-  isPlaying() {
-    return this.playing;
-  }
+  isPlaying() { return this.playing; }
 
-  /** 彻底停止并释放 */
   stop() {
     this.playing = false;
     this.detachTick();
-    this.timeline = [];
     this.segments = [];
+    this.lastWaypoint = null;
     this.totalDuration = 0;
     this.progress = 0;
     this.emittedKeys.clear();
   }
 
-  /** 组件卸载时调用 */
-  dispose() {
-    this.stop();
-    this.cb = {};
-  }
+  dispose() { this.stop(); this.cb = {}; }
 
   /* ---------------- 内部实现 ---------------- */
+
+  private pushSegment(from: Waypoint, to: Waypoint, kind: SegmentKind) {
+    this.segments.push({
+      from, to, kind,
+      duration: kind === "transition" ? this.opts.enterDuration : this.opts.stayDuration,
+      startTime: this.totalDuration,
+    });
+    this.totalDuration += this.segments[this.segments.length - 1].duration;
+  }
 
   private attachTick() {
     const viewer = this.viewerGetter();
@@ -486,14 +501,13 @@ export class CruiseController {
     const now = performance.now();
     let dt = (now - this.lastTs) / 1000;
     this.lastTs = now;
-    if (dt > 0.2) dt = 0.2; // 切后台回来防止大步跳跃
+    if (dt > 0.2) dt = 0.2;
     if (dt <= 0) return;
 
     this.progress += dt;
 
     if (this.progress >= this.totalDuration) {
-      // 结束：停在最后一个视角
-      const last = this.timeline[this.timeline.length - 1];
+      const last = this.segments[this.segments.length - 1].to;
       this.applyWaypoint(last.view);
       this.playing = false;
       this.finished = true;
@@ -505,46 +519,55 @@ export class CruiseController {
   }
 
   private applyAtProgress(t: number) {
-    // 定位当前段
-    let seg = this.segments[0];
-    for (const s of this.segments) {
-      if (t >= s.startTime) seg = s; else break;
-    }
-    const k = Math.min(Math.max((t - seg.startTime) / seg.duration, 0), 1);
-    const f = seg.from.view;
-    const g = seg.to.view;
-
-    // 关键：纯线性插值 → 全程严格匀速
-    const pos = Cesium.Cartesian3.lerp(
-      new Cesium.Cartesian3(f.x, f.y, f.z),
-      new Cesium.Cartesian3(g.x, g.y, g.z),
-      k,
-      new Cesium.Cartesian3(),
-    );
-    // 角度取最短弧插值，避免跨 ±π 时出现倒转抖动
-    const heading = f.heading + shortestAngleDiff(g.heading, f.heading) * k;
-    const pitch = f.pitch + (g.pitch - f.pitch) * k;
-
     const viewer = this.viewerGetter();
     if (!viewer) return;
-    viewer.camera.setView({ destination: pos, orientation: { heading, pitch, roll: 0 } });
-    if ((viewer.scene as any).requestRenderMode) {
-      viewer.scene.requestRender();
+
+    let seg = this.segments[0];
+    for (const s of this.segments) { if (t >= s.startTime) seg = s; else break; }
+
+    const rawK = Math.min(Math.max((t - seg.startTime) / seg.duration, 0), 1);
+    const f = seg.from.view;
+    const g = seg.to.view;
+    Cesium.Cartesian3.fromElements(f.x, f.y, f.z, this.tmpFrom);
+    Cesium.Cartesian3.fromElements(g.x, g.y, g.z, this.tmpTo);
+
+    let heading: number, pitch: number;
+
+    if (seg.kind === "cruise") {
+      // 区域内：严格线性匀速
+      Cesium.Cartesian3.lerp(this.tmpFrom, this.tmpTo, rawK, this.tmpPos);
+      heading = f.heading + shortestAngleDiff(g.heading, f.heading) * rawK;
+      pitch = f.pitch + (g.pitch - f.pitch) * rawK;
+    } else {
+      // 换场飞行动画：smoothstep 缓动 + 正弦抬升弧线（先拉远再逼近）
+      const k = smoothstep(rawK);
+      Cesium.Cartesian3.lerp(this.tmpFrom, this.tmpTo, k, this.tmpPos);
+
+      const dist = Cesium.Cartesian3.distance(this.tmpFrom, this.tmpTo);
+      const bump =
+        Math.sin(Math.PI * rawK) *
+        Math.min(Math.max(dist * 0.35, 60), this.opts.maxBumpHeight);
+
+      // 沿"竖直向上"（位置的 geocentric 法向近似）抬升
+      Cesium.Cartesian3.normalize(this.tmpPos, this.tmpUp);
+      Cesium.Cartesian3.multiplyByScalar(this.tmpUp, bump, this.tmpUp);
+      Cesium.Cartesian3.add(this.tmpPos, this.tmpUp, this.tmpPos);
+
+      heading = f.heading + shortestAngleDiff(g.heading, f.heading) * k;
+      pitch = f.pitch + (g.pitch - f.pitch) * k;
     }
 
-    // 到达一个区域头时上报（只报一次）
-    const arrivedIdx = seg === this.segments[0] && t <= seg.startTime ? 0 : undefined;
-    void arrivedIdx;
-    this.checkArrive(seg, t);
-  }
+    viewer.camera.setView({
+      destination: Cesium.Cartesian3.clone(this.tmpPos),
+      orientation: { heading, pitch, roll: 0 },
+    });
+    if ((viewer.scene as any).requestRenderMode) viewer.scene.requestRender();
 
-  private checkArrive(seg: Segment, t: number) {
-    const target = seg.from.regionKey ?? seg.to.regionKey;
-    if (!target) return;
-    // 从段开始即视为该区域的当前展示区
-    if (!this.emittedKeys.has(target)) {
-      this.emittedKeys.add(target);
-      this.emitRegion(target);
+    // 高亮上报：飞入动画开始的瞬间（与需求1/3联动）
+    if (seg.kind === "transition" && seg.to.regionKey &&
+        !this.emittedKeys.has(seg.to.regionKey)) {
+      this.emittedKeys.add(seg.to.regionKey);
+      this.emitRegion(seg.to.regionKey);
     }
   }
 
@@ -568,6 +591,12 @@ function shortestAngleDiff(to: number, from: number): number {
   while (d < -Math.PI) d += Math.PI * 2;
   return d;
 }
+
+/** smoothstep 缓动：先慢后快再慢，飞行动画观感更自然 */
+function smoothstep(k: number): number {
+  return k * k * (3 - 2 * k);
+}
+
 
 /** 组合式入口（用法同 useCameraFly） */
 export function useCruise(
