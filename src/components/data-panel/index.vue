@@ -22,7 +22,23 @@ let rankChartTimer: ReturnType<typeof setInterval> | null = null
 let flowChartTimer: ReturnType<typeof setInterval> | null = null
 
 // 客流接口基础地址
-const BASE_API_URL = 'https://br.yziic.com:19563'
+// const BASE_API_URL = 'https://br.yziic.com:19563'
+const BASE_API_URL = '/api'
+
+// 接口鉴权 key
+const SP_KEY =
+  'e27c3780e7069bda7082a23a489d77587ce309583ed99253f66e1d9833ed1a1d0b5ce86dc6714e9974cf258589139d7b1855e8c9fa2f2c1175ee123a95a23e9b0c23584b8b61f46a98ca0e38d5e58c985832712d6fb1cb56d247ed60d262da1d538a'
+
+// 公共请求头
+const SP_HEADERS = {
+  'sp-key': SP_KEY,
+}
+
+// 计算图表字号：以 1920 宽为基准缩放，超宽屏下放大
+const chartFontSize = Math.min(
+  Math.max(10, Math.round(window.innerWidth / 1920 * 10)),
+  22
+)
 
 interface RealDataItem {
   groupName: string
@@ -46,9 +62,7 @@ interface ApiResponse {
 const getRealTimeData = async (): Promise<ApiResponse['data'] | null> => {
   try {
     const response = await axios.get<ApiResponse>('/api/getRealTimeData', {
-      headers: {
-        'sp-key': 'e27c3780e7069bda7082a23a489d77587ce309583ed99253f66e1d9833ed1a1d0b5ce86dc6714e9974cf258589139d7b1855e8c9fa2f2c1175ee123a95a23e9b0c23584b8b61f46a98ca0e38d5e58c985832712d6fb1cb56d247ed60d262da1d538a',
-      },
+      headers: SP_HEADERS
     })
     if (response.data.code === 0 && response.data.data) {
       return response.data.data
@@ -65,7 +79,10 @@ const getHourlyData = async (date?: string) => {
   try {
     const url = `${BASE_API_URL}/getHourlyData`
     const params = date ? { date } : {}
-    const response = await axios.get(url, { params })
+    const response = await axios.get(url, { 
+      params,
+      headers: SP_HEADERS, // 新增鉴权头 
+      })
     if (response.data.code === 0 && response.data.data) {
       return response.data.data
     }
@@ -80,7 +97,9 @@ const getHourlyData = async (date?: string) => {
 const getWeeklyData = async () => {
   try {
     const url = `${BASE_API_URL}/getWeeklyData`
-    const response = await axios.get(url)
+    const response = await axios.get(url, {
+      headers: SP_HEADERS, // 新增鉴权头
+    })
     if (response.data.code === 0 && response.data.data) {
       return response.data.data
     }
@@ -130,12 +149,12 @@ const updateFlowChart = async () => {
       type: 'category',
       data: hours,
       axisLine: { lineStyle: { color: '#fff' } },
-      axisLabel: { color: '#fff', fontSize: 10 },
+      axisLabel: { color: '#fff', fontSize: chartFontSize },
     },
     yAxis: {
       type: 'value',
       axisLine: { lineStyle: { color: '#fff' } },
-      axisLabel: { color: '#fff', fontSize: 10 },
+      axisLabel: { color: '#fff', fontSize: chartFontSize },
       splitLine: { lineStyle: { color: 'rgba(255,255,255,0.2)' } },
     },
     series: [
@@ -205,12 +224,12 @@ const updateBarChart = async () => {
       type: 'category',
       data: dates,
       axisLine: { lineStyle: { color: '#fff' } },
-      axisLabel: { color: '#fff', fontSize: 10 },
+      axisLabel: { color: '#fff', fontSize: chartFontSize },
     },
     yAxis: {
       type: 'value',
       axisLine: { lineStyle: { color: '#fff' } },
-      axisLabel: { color: '#fff', fontSize: 10 },
+      axisLabel: { color: '#fff', fontSize: chartFontSize },
       splitLine: { lineStyle: { color: 'rgba(255,255,255,0.2)' } },
     },
     series: [
@@ -283,7 +302,7 @@ const updateRankChart = async () => {
     },
     legend: {
       data: ['进入人数', '离开人数'],
-      textStyle: { color: '#fff', fontSize: 10 },
+      textStyle: { color: '#fff', fontSize: chartFontSize },
       top: '18%',
       left: 'center',
     },
@@ -297,12 +316,12 @@ const updateRankChart = async () => {
       type: 'category',
       data: names,
       axisLine: { lineStyle: { color: '#fff' } },
-      axisLabel: { color: '#fff', fontSize: 10, interval: 0 },
+      axisLabel: { color: '#fff', fontSize: chartFontSize, interval: 0 },
     },
     yAxis: {
       type: 'value',
       axisLine: { lineStyle: { color: '#fff' } },
-      axisLabel: { color: '#fff', fontSize: 10 },
+      axisLabel: { color: '#fff', fontSize: chartFontSize },
       splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
     },
     title: [
@@ -312,7 +331,7 @@ const updateRankChart = async () => {
         top: '20%',
         textStyle: {
           color: '#00d4ff',
-          fontSize: 12,
+          fontSize: chartFontSize,
           fontWeight: 'bold',
           textShadowColor: 'rgba(0, 212, 255, 0.5)',
           textShadowBlur: 5,
@@ -324,7 +343,7 @@ const updateRankChart = async () => {
         top: '18%',
         textStyle: {
           color: '#ff6b6b',
-          fontSize: 12,
+          fontSize: chartFontSize,
           fontWeight: 'bold',
           textShadowColor: 'rgba(255, 107, 107, 0.5)',
           textShadowBlur: 5,
@@ -1301,6 +1320,7 @@ onUnmounted(() => {
       // width: var(--grid-width);
       // height: var(--grid-height);
       margin-top: 1.2vw;
+
       // grid-column-gap: var(--grid-gap);
       // grid-row-gap: 0.3vw;
       .data-grid__item {
@@ -1351,8 +1371,134 @@ onUnmounted(() => {
   }
 
   .toggle-switch {
+
     // width: 1vw;
     // height: 1vw;
+    &::after {
+      width: 0.8vw;
+      height: 0.8vw;
+      top: 0.1vw;
+      left: 0.1vw;
+    }
+
+    &.active::after {
+      left: 1.1vw;
+    }
+  }
+}
+
+/* 响应式：5752*1076 超宽屏 */
+@media screen and (min-width: 5744px) and (max-width: 5776px) and (min-height: 1064px) and (max-height: 1092px) {
+  .data-panel {
+    top: 1.5vw;
+    height: calc(100vh - 1.5vw);
+
+    // 标题：0.55vw ≈ 31px，在 5 米外可清晰阅读
+    --title-font-size: 0.55vw;
+    --title-top: 5%;
+    --title-left: 10%;
+
+    .data-card {
+      .user-title {
+        top: 18%;
+        left: 20%;
+      }
+    }
+  }
+
+  // ===== 左下：实时人流趋势 =====
+  .data-card--bottom-left {
+    --card-width: 20vw;
+    --card-height: calc(42% - 0.5vw);
+    left: 1vw;
+    bottom: 1vw;
+  }
+
+  // ===== 右上：每日人流统计 =====
+  .data-card--top-right {
+    --card-width: 20vw;
+    --card-height: calc(42% - 0.5vw);
+    top: 2vw;
+    right: 4vw;
+  }
+
+  // ===== 右下：展位聚集人数排行 =====
+  .data-card--bottom-right {
+    --card-width: 20vw;
+    --card-height: calc(42% - 0.5vw);
+    right: 4vw;
+    bottom: 1vw;
+
+    .total-data-bottom {
+      top: 1.2vw;
+      left: 1.2vw;
+      gap: 1.5vw;
+
+      .total-label {
+        font-size: 0.4vw;
+        margin-bottom: 0.15vw;
+      }
+
+      .total-value {
+        font-size: 0.85vw;
+      }
+    }
+  }
+
+  // ===== 左上：用户信息统计（4个小模块需完整显示） =====
+  .data-card--top-left {
+    --card-width: 25vw;
+    --card-height: 55%;
+    left: -1vw;
+    top: 0.5vw;
+
+    // grid 缩小，保证 4 个小模块完整可见
+    --grid-width: 50%;
+    --grid-height: 42%;
+    --grid-gap: 1.2vw;
+    --grid-item-label-gap: 0.12vw;
+
+    // 4 个小模块独立控制（标签 0.38vw≈22px，数值 0.75vw≈43px）
+    --item1-width: 85%;
+    --item1-height: 85%;
+    --item1-label-size: 0.38vw;
+    --item1-value-size: 0.75vw;
+
+    --item2-width: 85%;
+    --item2-height: 85%;
+    --item2-label-size: 0.38vw;
+    --item2-value-size: 0.75vw;
+
+    --item3-width: 85%;
+    --item3-height: 85%;
+    --item3-label-size: 0.38vw;
+    --item3-value-size: 0.75vw;
+
+    --item4-width: 85%;
+    --item4-height: 85%;
+    --item4-label-size: 0.38vw;
+    --item4-value-size: 0.75vw;
+
+    .data-grid {
+      margin-top: 1.5vw;
+    }
+  }
+
+  // ===== 图表显示开关 =====
+  .chart-toggle {
+    top: 0.5vw;
+    right: 1vw;
+    gap: 0.4vw;
+
+    span {
+      font-size: 0.42vw; // ≈ 24px
+    }
+  }
+
+  .toggle-switch {
+    width: 2vw;
+    height: 1vw;
+
     &::after {
       width: 0.8vw;
       height: 0.8vw;

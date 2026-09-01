@@ -65,7 +65,7 @@ const FLY_CONFIGS: Record<string, Partial<Record<ViewportType, FlyToConfig>>> = 
     center: { destination: { x: -2191702.2003192166, y: 4391997.539540619, z: 4059394.7037824634 }, orientation: { pitch: -0.9860474754515951, heading: 2.586916617814014, roll: 0.0 } },
   },
   Cguannei: {
-    big: { destination: { x: -2191673.5525984466, y: 4391977.860945423, z: 4059430.808706615 }, orientation: { pitch: -1.3309745439037828, heading: 2.585703823802162, roll: 0.0 } },
+    big: { destination: {  "x": -2191715.061025104,"y": 4392104.861551677,"z": 4059695.0332142343}, orientation: { pitch: -1.2302101003711483, heading: 2.561605356831923, roll: 0.0 } },
     small: { destination: { x: -2191673.5525984466, y: 4391977.860945423, z: 4059430.808706615 }, orientation: { pitch: -1.3309745439037828, heading: 2.585703823802162, roll: 0.0 } },
     middle: { destination: { x: -2191784.176437815, y: 4392200.335311995, z: 4059667.1954730963 }, orientation: { pitch: -1.4401477077800346, heading: 2.55638663197383, roll: 0.0 } },
     center: { destination: { x: -2191784.176437815, y: 4392200.335311995, z: 4059667.1954730963 }, orientation: { pitch: -1.4401477077800346, heading: 2.55638663197383, roll: 0.0 } },
@@ -79,6 +79,7 @@ const FLY_CONFIGS: Record<string, Partial<Record<ViewportType, FlyToConfig>>> = 
     small: { destination: { x: -2191526.567577822, y: 4392091.659490352, z: 4059237.1305910945 }, orientation: { pitch: -0.6986306560699496, heading: 1.029713186672386, roll: 0.0 }, duration: 3 },
   },
   waiwei: {
+    big: { destination: { x: -2192071.5345584922, y: 4391848.491066969, z: 4059190.7394617787 }, orientation: { pitch: -0.3018831365594834, heading: 4.891699137455037, roll: 0.0 } },
     small: { destination: { x: -2192059.038351901, y: 4391877.505759474, z: 4059208.1273751687 }, orientation: { pitch: -0.43476565828639746, heading: 4.961726147018309, roll: 0.0 } },
     middle: { destination: { x: -2192071.5345584922, y: 4391848.491066969, z: 4059190.7394617787 }, orientation: { pitch: -0.3018831365594834, heading: 4.891699137455037, roll: 0.0 } },
     center: { destination: { x: -2192071.5345584922, y: 4391848.491066969, z: 4059190.7394617787 }, orientation: { pitch: -0.3018831365594834, heading: 4.891699137455037, roll: 0.0 } },
@@ -92,21 +93,25 @@ const FLY_CONFIGS: Record<string, Partial<Record<ViewportType, FlyToConfig>>> = 
   ximian: {
     small: { destination: { x: -2191504.645466858, y: 4392277.609431442, z: 4059124.6065828544 }, orientation: { pitch: -0.3602316488728903, heading: 0.9903128512517148, roll: 0.0 } },
     middle: { destination: { x: -2191278.303675688, y: 4392812.229852682, z: 4059046.6684551355 }, orientation: { pitch: -0.3602316656650504, heading: 0.9903128608956218, roll: 0.0 } },
+    big: { destination: { x: -2191278.303675688, y: 4392812.229852682, z: 4059046.6684551355 }, orientation: { pitch: -0.3602316656650504, heading: 0.9903128608956218, roll: 0.0 } },
     center: { destination: { x: -2191429.2318405136, y: 4392402.677917658, z: 4059057.0870158547 }, orientation: { pitch: -0.25977283196887346, heading: 0.9282659528178412, roll: 0.0 } },
   },
   nanmian: {
     small: { destination: { x: -2191980.717291153, y: 4392073.91878765, z: 4059030.1045064195 }, orientation: { pitch: -0.3427254793876944, heading: 5.739680860526109, roll: 0.0 } },
     middle: { destination: { x: -2192368.586490291, y: 4392286.581656654, z: 4058850.4721331527 }, orientation: { pitch: -0.28609261202493097, heading: 5.729919095424682, roll: 0.0 } },
+    big: { destination: { x: -2192368.586490291, y: 4392286.581656654, z: 4058850.4721331527 }, orientation: { pitch: -0.28609261202493097, heading: 5.729919095424682, roll: 0.0 } },
     center: { destination: { x: -2192163.523579332, y: 4392180.858116286, z: 4058982.7348784995 }, orientation: { pitch: -0.36331991629482285, heading: 5.696281913720732, roll: 0.0 } },
   },
   dongmian: {
     small: { destination: { x: -2191963.218424804, y: 4391743.878426999, z: 4059427.959953717 }, orientation: { pitch: -0.3718993524373517, heading: 4.155138807719275, roll: 0.0 } },
     middle: { destination: { x: -2192239.719333582, y: 4391595.066665006, z: 4059748.415913824 }, orientation: { pitch: -0.37189936147065494, heading: 4.15513881337373, roll: 0.0 } },
+    big: { destination: { x: -2192239.719333582, y: 4391595.066665006, z: 4059748.415913824 }, orientation: { pitch: -0.37189936147065494, heading: 4.15513881337373, roll: 0.0 } },
     center: { destination: { x: -2192052.741121822, y: 4391686.46812191, z: 4059548.083350213 }, orientation: { pitch: -0.3667508269403976, heading: 4.111676304063763, roll: 0.0 } },
   },
   shangmian: {
     small: { destination: { x: -2191936.278289121, y: 4392393.403596916, z: 4059667.471697014 }, orientation: { pitch: -1.5618061318015073, heading: 0.9919419658575439, roll: 0.0 } },
     middle: { destination: { x: -2192124.014526871, y: 4393363.1629918935, z: 4060182.492908292 }, orientation: { pitch: -1.3814758036472923, heading: 0.9814547467032746, roll: 0.0 } },
+    big: { destination: { x: -2192124.014526871, y: 4393363.1629918935, z: 4060182.492908292 }, orientation: { pitch: -1.3814758036472923, heading: 0.9814547467032746, roll: 0.0 } },
     center: { destination: { x: -2192036.5583549114, y: 4392733.370418103, z: 4060084.578781242 }, orientation: { pitch: -1.5618061318015193, heading: 0.9919419658575537, roll: 0.0 } },
   },
   // 西广场
@@ -194,6 +199,7 @@ export function useCameraFly(getViewer: () => Cesium.Viewer | undefined) {
   // 获取当前视口类型
   const getViewportType = (): ViewportType => {
     const key = String(viewportStore.isSpecialViewport);
+    console.log(key);
     return VIEWPORT_TYPE_MAP[key] ?? 'small';
   };
 
@@ -209,7 +215,6 @@ export function useCameraFly(getViewer: () => Cesium.Viewer | undefined) {
       console.warn('[flyToView] viewer 未初始化');
       return false;
     }
-
     const viewportType = getViewportType();
     const cfgGroup = FLY_CONFIGS[viewKey];
     if (!cfgGroup) {

@@ -53,18 +53,18 @@ export interface CruiseOptions {
 
 /** 名称 + 对应智能展示面板的 value 数组拼串（用于跨层高亮联动） */
 export const REGION_META: Record<CruiseRegionKey, { name: string; uiValue: string }> = {
-  Ab:      { name: "A馆北侧",   uiValue: "q2" },
-  An:      { name: "A馆南侧",   uiValue: "q1" },
+  Ab: { name: "A馆北侧", uiValue: "q2" },
+  An: { name: "A馆南侧", uiValue: "q1" },
   xuting1: { name: "A馆序厅一楼", uiValue: "q30" },
   xuting2: { name: "A馆序厅二楼", uiValue: "q31" },
-  Bdb:     { name: "B馆北侧",   uiValue: "q4,q6" },
-  Bdz:     { name: "B馆中间",   uiValue: "q3,q9" },
-  Bdn:     { name: "B馆南侧",   uiValue: "q7,q5" },
-  STLL:    { name: "生态连廊",   uiValue: "q33" },
-  ABLL:    { name: "AB馆连廊",  uiValue: "q32" },
-  Cn:      { name: "C馆南侧",   uiValue: "q41" },
-  Cz:      { name: "C馆中间",   uiValue: "q42" },
-  Cb:      { name: "C馆北侧",   uiValue: "q43" },
+  Bdb: { name: "B馆北侧", uiValue: "q4,q6" },
+  Bdz: { name: "B馆中间", uiValue: "q3,q9" },
+  Bdn: { name: "B馆南侧", uiValue: "q7,q5" },
+  STLL: { name: "生态连廊", uiValue: "q33" },
+  ABLL: { name: "AB馆连廊", uiValue: "q32" },
+  Cn: { name: "C馆南侧", uiValue: "q41" },
+  Cz: { name: "C馆中间", uiValue: "q42" },
+  Cb: { name: "C馆北侧", uiValue: "q43" },
 };
 
 /** 智能展示面板点击的 value 拼串 → 巡航ID（消灭页面里所有 if-else 分支） */
@@ -85,29 +85,46 @@ export const UI_VALUE_TO_CRUISE_ID: Record<string, string> = {
 
 /** 场景内可点击模型(r*) → 巡航ID */
 export const SCENE_MODEL_TO_CRUISE_ID: Record<string, string> = {
-  r1: "AguanSouth",  r2: "AguanNorth",
-  r3: "BguanSouth",  r4: "BguanMiddle", r5: "BguanNorth",
+  r1: "AguanSouth", r2: "AguanNorth",
+  r3: "BguanSouth", r4: "BguanMiddle", r5: "BguanNorth",
   r7: "XutingFloor1", r8: "XutingFloor2",
   r11: "ShengtaiCorridor", r12: "ABCorridor",
   r14: "CguanSouth", r15: "CguanMiddle", r16: "CguanNorth",
+};
+
+/**
+ * 场景内「只飞不巡航」模型(r*) 配置：
+ * flyKey   —— flyToView 的视角 key（需在 constants/map 的 cameraMap 中登记）
+ * wsChannel —— 点击后要打开/复用的 WebSocket 通道
+ * uiValue  —— 上抛给父组件用于底部智能展示 item 高亮的 q 编码
+ */
+export const SCENE_FLY_ONLY_CONFIG: Record<
+  string,
+  { flyKey: string; wsChannel: string; uiValue?: string }
+> = {
+  r6: { flyKey: "waiwei", wsChannel: "radar" }, // 外围鹰眼
+  r9: { flyKey: "dating", wsChannel: "qiao", uiValue: "q39" }, // 会客厅（登录厅）（与生态连廊同一动区）
+  r10: { flyKey: "dengluting", wsChannel: "baogao", uiValue: "q38" }, // 报告厅
+  r13: { flyKey: "xiguangchang", wsChannel: "qiao", uiValue: "q40" }, // 西广场（与生态连廊同一动区）
+  r17: { flyKey: "beihui", wsChannel: "qiao", uiValue: "q44" },
 };
 
 /* ====================== 巡航路线 ====================== */
 
 /** 巡航ID → 途经区域有序列表（缺失区域运行时自动跳过） */
 const ROUTES: Record<string, CruiseRegionKey[]> = {
-  AguanNorth:       ["Ab", "Bdn", "Bdz", "Bdb", "Cn", "Cz", "Cb", "An"],
-  AguanSouth:       ["An", "Ab", "Bdn", "Bdz", "Bdb", "Cn", "Cz", "Cb"],
-  BguanSouth:       ["Bdn", "Bdz", "Bdb", "Cn", "Cz", "Cb", "An", "Ab"],
-  BguanMiddle:      ["Bdz", "Bdb", "Cn", "Cz", "Cb", "An", "Ab", "Bdn"],
-  BguanNorth:       ["Bdb", "Cn", "Cz", "Cb", "An", "Ab", "Bdn", "Bdz"],
-  XutingFloor1:     ["xuting1"],
-  XutingFloor2:     ["xuting2"],
+  AguanNorth: ["Ab", "Bdn", "Bdz", "Bdb", "Cn", "Cz", "Cb", "An"],
+  AguanSouth: ["An", "Ab", "Bdn", "Bdz", "Bdb", "Cn", "Cz", "Cb"],
+  BguanSouth: ["Bdn", "Bdz", "Bdb", "Cn", "Cz", "Cb", "An", "Ab"],
+  BguanMiddle: ["Bdz", "Bdb", "Cn", "Cz", "Cb", "An", "Ab", "Bdn"],
+  BguanNorth: ["Bdb", "Cn", "Cz", "Cb", "An", "Ab", "Bdn", "Bdz"],
+  XutingFloor1: ["xuting1"],
+  XutingFloor2: ["xuting2"],
   ShengtaiCorridor: ["STLL"],
-  ABCorridor:       ["ABLL"],
-  CguanSouth:       ["Cn", "Cz", "Cb", "An", "Ab", "Bdn", "Bdz", "Bdb"],
-  CguanMiddle:      ["Cz", "Cb", "An", "Ab", "Bdn", "Bdz", "Bdb", "Cn"],
-  CguanNorth:       ["Cb", "An", "Ab", "Bdn", "Bdz", "Bdb", "Cn", "Cz"],
+  ABCorridor: ["ABLL"],
+  CguanSouth: ["Cn", "Cz", "Cb", "An", "Ab", "Bdn", "Bdz", "Bdb"],
+  CguanMiddle: ["Cz", "Cb", "An", "Ab", "Bdn", "Bdz", "Bdb", "Cn"],
+  CguanNorth: ["Cb", "An", "Ab", "Bdn", "Bdz", "Bdb", "Cn", "Cz"],
 };
 
 /* ================== 各视口视角配置数据 ================== */
@@ -164,7 +181,7 @@ const VIEWS_SMALL: RegionViews = {
   ],
 };
 
-/* ---------- 大屏（11520x2160；无 xuting1/STLL/Cn/Cz/Cb）---------- */
+/* ---------- 大屏 暂时无用（11520x2160 ；无 xuting1/STLL/Cn/Cz/Cb）---------- */
 const VIEWS_BIG: RegionViews = {
   xuting2: [
     { x: -2191850.204253986, y: 4391872.035095663, z: 4059186.062354467, pitch: -0.5234032474088863, heading: 3.684829486796761 },
@@ -204,7 +221,7 @@ const VIEWS_BIG: RegionViews = {
   ],
 };
 
-/* ---------- 5760x1080（北人三联屏；无 Cn/Cz/Cb）---------- */
+/* ---------- 5760x1080（驾驶舱；无 Cn/Cz/Cb）---------- */
 const VIEWS_SAN: RegionViews = {
   xuting1: [
     { x: -2191865.7060670736, y: 4391857.067578937, z: 4059182.294626689, pitch: -0.10211924908560444, heading: 3.833160953474144 },
@@ -241,6 +258,54 @@ const VIEWS_SAN: RegionViews = {
   STLL: [
     { x: -2191609.563920239, y: 4391954.019581999, z: 4059211.800107714, pitch: -0.05223811043976556, heading: 2.4547294631336065 },
     { x: -2191686.3019441254, y: 4391979.345829029, z: 4059148.890909552, pitch: -0.08570464818421941, heading: 2.4604329690089966 },
+  ],
+  Cn: [
+    {
+      "x": -2191755.9170534187,
+      "y": 4391810.300735574,
+      "z": 4059342.5940739796,
+      "pitch": -0.4450076011393258,
+      "heading": 4.065449346229582
+    },
+    {
+      "x": -2191669.292338532,
+      "y": 4391896.116535528,
+      "z": 4059290.072700895,
+      "pitch": -0.44500759391527156,
+      "heading": 4.065449341669119
+    }
+  ],
+  Cz: [
+    {
+      "x": -2191728.2196840136,
+      "y": 4391803.336599261,
+      "z": 4059365.083030247,
+      "pitch": -0.44500760456216515,
+      "heading": 4.0654493483910255
+    },
+    {
+      "x": -2191649.815389858,
+      "y": 4391890.9304684065,
+      "z": 4059306.199502387,
+      "pitch": -0.4450075963701643,
+      "heading": 4.065449343219015
+    }
+  ],
+  Cb: [
+    {
+      "x": -2191707.132931961,
+      "y": 4391795.521287984,
+      "z": 4059384.923396456,
+      "pitch": -0.4450076075819003,
+      "heading": 4.065449350297532
+    },
+    {
+      "x": -2191622.1653215387,
+      "y": 4391884.60769282,
+      "z": 4059327.9686334566,
+      "pitch": -0.4450075996838274,
+      "heading": 4.065449345311098
+    }
   ],
 };
 
@@ -565,7 +630,7 @@ export class CruiseController {
 
     // 高亮上报：飞入动画开始的瞬间（与需求1/3联动）
     if (seg.kind === "transition" && seg.to.regionKey &&
-        !this.emittedKeys.has(seg.to.regionKey)) {
+      !this.emittedKeys.has(seg.to.regionKey)) {
       this.emittedKeys.add(seg.to.regionKey);
       this.emitRegion(seg.to.regionKey);
     }

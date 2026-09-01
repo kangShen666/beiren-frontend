@@ -105,11 +105,16 @@ const ONLY_FLY_MAP: Record<string, string> = {
   q39: "dating", q38: "dengluting", q44: "beihui", q40: "xiguangchang",
 };
 
+/** ✅ 新增：判断该卡片是否为"巡航型"（只有巡航型才显示 暂停/继续 徽章） */
+const isCruiseItem = (value: string[]): boolean => {
+  return !!value?.length && !ONLY_FLY_MAP[value[0]];
+};
+
 // 修改原点击处理函数
 const handleSmartDisplayItemClick = (value: string[], label: string) => {
   if (!value || value.length === 0) return;
 
- // ✅ 核心修复：无论点哪类 div，先彻底停掉进行中的巡航，
+  // ✅ 核心修复：无论点哪类 div，先彻底停掉进行中的巡航，
   //    释放 preRender 对相机的接管，flyToView 才能正常执行
   vMapRef.value?.cruiseStop();
 
@@ -118,10 +123,6 @@ const handleSmartDisplayItemClick = (value: string[], label: string) => {
 
 
   // ...原有逻辑保持不变
-  tingzhifeixing.value = false;
-  currentCruiseName.value = true;
-  buttonStatus.value.panorama = true;
-
   vMapRef.value?.removeModelById(3);
   // 只飞不巡航
   const onlyFlyKey = ONLY_FLY_MAP[value[0]];
@@ -130,6 +131,10 @@ const handleSmartDisplayItemClick = (value: string[], label: string) => {
     vMapRef.value?.flyToView(onlyFlyKey);
     return;
   }
+
+  tingzhifeixing.value = false;
+  currentCruiseName.value = true;
+  buttonStatus.value.panorama = true;
 
   // 巡航：查映射表即可，没有任何业务 if-else
   const cruiseId = UI_VALUE_TO_CRUISE_ID[value.join(",")];
@@ -1257,73 +1262,6 @@ let shijian = (e: any) => {
 
 let tingzhifeixing = ref(false);
 
-let flytotingzhi = (id) => {
-  // OpenModel1(['q2', 'q1', 'q4', 'q3', 'q7', 'q6', 'q5', 'q9', 'q8', 'q15', 'q18', 'q23', "q30", "q31", "q32", "q33", "q34", "q35", "q38", "q39", "q40"]);
-  // buttonStatus.value.panorama = true;
-  if (!buttonStatus.value.panorama) {
-    OpenModel1([
-      "q2",
-      "q1",
-      "q4",
-      "q3",
-      "q7",
-      "q6",
-      "q5",
-      "q9",
-      "q8",
-      "q15",
-      "q18",
-      "q23",
-      "q30",
-      "q31",
-      "q32",
-      "q33",
-      "q34",
-      "q35",
-      "q38",
-      "q39",
-      "q40",
-    ]);
-    buttonStatus.value.panorama = true;
-  }
-  if (id == "r1") {
-    tingzhifeixing.value = false;
-    currentCruiseName.value = true;
-  } else if (id == "r2") {
-    tingzhifeixing.value = false;
-    currentCruiseName.value = true;
-  } else if (id == "r3") {
-    tingzhifeixing.value = false;
-    currentCruiseName.value = true;
-  } else if (id == "r4") {
-    tingzhifeixing.value = false;
-    currentCruiseName.value = true;
-  } else if (id == "r5") {
-    tingzhifeixing.value = false;
-    currentCruiseName.value = true;
-  } else if (id == "r7") {
-    tingzhifeixing.value = false;
-    currentCruiseName.value = true;
-  } else if (id == "r8") {
-    tingzhifeixing.value = false;
-    currentCruiseName.value = true;
-  } else if (id == "r11") {
-    tingzhifeixing.value = false;
-    currentCruiseName.value = true;
-  } else if (id == "r12") {
-    tingzhifeixing.value = false;
-    currentCruiseName.value = true;
-  }
-};
-
-// 1. 数字-方向固定映射（保留原有规则：1西、2南、3东、4上）
-const directionMap = {
-  1: "西面",
-  2: "南面",
-  3: "东面",
-  4: "上面",
-};
-
 // 2. 响应式状态：当前方向编号（初始为1，对应西面）
 const currentNum = ref(1);
 
@@ -1546,8 +1484,9 @@ const changXiao = function (e: MouseEvent): void {
             <p>{{ item.label }}</p>
 
             <!-- ✅ 新增：巡航中在该卡片右上角显示 停止/继续 徽标 -->
-            <span v-if="activeSmartItem === item.label" class="cruise-stop-badge" :class="{ 'paused': tingzhifeixing }"
-              @click.stop="handleCruiseToggle" :title="tingzhifeixing ? '继续巡航' : '暂停巡航'">
+            <span v-if="activeSmartItem === item.label && isCruiseItem(item.value)" class="cruise-stop-badge"
+              :class="{ 'paused': tingzhifeixing }" @click.stop="handleCruiseToggle"
+              :title="tingzhifeixing ? '继续巡航' : '暂停巡航'">
               <i class="icon">{{ tingzhifeixing ? "▶" : "❚❚" }}</i>
               <em>{{ tingzhifeixing ? "继续" : "停止" }}</em>
             </span>
@@ -1581,7 +1520,7 @@ const changXiao = function (e: MouseEvent): void {
       <!-- 方向按钮容器 -->
       <div class="direction-buttons-container">
         <ul class="direction-buttons-list">
-           <li class="direction-button" data-tooltip="C馆复位" :class="{ 'active': currentNum === 5 }"
+          <li class="direction-button" data-tooltip="C馆复位" :class="{ 'active': currentNum === 5 }"
             @click="handleDirectionClick(5)" @mousedown="changDa" @mouseup="changXiao">
             <div class="direction-button-bg bg-reset"></div>
           </li>
@@ -1613,9 +1552,9 @@ const changXiao = function (e: MouseEvent): void {
 
           <!-- 地图容器 -->
           <div class="chart">
-            <vMap ref="vMapRef" @pointName="handleCruisePointChange" @flytotingzhi="flytotingzhi"
-              @play-video-fusion="playRTCVideoStream" @close-video="closeVideo" @cruise-start="handleCruiseStart"
-              @cruise-region="handleCruiseRegion" @cruise-finished="handleCruiseFinished" />
+            <vMap ref="vMapRef" @pointName="handleCruisePointChange" @play-video-fusion="playRTCVideoStream"
+              @close-video="closeVideo" @cruise-start="handleCruiseStart" @cruise-region="handleCruiseRegion"
+              @cruise-finished="handleCruiseFinished" />
           </div>
 
           <!-- 视频弹窗 -->
@@ -1996,10 +1935,6 @@ const changXiao = function (e: MouseEvent): void {
   height: 2vw;
   cursor: pointer;
   transition: all 0.3s ease;
-  // background-image: url('../assets/img/西面.png');
-  // background-size: 100% 100%; // 确保底图填满按钮
-  // background-repeat: no-repeat; // 不重复平铺
-  // background-position: center; // 居中显示
 
   .direction-button-bg {
     width: 100%;
@@ -3959,7 +3894,7 @@ main {
   }
 }
 
-// 横屏超高清大屏额外适配
+// 驾驶舱（可能）
 @media screen and (width: 11520px) and (height: 2160px) {
 
   .chain-msg-popup {
@@ -4249,408 +4184,113 @@ main {
   }
 }
 
-// 横屏超高清大屏额外适配
-// @media screen and (width: 5760px) and (height: 1080px) {
+// 驾驶舱
+@media screen and (min-width: 5744px) and (max-width: 5776px) and (min-height: 1064px) and (max-height: 1092px) {
 
-//   .direction-button {
-//     min-width: 1vw;
-//     height: 1vw;
-//   }
+  // 菜单高度
+  .menu-container {
+    top: 2.5vw;
+    left: 25%;
+    width: 50vw;
+    height: 2.2vw;
+    /* 强制拉伸填充，可能变形 */
+    padding: 0 11vw;
 
-//   .chain-msg-popup {
-//     position: fixed;
-//     top: 2vw;
-//     left: 1.7vw;
-//     width: 21.3vw;
-//     max-height: 90vh;
-//     background: rgba(0, 15, 30, 0.98);
-//     border: 1px solid #00c6ff;
-//     border-radius: 8px;
-//     z-index: 99999;
-//     overflow: hidden;
-//     box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
+    .child-menu {
+      font-size: 0.4rem;
+    }
+  }
 
-//     .popup-header {
-//       display: flex;
-//       justify-content: space-between;
-//       align-items: center;
-//       padding: 12px 16px;
-//       background: rgba(0, 40, 60, 0.8);
-//       border-bottom: 1px solid #00c6ff;
+  // 底部巡航菜单
+  .smart-display-item {
+    width: 6vw; // 固定宽度
+    height: 4vw; // 固定高度
+    border-radius: 8px;
 
-//       .popup-title {
-//         color: #00c6ff;
-//         font-size: 0.46rem;
-//         font-weight: 600;
-//         margin: 0;
-//       }
+    // 文字样式：浮动在底部，带透明浅色背景
+    p {
+      // padding: 0.1rem;
+      // background: rgba(255, 255, 255, 0.2); // 透明浅色背景
+      // color: #fff; // 黑色文字
+      font-size: 0.18rem;
+      // font-weight: bold;
+      // text-align: center;
+      // backdrop-filter: blur(2px); // 背景模糊效果，提升文字可读性
+    }
+  }
 
-//       .popup-close {
-//         background: transparent;
-//         border: none;
-//         color: #ffffff;
-//         font-size: 20px;
-//         cursor: pointer;
-//         width: 24px;
-//         height: 24px;
-//         display: flex;
-//         align-items: center;
-//         justify-content: center;
-//         padding: 0;
-//         transition: all 0.2s;
+  .video-container {
+    width: 20vw;
+    height: 60vh;
+    font-size: 0.25rem;
 
-//         &:hover {
-//           color: #ff4d4f;
-//           transform: scale(1.1);
-//         }
-//       }
-//     }
+    .name-display {
+      top: 0.2vw;
+    }
 
-//     .popup-search-bar {
-//       padding: 8px 10px;
-//       background: rgba(0, 30, 55, 0.9);
-//       border-bottom: 1px solid #00c6ff;
-//       flex-shrink: 0; // 防止被压缩
+    &__close {
+      top: 0.4vw;
+      right: 0.2vw;
+      width: 2.2vw;
+      height: 1.2vw;
+    }
+  }
 
-//       .search-row {
-//         display: flex;
-//         align-items: center;
-//         gap: 8px;
 
-//         .search-input {
-//           flex: 1;
-//           padding: 13px 30px;
-//           border: 1px solid #00c6ff;
-//           border-radius: 4px;
-//           background: rgba(0, 15, 30, 0.8);
-//           color: #fff;
-//           font-size: 0.25rem;
+  // 底部ABC馆按钮容器样式
+  .abc-buttons-container {
+    bottom: 1vw;
+    left: 50%;
 
-//           &.time-input {
-//             flex: none;
-//             width: 200px;
-//           }
+    .abc-buttons-list {
+      gap: 1vw; // 按钮之间的间距
 
-//           &.name-input {
-//             width: 50px;
-//           }
-//         }
+      .abc-button {
+        width: 2.5vw;
+        height: 1.5vw;
+        border-radius: 0.4vw;
 
-//         /* 替换原来的 .search-btn */
-//         .alarm-search-btn {
-//           height: 48px !important;
-//           min-width: 80px;
-//           padding: 0 30px !important;
-//           font-size: 0.25rem !important;
+        .button-text {
+          font-size: 0.4rem;
+        }
+      }
+    }
+  }
 
-//           :deep(.el-icon) {
-//             font-size: 0.3rem !important;
-//           }
-//         }
-//       }
-//     }
+  // 右侧按钮组
+  // 方向按钮容器样式
+  .direction-buttons-container {
+    bottom: 1vw;
+    right: 0.5vw;
 
-//     .popup-body {
-//       padding: 16px;
-//       overflow-y: auto;
-//       max-height: calc(75vh - 50px);
+    .direction-buttons-list {
+      gap: 0.2rem;
 
-//       &::-webkit-scrollbar {
-//         width: 6px;
-//       }
+      .direction-button {
+        position: relative;
+        min-width: 1.2vw;
+        height: 1.2vw;
+      }
 
-//       &::-webkit-scrollbar-track {
-//         background: rgba(0, 30, 50, 0.5);
-//         border-radius: 3px;
-//       }
+      /* 提示框文本背景 */
+      .direction-button::before {
+        padding: 0.2vw 0.4vw;
+        border-radius: 0.2vw;
+        font-size: 0.4rem;
+      }
+    }
+  }
 
-//       &::-webkit-scrollbar-thumb {
-//         background: #00c6ff;
-//         border-radius: 3px;
-//       }
+  .chain-msg-popup {
+    top: 5vw;
+    // left: 1.5vw;
+    width: 15vw;
+    max-height: 60vh;
+  }
 
-//       .msg-item {
-//         padding: 12px;
-//         margin-bottom: 12px;
-//         background: rgba(0, 25, 45, 0.7);
-//         border-radius: 6px;
-//         border-left: 3px solid #00c6ff;
-
-//         .msg-content {
-//           color: #ffffff;
-//           font-size: 0.3rem;
-//           line-height: 1.6;
-//           margin-bottom: 10px;
-
-//           .label {
-//             color: #00c6ff;
-//             font-weight: 600;
-//             margin-right: 4px;
-//           }
-//         }
-
-//         .msg-actions {
-//           display: flex;
-//           gap: 8px;
-//           justify-content: flex-end;
-
-//           .action-btn {
-//             padding: 2px 30px;
-//             border: none;
-//             border-radius: 4px;
-//             font-size: 0.3rem;
-//             cursor: pointer;
-//             transition: all 0.2s;
-
-//             &:hover {
-//               transform: scale(1.05);
-//             }
-
-//             &.confirm {
-//               background: #00c6ff;
-//               color: #000000;
-//             }
-
-//             &.reject {
-//               background: #ff4d4f;
-//               color: #ffffff;
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-
-//   .chain-msg-popup1 {
-//     position: fixed;
-//     top: 2.5vw;
-//     right: 1.7vw;
-//     width: 14vw;
-//     max-height: 78vh;
-//     background: rgba(0, 15, 30, 0.98);
-//     border: 1px solid #00c6ff;
-//     border-radius: 8px;
-//     z-index: 99999;
-//     overflow: hidden;
-//     box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
-
-//     .popup-header {
-//       display: flex;
-//       justify-content: space-between;
-//       align-items: center;
-//       padding: 12px 16px;
-//       background: rgba(0, 40, 60, 0.8);
-//       border-bottom: 1px solid #00c6ff;
-
-//       .popup-title {
-//         color: #00c6ff;
-//         font-size: 0.4rem;
-//         font-weight: 600;
-//         margin: 0;
-//       }
-
-//       .popup-close {
-//         background: transparent;
-//         border: none;
-//         color: #ffffff;
-//         font-size: 20px;
-//         cursor: pointer;
-//         width: 24px;
-//         height: 24px;
-//         display: flex;
-//         align-items: center;
-//         justify-content: center;
-//         padding: 0;
-//         transition: all 0.2s;
-
-//         &:hover {
-//           color: #ff4d4f;
-//           transform: scale(1.1);
-//         }
-//       }
-//     }
-
-//     .popup-body {
-//       padding: 16px;
-//       overflow-y: auto;
-//       max-height: calc(75vh - 50px);
-
-//       &::-webkit-scrollbar {
-//         width: 6px;
-//       }
-
-//       &::-webkit-scrollbar-track {
-//         background: rgba(0, 30, 50, 0.5);
-//         border-radius: 3px;
-//       }
-
-//       &::-webkit-scrollbar-thumb {
-//         background: #00c6ff;
-//         border-radius: 3px;
-//       }
-
-//       .msg-item {
-//         padding: 12px;
-//         margin-bottom: 12px;
-//         background: rgba(0, 25, 45, 0.7);
-//         border-radius: 6px;
-//         border-left: 3px solid #00c6ff;
-
-//         .msg-content {
-//           color: #ffffff;
-//           font-size: 0.3rem;
-//           line-height: 1.6;
-//           margin-bottom: 10px;
-
-//           .label {
-//             color: #00c6ff;
-//             font-weight: 600;
-//             margin-right: 4px;
-//           }
-//         }
-
-//         .msg-actions {
-//           display: flex;
-//           gap: 8px;
-//           justify-content: flex-end;
-
-//           .action-btn {
-//             padding: 2px 25px;
-//             border: none;
-//             border-radius: 4px;
-//             font-size: 0.3rem;
-//             cursor: pointer;
-//             transition: all 0.2s;
-
-//             &:hover {
-//               transform: scale(1.05);
-//             }
-
-//             &.confirm {
-//               background: #00c6ff;
-//               color: #000000;
-//             }
-
-//             &.reject {
-//               background: #ff4d4f;
-//               color: #ffffff;
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-
-//   .liandongshipin {
-//     height: 60vh;
-//     width: 20vw;
-//     top: 19vh;
-//     right: 1.5vw;
-//     // display: block;
-//   }
-
-//   // 视频弹窗样式
-//   .video-container {
-//     width: 20vw;
-//     height: 70vh;
-//     // z-index: 9999;
-//     // position: absolute;
-//     // right: 1.7vw;
-//     // top: 15vh;
-//     // background-image: url("../assets/img/border_1.png");
-//     // background-size: 100% 100%;
-//     // background-repeat: no-repeat;
-//     // border-radius: 0.4vw;
-//     // overflow: hidden;
-//     // box-shadow: 0 0.2vw 1vw rgba(0, 0, 0, 0.3);
-//     // display: flex;
-//     // flex-direction: column;
-
-//     .name-display {
-//       position: absolute;
-//       top: 0vw;
-//       left: 50%;
-//       transform: translate(-50%);
-//       z-index: 100;
-//       // color: #fff;
-//       font-size: clamp(0.7vw, 1.2vw, 0.8vw);
-//       font-weight: bold;
-//       padding: 0.25vw 0.6vw;
-//       border-radius: 0.75vw;
-//       text-shadow: 0.05vw 0.05vw 0.1vw rgba(0, 0, 0, 0.8);
-//       max-width: 10vw;
-//       white-space: nowrap;
-//       overflow: hidden;
-//       text-overflow: ellipsis;
-//     }
-
-//     &__close {
-//       position: absolute;
-//       top: -0.1vw;
-//       right: 0.5vw;
-//       z-index: 100;
-//       width: 2vw;
-//       height: 2vw;
-//       border-radius: 50%;
-//       cursor: pointer;
-//       display: flex;
-//       align-items: center;
-//       justify-content: center;
-//       padding: 0;
-//       background: transparent;
-//       border: none;
-
-//       .close-icon-image {
-//         width: 1vw;
-//         height: 1vw;
-//         // object-fit: contain;
-//         // filter: brightness(0.3);
-//       }
-//     }
-
-//     .player-container {
-//       padding-top: 1.4vw;
-//       display: flex;
-//       justify-content: center;
-//       align-items: center;
-//       height: 100%;
-
-//       .player-item {
-//         width: 98%;
-//         height: 96%;
-
-//         .player-box {
-//           width: 100%;
-//           height: 100%;
-//           background-color: #000;
-//         }
-//       }
-//     }
-
-//     &__play {
-//       position: absolute;
-//       bottom: 0.5vw;
-//       left: 50%;
-//       transform: translateX(-50%);
-//       padding: 0.4vw 0.8vw;
-//       background: #1890ff;
-//       color: white;
-//       border: none;
-//       border-radius: 0.2vw;
-//       cursor: pointer;
-//       font-size: 0.7vw;
-//     }
-//   }
-
-//   .cruise-tip {
-//     position: absolute;
-//     top: 0.7vw;
-//     right: 33vw;
-//     font-size: 0.3rem;
-//     padding: 2px 10px;
-//     z-index: 9;
-//     color: #fff;
-//     background-color: #000;
-//   }
-// }
+  .cruise-tip {
+    top: 0.6vw;
+    font-size: 0.3rem;
+  }
+}
 </style>

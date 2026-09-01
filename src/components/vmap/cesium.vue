@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import ModelCol from "@/assets/js/modelColCar.js";
+import ModelColCarbaogao from "@/assets/js/ModelColCarbaogao.js";
+import ModelColCarxuting from "@/assets/js/ModelColCarxuting.js";
+import ModelColQiao from "@/assets/js/ModelColQiao.js";
 import { useViewportStore } from '@/stores/module/viewportStore';
 import type { HotspotEntity, TreePoint } from "@/type/vMap";
 import { useCameraFly } from '@/utils/cesiumFly'; //引入飞行
-import { CruiseController, REGION_META, SCENE_MODEL_TO_CRUISE_ID } from '@/utils/cruiseFly'; //巡航
+import { CruiseController, REGION_META, SCENE_FLY_ONLY_CONFIG, SCENE_MODEL_TO_CRUISE_ID } from '@/utils/cruiseFly'; //巡航
 import { createModelAnimator } from "@/utils/modelAnimation.ts"; //模型动画
 import axios from "axios";
 import * as Cesium from "cesium";
-import { defineEmits, onMounted, onUnmounted, reactive, ref } from "vue";
-import ModelCol from "../../assets/js/modelColCar.js";
-import ModelColCarbaogao from "../../assets/js/ModelColCarbaogao.js";
-import ModelColCarxuting from "../../assets/js/ModelColCarxuting.js";
-import ModelColQiao from "../../assets/js/ModelColQiao.js";
+import { defineEmits, onMounted, onUnmounted, ref } from "vue";
+// ============ WebSocket 统一管理（新增） ============
+import { WsManager, type WsChannelConfig } from "@/utils/wsManager";
 // 获取状态
 const viewportStore = useViewportStore();
 // 初始化飞行控制器，传入获取 viewer 的方法
@@ -28,13 +30,36 @@ const emits = defineEmits([
   "cruiseFinished"
 ]);
 
+const wsManager = new WsManager(() => viewer);
+
+// 28 外围 、 27 生态 、 24 序厅 、 26 报告厅连廊
+/** 场景动态目标 WebSocket 通道配置（url + 模型工厂，一处集中维护） */
+const WS_CHANNEL_CONFIG: Record<string, WsChannelConfig> = {
+  // 外围 r6
+  radar: { url: "ws://172.160.114.20:8123", createModel: (v) => new ModelCol(v) },
+  // 生态连廊、会客厅 r9、西广场 r13  q33
+  qiao: { url: "ws://172.160.114.20:12327", createModel: (v) => new ModelColQiao(v) },
+  // 报告厅 r10、AB连廊  q34
+  baogao: { url: "ws://172.160.114.20:12323", createModel: (v) => new ModelColCarbaogao(v) },
+  // 序厅一楼、二楼  q30 q31
+  xuting: { url: "ws://172.160.114.20:12324", createModel: (v) => new ModelColCarxuting(v) },
+};
+
+// 四个业务入口退化为「一行配置调用」，对外 API 保持不变（父组件无需改动）
+const getRadarDatarc = () => wsManager.connect("radar", WS_CHANNEL_CONFIG.radar);
+const getshengtailianlang = () => wsManager.connect("qiao", WS_CHANNEL_CONFIG.qiao);
+const getbaogaoting = () => wsManager.connect("baogao", WS_CHANNEL_CONFIG.baogao);
+const getxuting = () => wsManager.connect("xuting", WS_CHANNEL_CONFIG.xuting);
+
+const closeAllWebSockets = () => wsManager.destroyAll();
+
 /* ---------- 巡航控制器 ---------- */
 const cruiseCtl = new CruiseController(
   () => viewer,
   () => {
     const v = viewportStore.isSpecialViewport;
-    return v === true ? "big"
-      : v === 1 ? "san"
+    return v === true ? "san"
+      : v === 1 ? "big"
         : v === 3 ? "middle"
           : v === 4 ? "center"
             : "small";
@@ -666,16 +691,26 @@ const initCesium = () => {
     var cameraHeight = viewer.camera.positionCartographic.height;
     if (cameraHeight >= 100000) return;
     // 设置高度限制（例如1000米）
-
     var pick = viewer.scene.pick(click.position);
 
-    // emits("flytotingzhi", pick?.id.id);
-
     const rid = pick?.id?.id;
-    if (rid === "r6") {                       // 外围鹰眼：保持原特殊逻辑
-      flyToView("waiwei");
-      getRadarDatarc();
+    // if (rid === "r6") {                       // 外围鹰眼：保持原特殊逻辑
+    //   flyToView("waiwei");
+    //   getRadarDatarc();
+    //   removeModelById(3);
+    //   return;
+    // }
+
+    // ✅ 新增：只飞不巡航模型（会客厅/报告厅/西广场）
+    const flyCfg = SCENE_FLY_ONLY_CONFIG[rid];
+    if (flyCfg) {
+      cruiseStop(); // 互斥：先停掉进行中的巡航，释放 preRender 对相机的接管
       removeModelById(3);
+      flyToView(flyCfg.flyKey); // 飞到对应视角
+      // 复用已连接的 ws；有残留旧连接则自动关旧开新
+      wsManager.connect(flyCfg.wsChannel, WS_CHANNEL_CONFIG[flyCfg.wsChannel]);
+      emits("cruiseStart", rid);              // 让父组件打开底部智能展示面板
+      emits("cruiseRegion", flyCfg.uiValue);  // 高亮对应 item 并滚动居中
       return;
     }
 
@@ -812,10 +847,10 @@ const addHotspot = (hotspotList: HotspotEntity[]) => {
       if (!viewer) {
         return;
       }
-       // 先移除同 id 旧实体，防止重复点击堆积
+      // 先移除同 id 旧实体，防止重复点击堆积
       viewer.entities.removeById(`hot_${id}`);
       // 1. 添加 Billboard（广告牌）
-      const entity =  viewer.entities.add({
+      const entity = viewer.entities.add({
         id: `hot_${id}`,
         // 使用 properties 来存储自定义数据
         properties: {
@@ -1722,7 +1757,7 @@ const clearAllHotspots = () => {
   viewer.entities.values
     .filter((e) => typeof e.id === "string" && e.id.startsWith("hot_"))
     .forEach((e) => viewer.entities.remove(e));
-  
+
   currentHoveredHotspotId = null;
   disableHotspotClick();                    // 关掉摄像头点击弹窗
   if (handler) { handler.destroy(); handler = null; } // 关掉 MOUSE_MOVE 悬停
@@ -1841,7 +1876,13 @@ const ld = (option = null) => {
       height: 0.1,
       name: "西广场",
     },
-
+    {
+      id: "r17",
+      startLnt: 116.518792,
+      startLat: 39.779686,
+      height: 0.1,
+      name: "北会",
+    },
     // 这里加
     {
       id: "r14",
@@ -1862,7 +1903,7 @@ const ld = (option = null) => {
       startLnt: 116.520242,
       startLat: 39.78088,
       height: 0.1,
-      name: "C馆北间",
+      name: "C馆北侧",
     },
   ];
 
@@ -2055,158 +2096,10 @@ let trailer36Ref = ref();
 let trailer37Ref = ref();
 let trailer38Ref = ref();
 
-let shipin;
-let shipins;
+let shipin: any;
+let shipins: any;
 
 let QuanJing = function (e, idArray) {
-  //序厅二楼飞行视角
-  // if (idArray == "q31") {
-  //   // closeAllWebSockets()
-  //   if (isSpecialViewport.value === true) {
-  //     xuting2();
-  //   } else if (isSpecialViewport.value === 1) {
-  //     xuting();
-  //   } else if (isSpecialViewport.value === false) {
-  //     xuting();
-  //   }
-  //   getxuting();
-  //   // console.log("------",11111)
-  // } else if (idArray == "q30") {
-  //   //序厅一楼飞行视角
-  //   // closeAllWebSockets()
-  //   if (isSpecialViewport.value === true) {
-  //     xutingyilou2();
-  //     // console.log("------", 11111)
-  //   } else if (isSpecialViewport.value === 1) {
-  //     // console.log("------", 222)
-  //     xutingyilou2();
-  //   } else if (isSpecialViewport.value === false) {
-  //     //小屏
-  //     xutingyilou1();
-  //     // console.log("------", 333)
-  //   }
-
-  //   getxuting();
-  //   // console.log("------",11111)
-  // } else if (idArray == "q33") {
-  //   // closeAllWebSockets()
-
-  //   if (isSpecialViewport.value === true) {
-  //     shengtailianlang();
-  //   } else if (isSpecialViewport.value === 1) {
-  //     shengtailianlang2();
-  //   } else if (isSpecialViewport.value === false) {
-  //     shengtailianlang();
-  //   }
-  //   getshengtailianlang();
-  // } else if (idArray == "q34") {
-  //   // closeAllWebSockets()
-  //   // baogaoting()
-  //   getbaogaoting();
-  // } else if (idArray == "q32") {
-  //   // console.log("------",11111)
-  //   // closeAllWebSockets()
-  //   ABlianlang();
-  //   // getbaogaoting()
-  // } else if (idArray == "q38") {
-  //   if (isSpecialViewport.value === true) {
-  //     dengluting1();
-  //     // vMapRef.value?.()
-  //   } else if (isSpecialViewport.value === 1) {
-  //     // vMapRef.value?.Bguannei()
-  //     dengluting2();
-  //   } else if (isSpecialViewport.value === false) {
-  //     // vMapRef.value?.Bguannei()
-  //     dengluting();
-  //   }
-  // } else if (idArray == "q39") {
-  //   if (isSpecialViewport.value === true) {
-  //     dating1();
-  //     // vMapRef.value?.()
-  //   } else if (isSpecialViewport.value === false) {
-  //     // vMapRef.value?.Bguannei()
-  //     dating();
-  //   }
-  //   // getbaogaoting()
-  // } else if (idArray == "q31") {
-  //   if (isSpecialViewport.value === 1) {
-  //     viewer.camera.flyTo({
-  //       //定位到范围中心点
-  //       destination: {
-  //         x: -2191871.9873331613,
-  //         y: 4391858.154635156,
-  //         z: 4059189.7051673406,
-  //       },
-  //       orientation: {
-  //         pitch: -0.13210296444420178,
-  //         heading: 3.978323984439869,
-  //         // heading: testHeading,//左右方向
-  //         // pitch: testPitch, //上下方向
-  //         roll: 0.0,
-  //       },
-  //       duration: 0,
-  //     });
-  //   } else if (isSpecialViewport.value === false) {
-  //     viewer.camera.flyTo({
-  //       //定位到范围中心点
-  //       destination: {
-  //         x: -2191874.9881703043,
-  //         y: 4391857.545383535,
-  //         z: 4059191.676812438,
-  //       },
-  //       orientation: {
-  //         pitch: -0.2736152758198662,
-  //         heading: 4.174016118084943,
-  //         // heading: testHeading,//左右方向
-  //         // pitch: testPitch, //上下方向
-  //         roll: 0.0,
-  //       },
-  //       duration: 0,
-  //     });
-  //   }
-  //   // getbaogaoting()
-  // } else if (idArray == "q40") {
-  //   if (isSpecialViewport.value === 1) {
-  //     viewer.camera.flyTo({
-  //       //定位到范围中心点
-  //       destination: {
-  //         x: -2191657.9384788633,
-  //         y: 4392043.221343086,
-  //         z: 4059116.3404027424,
-  //       },
-  //       orientation: {
-  //         pitch: -0.44190701208566807,
-  //         heading: 5.729030297364806,
-  //         // heading: testHeading,//左右方向
-  //         // pitch: testPitch, //上下方向
-  //         roll: 0.0,
-  //       },
-  //       duration: 0,
-  //     });
-  //   } else if (isSpecialViewport.value === false) {
-  //     viewer.camera.flyTo({
-  //       //定位到范围中心点
-  //       destination: {
-  //         x: -2191695.1914906153,
-  //         y: 4392065.850788558,
-  //         z: 4059092.426385657,
-  //       },
-  //       orientation: {
-  //         pitch: -0.3243491626708854,
-  //         heading: 5.638998730755515,
-  //         // heading: testHeading,//左右方向
-  //         // pitch: testPitch, //上下方向
-  //         roll: 0.0,
-  //       },
-  //       duration: 0,
-  //     });
-  //   }
-  //   // getbaogaoting()
-  // } else if (idArray == "q41" || idArray == "q42" || idArray == "q43") {
-  // } else if (idArray == "q44") {
-  //   // 北会
-  // }
-
   // 定义所有视频实体配置 ---- 小屏
   const videoEntities = [
     // 第二版视频点位
@@ -3414,245 +3307,12 @@ const rtcVideo = (vdo, url) => {
   shipins = webrtcSendChannelInterval;
 };
 
-let isConnected = ref(false); // WebSocket 连接状态
-let models = reactive<any>([]); // 存放模型实例
-let websockets: WebSocket[] = []; // 存放 WebSocket 实例
-
-//外围鹰眼
-const getRadarDatarc = () => {
-  if (!("WebSocket" in window)) {
-    alert("当前浏览器不支持 WebSocket");
-    return;
-  }
-
-  // websocketConfigs.forEach((config, index) => {
-  const websocket = new WebSocket("ws://172.160.114.20:8123");
-  allWebSockets.push(websocket);
-
-  // 创建模型实例并存储到全局数组
-  let modelInstance = new ModelCol(viewer);
-  allModelInstances.push(modelInstance);
-
-  websocket.onopen = () => {
-    // console.log(`WebSocket ${index + 1} 连接成功`);
-  };
-  websocket.onmessage = (event: MessageEvent) => {
-    try {
-      let parsedData = JSON.parse(event.data);
-
-      if (Array.isArray(parsedData)) {
-        modelInstance.update(parsedData);
-      }
-    } catch (error) {
-      // console.error(`WebSocket ${index + 1} 数据解析错误:`, error);
-    }
-  };
-  websocket.onerror = () => {
-    // console.log(`WebSocket ${index + 1} 连接发生错误`);
-  };
-  websocket.onclose = () => {
-    // console.log(`WebSocket ${index + 1} 连接已关闭`);
-  };
-  // });
-};
-
-// 新增：存储所有创建的WebSocket实例
-let allWebSockets: WebSocket[] = [];
-// 新增：存储所有创建的模型实例（核心修正）
-let allModelInstances: any[] = [];
-
-// 生态连廊---会客厅-----西广场
-const getshengtailianlang = () => {
-  if (!("WebSocket" in window)) {
-    alert("当前浏览器不支持 WebSocket");
-    return;
-  }
-
-  // websocketConfigs.forEach((config, index) => {
-  let websocket = new WebSocket("ws://172.160.114.20:12327");
-  // let websocket = new WebSocket("ws://172.160.114.27:8123");
-  allWebSockets.push(websocket);
-
-  // 创建模型实例并存储到全局数组
-  let modelInstance = new ModelColQiao(viewer);
-  allModelInstances.push(modelInstance);
-
-  websocket.onopen = () => {
-    // console.log(`WebSocket ${index + 1} 连接成功`);
-  };
-  websocket.onmessage = (event: MessageEvent) => {
-    try {
-      let parsedData = JSON.parse(event.data);
-      // console.log(parsedData)
-      if (Array.isArray(parsedData)) {
-        modelInstance.update(parsedData);
-      }
-    } catch (error) {
-      // console.error(`WebSocket ${index + 1} 数据解析错误:`, error);
-    }
-  };
-  websocket.onerror = () => {
-    // console.log(`WebSocket ${index + 1} 连接发生错误`);
-  };
-  websocket.onclose = () => {
-    // console.log(`WebSocket ${index + 1} 连接已关闭`);
-  };
-  // });
-};
-//WebSocket("ws://172.160.114.26:8123"); AB连廊，下面两个正方形的是登陆厅报告厅座椅是报告厅另一个登陆厅
-
-// 报告厅----AB连廊
-const getbaogaoting = () => {
-  if (!("WebSocket" in window)) {
-    alert("当前浏览器不支持 WebSocket");
-    return;
-  }
-  // websocketConfigs.forEach((config, index) => {
-  const websocket = new WebSocket("ws://172.160.114.20:12323");
-  // const websocket = new WebSocket("ws://172.160.114.26:8123");
-  allWebSockets.push(websocket);
-
-  // 创建模型实例并存储到全局数组
-  let modelInstance = new ModelColCarbaogao(viewer);
-
-  allModelInstances.push(modelInstance);
-
-  websocket.onopen = () => {
-    // console.log(`WebSocket ${index + 1} 连接成功`);
-  };
-  websocket.onmessage = (event: MessageEvent) => {
-    try {
-      let parsedData = JSON.parse(event.data);
-      if (Array.isArray(parsedData)) {
-        //  console.log("----222",parsedData);
-        modelInstance.update(parsedData);
-      }
-    } catch (error) {
-      // console.error(`WebSocket ${index + 1} 数据解析错误:`, error);
-    }
-  };
-  websocket.onerror = () => {
-    // console.log(`WebSocket ${index + 1} 连接发生错误`);
-  };
-  websocket.onclose = () => {
-    // console.log(`WebSocket ${index + 1} 连接已关闭`);
-  };
-  // });
-};
-
-// 序厅一楼 ----序厅二楼
-const getxuting = () => {
-  if (!("WebSocket" in window)) {
-    alert("当前浏览器不支持 WebSocket");
-    return;
-  }
-
-  // websocketConfigs.forEach((config, index) => {
-  const websocket = new WebSocket("ws://172.160.114.20:12324");
-  // const websocket = new WebSocket("ws://172.160.114.24:8123");
-  allWebSockets.push(websocket);
-
-  // 创建模型实例并存储到全局数组
-  let modelInstance = new ModelColCarxuting(viewer);
-  allModelInstances.push(modelInstance);
-
-  websocket.onopen = () => {
-    // console.log(`WebSocket ${index + 1} 连接成功`);
-  };
-  websocket.onmessage = (event: MessageEvent) => {
-    try {
-      let parsedData = JSON.parse(event.data);
-      // console.log(parsedData);
-
-      if (Array.isArray(parsedData)) {
-        modelInstance.update(parsedData);
-      }
-    } catch (error) {
-      // console.error(`WebSocket ${index + 1} 数据解析错误:`, error);
-    }
-  };
-  websocket.onerror = () => {
-    // console.log(`WebSocket ${index + 1} 连接发生错误`);
-  };
-  websocket.onclose = () => {
-    // console.log(`WebSocket ${index + 1} 连接已关闭`);
-  };
-  // });
-};
-
-// 修正：关闭所有WebSocket并移除所有模型
-const closeAllWebSockets = () => {
-  // 安全判断：避免数组未定义导致 forEach 报错
-  if (!Array.isArray(allWebSockets)) {
-    allWebSockets = [];
-    console.warn("allWebSockets 不是有效数组，已初始化为空数组");
-    return;
-  }
-
-  // 1. 关闭所有WebSocket连接
-  allWebSockets.forEach((ws, index) => {
-    // 仅对有效且处于活跃/连接中的 WebSocket 执行关闭
-    if (
-      ws &&
-      (ws.readyState === WebSocket.OPEN ||
-        ws.readyState === WebSocket.CONNECTING)
-    ) {
-      try {
-        ws.close();
-        // console.log(`WebSocket ${index + 1} 已主动关闭`);
-      } catch (error) {
-        // console.error(`WebSocket ${index + 1} 关闭失败：`, error);
-      }
-    }
-  });
-  allWebSockets = []; // 清空WebSocket数组，释放内存
-
-  // 安全判断：避免数组未定义导致 forEach 报错
-  if (!Array.isArray(allModelInstances)) {
-    allModelInstances = [];
-    console.warn("allModelInstances 不是有效数组，已初始化为空数组");
-    return;
-  }
-
-  // 2. 遍历所有模型实例，执行移除全部模型操作（核心修正）
-  allModelInstances.forEach((modelInstance, index) => {
-    // 双重安全判断：实例有效 + removeAll 方法可执行
-    if (modelInstance && typeof modelInstance.removeAll === "function") {
-      try {
-        modelInstance.removeAll();
-        // console.log(`模型实例 ${index + 1} 已清空所有模型`);
-      } catch (error) {
-        // console.error(`模型实例 ${index + 1} 清空失败：`, error);
-      }
-    } else {
-      console.warn(`模型实例 ${index + 1} 无效或缺少 removeAll 方法`);
-    }
-  });
-  allModelInstances = []; // 清空模型实例数组，彻底释放资源
-};
-
-// 关闭所有 WebSocket
-const closeWebSocket = () => {
-  websockets.forEach((websocket, index) => {
-    if (websocket) {
-      websocket.close();
-      console.log(`WebSocket ${index + 1} 已关闭`);
-    }
-  });
-  websockets = [];
-  // websocket = null;
-  models = [];
-  viewer.value.entities.removeAll(); // 可选：清空模型实体
-  isConnected.value = false;
-};
-
-
 // 组件挂载时初始化
 onMounted(() => {
   initCesium();
   // QuanJing();
   loadModelById(1);
-  // loadModelById(2);
+  loadModelById(2);
   loadModelById(3);
   ld();
 });
@@ -3664,6 +3324,7 @@ onUnmounted(() => {
     // viewer = null
     cruiseCtl.dispose();
   }
+  wsManager.destroyAll();
 });
 
 // 暴露方法可以在父组件里面使用
