@@ -1911,7 +1911,7 @@ const changXiao = function (e: MouseEvent): void {
 .direction-buttons-container {
   position: absolute;
   bottom: 2vw;
-  right: 1.5vw;
+  right: 0.8vw;
   z-index: 999999;
   display: flex;
   flex-direction: column;
@@ -1924,7 +1924,7 @@ const changXiao = function (e: MouseEvent): void {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 1vw;
+  gap: 0.8vw;
 }
 
 .direction-button {
@@ -1964,24 +1964,6 @@ const changXiao = function (e: MouseEvent): void {
 
   .bg-up {
     background-image: url("../assets/img/分顶部.png");
-  }
-
-  .button-text {
-    position: absolute;
-    top: 45%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 2;
-    color: white;
-    font-size: 0.8vw;
-    font-weight: bold;
-    text-shadow: 0 0.1vw 0.2vw rgba(0, 0, 0, 0.8);
-    margin: 0;
-    padding: 0;
-  }
-
-  &:hover {
-    transform: scale(1.1);
   }
 
   &.active {
@@ -2184,13 +2166,13 @@ main {
     margin: 0;
     padding: 0;
     display: flex;
-    gap: 2vw;
+    gap: 1.8vw;
     // 【新增】添加平滑过渡动画，持续时间 0.5秒，使用 ease-in-out 缓动函数
     transition: bottom 0.5s ease-in-out;
 
     .abc-button {
-      width: 4vw;
-      height: 3vw;
+      width: 3.5vw;
+      height: 2.3vw;
       background: url("@/assets/img/按钮new.png");
       background-size: 100% 100%;
       // background-repeat: no-repeat;
@@ -2245,134 +2227,6 @@ main {
   width: 100%;
   height: 100%;
   position: relative;
-}
-
-
-// 切换模型
-.switchModel {
-  position: absolute;
-  bottom: 1%;
-  right: 1%;
-  width: 3vw;
-  height: 3vw;
-  background-color: #00edfa;
-  z-index: 9;
-  // background: url('/img/switch.png') no-repeat contain;
-}
-
-// .fenleis {
-//   z-index: 999;
-//   // margin-top: 0.5vw;
-//   background-color: #0f100f;
-//   padding: 0.3vw 1vw;
-//   border-radius: 0.4vw;
-//   // max-height: 20vw;
-//   // border-color: #215c82;
-//   border: 5px solid #215c82;
-//   color: #fff;
-//   box-shadow: 0 0.2vw 0.6vw rgba(0, 0, 0, 0.15);
-// }
-.fenleis {
-  z-index: 999;
-  position: absolute;
-  top: 5.5vh;
-  left: 7.3vw;
-  background-color: #0f100f;
-  padding: 0.3vw 1vw;
-  border-radius: 0.4vw;
-  border: 5px solid #215c82;
-  color: #fff;
-  // 修正字体大小单位（0.15rem 过小，改为vw适配）
-  font-size: 0.8vw;
-  box-shadow: 0 0.2vw 0.6vw rgba(0, 0, 0, 0.15);
-  // 防止文字溢出
-  min-width: 5vw;
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    li {
-      list-style: none;
-      // 修正行高单位，适配整体风格
-      line-height: 1.8vw;
-      // 增加内边距提升点击区域
-      padding: 0.2vw 0.5vw;
-      border-radius: 0.2vw;
-      cursor: pointer;
-      // 基础文字颜色
-      color: #ffffff;
-      // 过渡动画，让颜色变化更平滑
-      transition: all 0.2s ease;
-
-      // 鼠标移入时文字变红
-      &:hover {
-        color: #00edfa; // 醒目红色
-        // 可选：增加背景高亮，提升视觉反馈
-        background-color: rgba(255, 51, 51, 0.1);
-      }
-
-      // 可选：选中态样式（如果需要）
-      &.active {
-        color: #ff3333;
-        background-color: rgba(255, 51, 51, 0.2);
-        border-left: 0.2vw solid #ff3333;
-      }
-    }
-  }
-}
-
-// 移除飞行控制面板相关样式
-
-// 联动视频样式
-.liandongshipin {
-  background-image: url("../assets/img/border_1.png");
-  background-size: 100% 100%;
-  height: 47vh;
-  width: 30vw;
-  background-repeat: no-repeat;
-  z-index: 9999;
-  position: absolute;
-  right: 2vw;
-  top: 15vh;
-  // display: none;
-
-  &:not([style*="display: none"]) {
-    display: block;
-  }
-
-  .video-ref {
-    height: 90%;
-    width: 99%;
-    margin-top: 10%;
-    margin-left: 0.5%;
-    z-index: 99;
-
-    .video-plugin {
-      width: 100%;
-      height: 100%;
-      padding-top: 1.5vw;
-    }
-
-    .fangxiang {
-      position: absolute;
-      top: 0;
-      right: 0;
-
-      .close-button {
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        padding: 0.25vw;
-
-        .closesss {
-          width: 1vw;
-          height: 1vw;
-        }
-      }
-    }
-  }
 }
 
 // 地图图表样式
@@ -2603,155 +2457,62 @@ main {
   }
 }
 
-// 新增：链消息弹窗样式（暗黑风格，不影响原有样式）
+/* ==========================================================
+   报警信息弹窗（统一为 video-container 风格：背景图 + 发光）
+   .chain-msg-popup  左侧：报警信息（含搜索栏）
+   .chain-msg-popup1 右侧：WebSocket 实时报警弹窗
+   ========================================================== */
+.chain-msg-popup,
 .chain-msg-popup1 {
   position: fixed;
   top: 7vw;
-  right: 1.5vw;
-  width: 22vw;
-  max-height: 78vh;
-  background: rgba(0, 15, 30, 0.98);
-  border: 1px solid #00c6ff;
-  border-radius: 8px;
-  z-index: 99999;
-  overflow: hidden;
-  box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
-
-  .popup-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background: rgba(0, 40, 60, 0.8);
-    border-bottom: 1px solid #00c6ff;
-
-    .popup-title {
-      color: #00c6ff;
-      font-size: 16px;
-      font-weight: 600;
-      margin: 0;
-    }
-
-    .popup-close {
-      background: transparent;
-      border: none;
-      color: #ffffff;
-      font-size: 20px;
-      cursor: pointer;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      transition: all 0.2s;
-
-      &:hover {
-        color: #ff4d4f;
-        transform: scale(1.1);
-      }
-    }
-  }
-
-  .popup-body {
-    padding: 16px;
-    overflow-y: auto;
-    max-height: calc(75vh - 50px);
-
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: rgba(0, 30, 50, 0.5);
-      border-radius: 3px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #00c6ff;
-      border-radius: 3px;
-    }
-
-    .msg-item {
-      padding: 12px;
-      margin-bottom: 12px;
-      background: rgba(0, 25, 45, 0.7);
-      border-radius: 6px;
-      border-left: 3px solid #00c6ff;
-
-      .msg-content {
-        color: #ffffff;
-        font-size: 0.15rem;
-
-        // font-size: clamp(16px, 4vw, 25px);
-        line-height: 1.6;
-        margin-bottom: 10px;
-
-        .label {
-          color: #00c6ff;
-          font-weight: 600;
-          margin-right: 4px;
-        }
-      }
-
-      .msg-actions {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-
-        .action-btn {
-          padding: 6px 12px;
-          border: none;
-          border-radius: 4px;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
-
-          &:hover {
-            transform: scale(1.05);
-          }
-
-          &.confirm {
-            background: #00c6ff;
-            color: #000000;
-          }
-
-          &.reject {
-            background: #ff4d4f;
-            color: #ffffff;
-          }
-        }
-      }
-    }
-  }
-}
-
-.chain-msg-popup {
-  position: fixed;
-  top: 7vw;
-  left: 1.5vw;
   width: 25vw;
   max-height: 78vh;
-  background: rgba(0, 15, 30, 0.98);
-  border: 1px solid #00c6ff;
-  border-radius: 8px;
   z-index: 99999;
-  overflow: hidden;
-  box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
+  padding: 8px 10px;
+  /* ✅ 核心改动1：与 video-container 一致的背景图 */
+  background-image: url("../assets/img/video.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 
+  /* ✅ 核心改动2：与 video-container 一致的 drop-shadow 发光 + 提亮 */
+  filter: drop-shadow(0 0 10px rgba(0, 198, 255, 0.8)) brightness(1.15);
+
+  border-radius: 0.4vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+
+  /* 左右弹窗仅定位不同 */
+  &.chain-msg-popup {
+    left: 1.5vw;
+  }
+
+  &.chain-msg-popup1 {
+    right: 1.5vw;
+    width: 22vw;
+  }
+
+  /* ---------- 头部 ---------- */
   .popup-header {
+    flex-shrink: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
-    background: rgba(0, 40, 60, 0.8);
-    border-bottom: 1px solid #00c6ff;
+    /* 半透明底色融入背景图，去掉实线边框改为青色细线 */
+    background: linear-gradient(90deg, rgba(0, 60, 90, 0.75), rgba(0, 30, 50, 0.45));
+    border-bottom: 1px solid rgba(0, 198, 255, 0.45);
 
     .popup-title {
-      color: #00c6ff;
+      color: #00e5ff;
       font-size: 16px;
       font-weight: 600;
       margin: 0;
+      /* 与 direction-button 悬浮发光呼应 */
+      text-shadow: 0 0 10px rgba(0, 198, 255, 0.8);
+      letter-spacing: 1px;
     }
 
     .popup-close {
@@ -2769,18 +2530,19 @@ main {
       transition: all 0.2s;
 
       &:hover {
-        color: #ff4d4f;
+        color: #00e5ff;
+        text-shadow: 0 0 10px rgba(0, 229, 255, 0.9);
         transform: scale(1.1);
       }
     }
   }
 
-  // 搜索栏（固定在 header 下方，不滚动）
+  /* ---------- 搜索栏（仅 chain-msg-popup 有） ---------- */
   .popup-search-bar {
+    flex-shrink: 0;
     padding: 8px 10px;
-    background: rgba(0, 30, 55, 0.9);
-    border-bottom: 1px solid #00c6ff;
-    // flex-shrink: 0; // 防止被压缩
+    background: rgba(0, 30, 55, 0.55);
+    border-bottom: 1px solid rgba(0, 198, 255, 0.35);
 
     .search-row {
       display: flex;
@@ -2790,11 +2552,22 @@ main {
       .search-input {
         flex: 1;
         padding: 4px 8px;
-        border: 1px solid #00c6ff;
+        border: 1px solid rgba(0, 198, 255, 0.6);
         border-radius: 4px;
-        background: rgba(0, 15, 30, 0.8);
+        background: rgba(0, 15, 30, 0.7);
         color: #fff;
         font-size: 12px;
+        transition: all 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: #00e5ff;
+          box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+        }
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.45);
+        }
 
         &.time-input {
           flex: none;
@@ -2806,14 +2579,11 @@ main {
         }
       }
 
-      /* 替换原来的 .search-btn，使用 :deep() 穿透修改 element-plus 默认样式 */
+      /* 搜索按钮：与视频弹窗主题色呼应 */
       .alarm-search-btn {
         flex-shrink: 0;
-        /* 防止被挤压 */
         height: 26px;
-        /* 与 input 高度对齐 */
         min-width: 40px;
-        /* 保证图标按钮不会太窄 */
         padding: 0 10px !important;
         margin: 0 !important;
         background-color: #00c6ff !important;
@@ -2833,7 +2603,6 @@ main {
           transform: scale(1.05);
         }
 
-        /* 穿透修改 Element Plus 内部图标颜色和大小 */
         :deep(.el-icon) {
           color: #000 !important;
           font-size: 14px !important;
@@ -2842,7 +2611,9 @@ main {
     }
   }
 
+  /* ---------- 消息列表 ---------- */
   .popup-body {
+    flex: 1;
     padding: 16px;
     overflow-y: auto;
     max-height: calc(78vh - 50px);
@@ -2864,22 +2635,34 @@ main {
     .msg-item {
       padding: 12px;
       margin-bottom: 12px;
-      background: rgba(0, 25, 45, 0.7);
+      /* 半透明卡片融入背景图 */
+      background: rgba(0, 25, 45, 0.6);
       border-radius: 6px;
       border-left: 3px solid #00c6ff;
+      transition: all 0.25s ease;
+
+      &:hover {
+        background: rgba(0, 40, 70, 0.75);
+        box-shadow: 0 0 10px rgba(0, 198, 255, 0.35);
+        border-left-color: #00e5ff;
+      }
 
       .msg-content {
         color: #ffffff;
         font-size: 0.15rem;
-
-        // font-size: clamp(16px, 4vw, 25px);
         line-height: 1.6;
         margin-bottom: 10px;
 
         .label {
-          color: #00c6ff;
+          color: #00e5ff;
           font-weight: 600;
           margin-right: 4px;
+          text-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
+        }
+
+        img {
+          border-radius: 4px;
+          border: 1px solid rgba(0, 198, 255, 0.35);
         }
       }
 
@@ -2902,71 +2685,23 @@ main {
 
           &.confirm {
             background: #00c6ff;
-            color: #000000;
+            color: #000;
+            box-shadow: 0 0 8px rgba(0, 198, 255, 0.5);
+
+            &:hover {
+              box-shadow: 0 0 14px rgba(0, 229, 255, 0.8);
+            }
           }
 
           &.reject {
             background: #ff4d4f;
-            color: #ffffff;
+            color: #fff;
+            box-shadow: 0 0 8px rgba(255, 77, 79, 0.5);
           }
         }
       }
     }
   }
-}
-
-/* 外层容器：清除默认样式，适配按钮布局（可选，根据页面调整） */
-.dibubutton {
-  width: fit-content;
-
-  position: absolute;
-  bottom: 0.5vw;
-  right: 1vw;
-  z-index: 99;
-}
-
-/* 操作列表：清除ul默认样式，弹性布局让两个li横向排列（核心布局） */
-.operate-list {
-  list-style: none;
-  /* 清除li默认圆点 */
-  margin: 0;
-  padding: 0;
-  display: flex;
-
-  /* 横向排列两个按钮li */
-  gap: 10px;
-  /* 两个按钮之间的间距，可自定义 */
-  align-items: center;
-  /* 垂直居中对齐 */
-}
-
-/* 所有li通用样式：背景图核心属性+左下角定位+宽高基础设置 */
-.operate-list li {
-  /* 背景图核心：强制填充+不重复，保留!important覆盖其他样式 */
-  background-image: url("../assets/img/按钮new.png") !important;
-  background-size: 100% 100% !important;
-  /* 强制拉伸填充容器，无视图片比例 */
-  // background-repeat: no-repeat !important;
-  background-position: left bottom !important;
-  /* 关键：背景图固定在左下角 */
-  /* 基础布局：按需设置宽高（适配你的按钮图片尺寸），行内块/块级 */
-  display: inline-block;
-  padding: 40px 50px 25px 50px;
-  /* 示例高度，根据实际图片调整 */
-  position: relative;
-  /* 文字颜色，按需调整 */
-  font-size: 0.25rem;
-  color: #fff;
-  /* 用于子元素（按钮/文字）居中定位，可选 */
-  cursor: pointer;
-  /* 鼠标悬浮手型，提升交互 */
-}
-
-/* 可选：鼠标悬浮轻微效果，提升交互 */
-.operate-list li:hover {
-  opacity: 0.9;
-  transform: scale(1.02);
-  transition: all 0.2s ease;
 }
 
 // 响应式调整
@@ -3005,254 +2740,6 @@ main {
       padding: 0.3vw 0.7vw;
     }
   }
-
-  .liandongshipin {
-    height: 47vh;
-    width: 30vw;
-    right: 2vw;
-    top: 15vh;
-  }
-
-  // 新增：链消息弹窗样式（暗黑风格，不影响原有样式）
-  .chain-msg-popup {
-    position: fixed;
-    top: 7vw;
-    left: 1.5vw;
-    width: 22vw;
-    max-height: 78vh;
-    background: rgba(0, 15, 30, 0.98);
-    border: 1px solid #00c6ff;
-    border-radius: 8px;
-    z-index: 99999;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
-
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0, 40, 60, 0.8);
-      border-bottom: 1px solid #00c6ff;
-
-      .popup-title {
-        color: #00c6ff;
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0;
-      }
-
-      .popup-close {
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        transition: all 0.2s;
-
-        &:hover {
-          color: #ff4d4f;
-          transform: scale(1.1);
-        }
-      }
-    }
-
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      max-height: calc(75vh - 50px);
-
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: rgba(0, 30, 50, 0.5);
-        border-radius: 3px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #00c6ff;
-        border-radius: 3px;
-      }
-
-      .msg-item {
-        padding: 12px;
-        margin-bottom: 12px;
-        background: rgba(0, 25, 45, 0.7);
-        border-radius: 6px;
-        border-left: 3px solid #00c6ff;
-
-        .msg-content {
-          color: #ffffff;
-          font-size: 0.25rem;
-          line-height: 1.6;
-          margin-bottom: 10px;
-
-          .label {
-            color: #00c6ff;
-            font-weight: 600;
-            margin-right: 4px;
-          }
-        }
-
-        .msg-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-
-          .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-              transform: scale(1.05);
-            }
-
-            &.confirm {
-              background: #00c6ff;
-              color: #000000;
-            }
-
-            &.reject {
-              background: #ff4d4f;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .chain-msg-popup1 {
-    position: fixed;
-    top: 7vw;
-    right: 1.5vw;
-    width: 22vw;
-    max-height: 78vh;
-    background: rgba(0, 15, 30, 0.98);
-    border: 1px solid #00c6ff;
-    border-radius: 8px;
-    z-index: 99999;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
-
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0, 40, 60, 0.8);
-      border-bottom: 1px solid #00c6ff;
-
-      .popup-title {
-        color: #00c6ff;
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0;
-      }
-
-      .popup-close {
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        transition: all 0.2s;
-
-        &:hover {
-          color: #ff4d4f;
-          transform: scale(1.1);
-        }
-      }
-    }
-
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      max-height: calc(75vh - 50px);
-
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: rgba(0, 30, 50, 0.5);
-        border-radius: 3px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #00c6ff;
-        border-radius: 3px;
-      }
-
-      .msg-item {
-        padding: 12px;
-        margin-bottom: 12px;
-        background: rgba(0, 25, 45, 0.7);
-        border-radius: 6px;
-        border-left: 3px solid #00c6ff;
-
-        .msg-content {
-          color: #ffffff;
-          font-size: 0.25rem;
-          line-height: 1.6;
-          margin-bottom: 10px;
-
-          .label {
-            color: #00c6ff;
-            font-weight: 600;
-            margin-right: 4px;
-          }
-        }
-
-        .msg-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-
-          .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-              transform: scale(1.05);
-            }
-
-            &.confirm {
-              background: #00c6ff;
-              color: #000000;
-            }
-
-            &.reject {
-              background: #ff4d4f;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
-  }
 }
 
 // 财富中心18楼大屏适配
@@ -3283,6 +2770,16 @@ main {
       // font-weight: bold;
       // text-align: center;
       // backdrop-filter: blur(2px); // 背景模糊效果，提升文字可读性
+    }
+  }
+
+  // 方向按钮容器样式
+  .direction-buttons-container {
+    bottom: 2vw;
+    right: 1vw;
+
+    .direction-buttons-list {
+      gap: 0.8vw;
     }
   }
 
@@ -3365,7 +2862,6 @@ main {
     }
   }
 
-
   // 底部ABC馆按钮容器样式
   .abc-buttons-container {
     position: absolute;
@@ -3378,784 +2874,44 @@ main {
     gap: 2vw; // 按钮之间的间距
   }
 
+// 方向按钮容器样式
+  .direction-buttons-container {
+    bottom: 1vw;
+    right: 0.5vw;
+
+    .direction-buttons-list {
+      gap: 0.2rem;
+
+      .direction-button {
+        position: relative;
+        min-width: 1.8vw;
+        height: 1.8vw;
+      }
+
+      /* 提示框文本背景 */
+      // .direction-button::before {
+      //   padding: 0.2vw 0.4vw;
+      //   border-radius: 0.2vw;
+      //   font-size: 0.4rem;
+      // }
+    }
+  }
+  
   .chain-msg-popup {
     top: 5vw;
     // left: 1.5vw;
     width: 15vw;
     max-height: 60vh;
-    // background: rgba(0, 15, 30, 0.98);
-    // border: 1px solid #00c6ff;
-    // border-radius: 8px;
-    // z-index: 99999;
-    // overflow: hidden;
-    // box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
   }
 
   .cruise-tip {
-    // position: absolute;
     top: 0.6vw;
     font-size: 0.3rem;
-    // right: 33vw;
-    // font-size: 0.2rem;
-    // padding: 2px 10px;
-    // z-index: 9;
-    // color: #fff;
-  }
-}
-
-// 横屏超高清大屏额外适配
-@media screen and (width: 3170px) and (height: 1622.5px) {
-
-  // 新增：链消息弹窗样式（暗黑风格，不影响原有样式）
-  .chain-msg-popup {
-    position: fixed;
-    top: 7vw;
-    left: 1.5vw;
-    width: 22vw;
-    max-height: 78vh;
-    background: rgba(0, 15, 30, 0.98);
-    border: 1px solid #00c6ff;
-    border-radius: 8px;
-    z-index: 99999;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
-
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0, 40, 60, 0.8);
-      border-bottom: 1px solid #00c6ff;
-
-      .popup-title {
-        color: #00c6ff;
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0;
-      }
-
-      .popup-close {
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        transition: all 0.2s;
-
-        &:hover {
-          color: #ff4d4f;
-          transform: scale(1.1);
-        }
-      }
-    }
-
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      max-height: calc(75vh - 50px);
-
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: rgba(0, 30, 50, 0.5);
-        border-radius: 3px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #00c6ff;
-        border-radius: 3px;
-      }
-
-      .msg-item {
-        padding: 12px;
-        margin-bottom: 12px;
-        background: rgba(0, 25, 45, 0.7);
-        border-radius: 6px;
-        border-left: 3px solid #00c6ff;
-
-        .msg-content {
-          color: #ffffff;
-          font-size: 0.25rem;
-          line-height: 1.6;
-          margin-bottom: 10px;
-
-          .label {
-            color: #00c6ff;
-            font-weight: 600;
-            margin-right: 4px;
-          }
-        }
-
-        .msg-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-
-          .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-              transform: scale(1.05);
-            }
-
-            &.confirm {
-              background: #00c6ff;
-              color: #000000;
-            }
-
-            &.reject {
-              background: #ff4d4f;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .chain-msg-popup1 {
-    position: fixed;
-    top: 7vw;
-    right: 1.5vw;
-    width: 22vw;
-    max-height: 78vh;
-    background: rgba(0, 15, 30, 0.98);
-    border: 1px solid #00c6ff;
-    border-radius: 8px;
-    z-index: 99999;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
-
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0, 40, 60, 0.8);
-      border-bottom: 1px solid #00c6ff;
-
-      .popup-title {
-        color: #00c6ff;
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0;
-      }
-
-      .popup-close {
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        transition: all 0.2s;
-
-        &:hover {
-          color: #ff4d4f;
-          transform: scale(1.1);
-        }
-      }
-    }
-
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      max-height: calc(75vh - 50px);
-
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: rgba(0, 30, 50, 0.5);
-        border-radius: 3px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #00c6ff;
-        border-radius: 3px;
-      }
-
-      .msg-item {
-        padding: 12px;
-        margin-bottom: 12px;
-        background: rgba(0, 25, 45, 0.7);
-        border-radius: 6px;
-        border-left: 3px solid #00c6ff;
-
-        .msg-content {
-          color: #ffffff;
-          font-size: 0.25rem;
-          line-height: 1.6;
-          margin-bottom: 10px;
-
-          .label {
-            color: #00c6ff;
-            font-weight: 600;
-            margin-right: 4px;
-          }
-        }
-
-        .msg-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-
-          .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-              transform: scale(1.05);
-            }
-
-            &.confirm {
-              background: #00c6ff;
-              color: #000000;
-            }
-
-            &.reject {
-              background: #ff4d4f;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-@media screen and (width: 3128px) and (height: 1760px) {
-
-  // 新增：链消息弹窗样式（暗黑风格，不影响原有样式）
-  .chain-msg-popup {
-    position: fixed;
-    top: 7vw;
-    left: 1.5vw;
-    width: 22vw;
-    max-height: 78vh;
-    background: rgba(0, 15, 30, 0.98);
-    border: 1px solid #00c6ff;
-    border-radius: 8px;
-    z-index: 99999;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
-
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0, 40, 60, 0.8);
-      border-bottom: 1px solid #00c6ff;
-
-      .popup-title {
-        color: #00c6ff;
-        font-size: 0.5rem;
-        font-weight: 600;
-        margin: 0;
-      }
-
-      .popup-close {
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        transition: all 0.2s;
-
-        &:hover {
-          color: #ff4d4f;
-          transform: scale(1.1);
-        }
-      }
-    }
-
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      max-height: calc(75vh - 50px);
-
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: rgba(0, 30, 50, 0.5);
-        border-radius: 3px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #00c6ff;
-        border-radius: 3px;
-      }
-
-      .msg-item {
-        padding: 12px;
-        margin-bottom: 12px;
-        background: rgba(0, 25, 45, 0.7);
-        border-radius: 6px;
-        border-left: 3px solid #00c6ff;
-
-        .msg-content {
-          color: #ffffff;
-          font-size: 0.25rem;
-          line-height: 1.6;
-          margin-bottom: 10px;
-
-          .label {
-            color: #00c6ff;
-            font-weight: 600;
-            margin-right: 4px;
-          }
-        }
-
-        .msg-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-
-          .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.27rem;
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-              transform: scale(1.05);
-            }
-
-            &.confirm {
-              background: #00c6ff;
-              color: #000000;
-            }
-
-            &.reject {
-              background: #ff4d4f;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .chain-msg-popup1 {
-    position: fixed;
-    top: 7vw;
-    right: 1.5vw;
-    width: 22vw;
-    max-height: 78vh;
-    background: rgba(0, 15, 30, 0.98);
-    border: 1px solid #00c6ff;
-    border-radius: 8px;
-    z-index: 99999;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
-
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0, 40, 60, 0.8);
-      border-bottom: 1px solid #00c6ff;
-
-      .popup-title {
-        color: #00c6ff;
-        font-size: 0.5rem;
-        font-weight: 600;
-        margin: 0;
-      }
-
-      .popup-close {
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        transition: all 0.2s;
-
-        &:hover {
-          color: #ff4d4f;
-          transform: scale(1.1);
-        }
-      }
-    }
-
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      max-height: calc(75vh - 50px);
-
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: rgba(0, 30, 50, 0.5);
-        border-radius: 3px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #00c6ff;
-        border-radius: 3px;
-      }
-
-      .msg-item {
-        padding: 12px;
-        margin-bottom: 12px;
-        background: rgba(0, 25, 45, 0.7);
-        border-radius: 6px;
-        border-left: 3px solid #00c6ff;
-
-        .msg-content {
-          color: #ffffff;
-          font-size: 0.25rem;
-          line-height: 1.6;
-          margin-bottom: 10px;
-
-          .label {
-            color: #00c6ff;
-            font-weight: 600;
-            margin-right: 4px;
-          }
-        }
-
-        .msg-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-
-          .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.27rem;
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-              transform: scale(1.05);
-            }
-
-            &.confirm {
-              background: #00c6ff;
-              color: #000000;
-            }
-
-            &.reject {
-              background: #ff4d4f;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
   }
 }
 
 // 驾驶舱（可能）
 @media screen and (width: 11520px) and (height: 2160px) {
-
-  .chain-msg-popup {
-    position: fixed;
-    top: 3vw;
-    left: 1.7vw;
-    width: 21.3vw;
-    max-height: 78vh;
-    background: rgba(0, 15, 30, 0.98);
-    border: 1px solid #00c6ff;
-    border-radius: 8px;
-    z-index: 99999;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
-
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0, 40, 60, 0.8);
-      border-bottom: 1px solid #00c6ff;
-
-      .popup-title {
-        color: #00c6ff;
-        font-size: 0.6rem;
-        font-weight: 600;
-        margin: 0;
-      }
-
-      .popup-close {
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        transition: all 0.2s;
-
-        &:hover {
-          color: #ff4d4f;
-          transform: scale(1.1);
-        }
-      }
-    }
-
-    .popup-search-bar {
-      .search-row {
-        .alarm-search-btn {
-          height: 60px !important;
-          min-width: 90px;
-          padding: 0 24px !important;
-          font-size: 0.4rem !important;
-
-          :deep(.el-icon) {
-            font-size: 0.5rem !important;
-          }
-        }
-      }
-    }
-
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      max-height: calc(75vh - 50px);
-
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: rgba(0, 30, 50, 0.5);
-        border-radius: 3px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #00c6ff;
-        border-radius: 3px;
-      }
-
-      .msg-item {
-        padding: 12px;
-        margin-bottom: 12px;
-        background: rgba(0, 25, 45, 0.7);
-        border-radius: 6px;
-        border-left: 3px solid #00c6ff;
-
-        .msg-content {
-          color: #ffffff;
-          font-size: 0.5rem;
-          line-height: 1.6;
-          margin-bottom: 10px;
-
-          .label {
-            color: #00c6ff;
-            font-weight: 600;
-            margin-right: 4px;
-          }
-        }
-
-        .msg-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-
-          .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-              transform: scale(1.05);
-            }
-
-            &.confirm {
-              background: #00c6ff;
-              color: #000000;
-            }
-
-            &.reject {
-              background: #ff4d4f;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .chain-msg-popup1 {
-    position: fixed;
-    top: 3vw;
-    right: 1.7vw;
-    width: 21.3vw;
-    max-height: 78vh;
-    background: rgba(0, 15, 30, 0.98);
-    border: 1px solid #00c6ff;
-    border-radius: 8px;
-    z-index: 99999;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
-
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: rgba(0, 40, 60, 0.8);
-      border-bottom: 1px solid #00c6ff;
-
-      .popup-title {
-        color: #00c6ff;
-        font-size: 0.6rem;
-        font-weight: 600;
-        margin: 0;
-      }
-
-      .popup-close {
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        transition: all 0.2s;
-
-        &:hover {
-          color: #ff4d4f;
-          transform: scale(1.1);
-        }
-      }
-    }
-
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      max-height: calc(75vh - 50px);
-
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: rgba(0, 30, 50, 0.5);
-        border-radius: 3px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #00c6ff;
-        border-radius: 3px;
-      }
-
-      .msg-item {
-        padding: 12px;
-        margin-bottom: 12px;
-        background: rgba(0, 25, 45, 0.7);
-        border-radius: 6px;
-        border-left: 3px solid #00c6ff;
-
-        .msg-content {
-          color: #ffffff;
-          font-size: 0.5rem;
-          line-height: 1.6;
-          margin-bottom: 10px;
-
-          .label {
-            color: #00c6ff;
-            font-weight: 600;
-            margin-right: 4px;
-          }
-        }
-
-        .msg-actions {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-
-          .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-              transform: scale(1.05);
-            }
-
-            &.confirm {
-              background: #00c6ff;
-              color: #000000;
-            }
-
-            &.reject {
-              background: #ff4d4f;
-              color: #ffffff;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .liandongshipin {
-    height: 60vh;
-    width: 20vw;
-    top: 19vh;
-    right: 1.5vw;
-  }
 
   // 视频弹窗样式
   .video-container {
@@ -4207,13 +2963,7 @@ main {
 
     // 文字样式：浮动在底部，带透明浅色背景
     p {
-      // padding: 0.1rem;
-      // background: rgba(255, 255, 255, 0.2); // 透明浅色背景
-      // color: #fff; // 黑色文字
       font-size: 0.18rem;
-      // font-weight: bold;
-      // text-align: center;
-      // backdrop-filter: blur(2px); // 背景模糊效果，提升文字可读性
     }
   }
 

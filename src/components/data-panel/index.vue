@@ -79,10 +79,10 @@ const getHourlyData = async (date?: string) => {
   try {
     const url = `${BASE_API_URL}/getHourlyData`
     const params = date ? { date } : {}
-    const response = await axios.get(url, { 
+    const response = await axios.get(url, {
       params,
       headers: SP_HEADERS, // 新增鉴权头 
-      })
+    })
     if (response.data.code === 0 && response.data.data) {
       return response.data.data
     }
@@ -309,8 +309,8 @@ const updateRankChart = async () => {
     grid: {
       left: '12%',
       right: '8%',
-      top: '30%',
-      bottom: '10%',
+      top: '44%',
+      bottom: '12%',
     },
     xAxis: {
       type: 'category',
@@ -328,7 +328,7 @@ const updateRankChart = async () => {
       {
         text: `总进入: ${data.totalEnter}`,
         left: '3%',
-        top: '20%',
+        top: '23%',
         textStyle: {
           color: '#00d4ff',
           fontSize: chartFontSize,
@@ -340,7 +340,7 @@ const updateRankChart = async () => {
       {
         text: `总离开: ${data.totalExit}`,
         right: '3%',
-        top: '18%',
+        top: '23%',
         textStyle: {
           color: '#ff6b6b',
           fontSize: chartFontSize,
@@ -954,11 +954,13 @@ onUnmounted(() => {
   .data-card--top-right {
     --card-width: 19vw;
     --card-height: calc(40% - 0.5vw);
+    right: 3vw;
   }
 
   .data-card--bottom-right {
     --card-width: 19vw;
     --card-height: calc(40% - 0.5vw);
+    right: 3vw;
   }
 
   .data-card--top-left {
@@ -1441,6 +1443,33 @@ onUnmounted(() => {
 
       .total-value {
         font-size: 0.85vw;
+      }
+    }
+
+    /* ✅ 新增：右下卡片开关略微内收、缩小，避免贴边与图例/标题挤压 */
+    .chart-toggle {
+      top: 0.4vw;
+      right: 0.6vw;
+      gap: 0.3vw;
+
+      span {
+        font-size: 0.38vw;
+      }
+
+      .toggle-switch {
+        width: 1.8vw;
+        height: 0.9vw;
+
+        &::after {
+          width: 0.7vw;
+          height: 0.7vw;
+          top: 0.1vw;
+          left: 0.1vw;
+        }
+
+        &.active::after {
+          left: 1vw;
+        }
       }
     }
   }
