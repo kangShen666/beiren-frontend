@@ -13,6 +13,8 @@ import * as Cesium from "cesium";
 import { defineEmits, onMounted, onUnmounted, ref } from "vue";
 // ============ WebSocket 统一管理（新增） ============
 import { WsManager, type WsChannelConfig } from "@/utils/wsManager";
+// 引入底图
+import videoFrameUrl from "@/assets/img/video.png";
 // 获取状态
 const viewportStore = useViewportStore();
 // 初始化飞行控制器，传入获取 viewer 的方法
@@ -1544,54 +1546,173 @@ let handler: Cesium.ScreenSpaceEventHandler | null = null;
 let currentHoveredHotspotId: string | null = null;
 const hotspotMainEntities: Record<string, Cesium.Entity> = {};
 
-const preloadAndResizeImage = async (
-  imgUrl: string,
-  maxWidth = 800,
-  maxHeight = 400,
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
+
+/** 加载单张图片 */
+const loadImg = (src: string) =>
+  new Promise<HTMLImageElement>((res, rej) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      let width = img.width;
-      let height = img.height;
-
-      if (width > maxWidth || height > maxHeight) {
-        const ratio = Math.min(maxWidth / width, maxHeight / height);
-        width = Math.floor(width * ratio);
-        height = Math.floor(height * ratio);
-      }
-
-      const borderWidth = 25;
-      canvas.width = width + borderWidth * 2;
-      canvas.height = height + borderWidth * 2;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        reject(new Error("Canvas上下文创建失败"));
-        return;
-      }
-
-      ctx.strokeStyle = "#4ca8e2";
-      ctx.lineWidth = borderWidth;
-      ctx.strokeRect(
-        borderWidth / 2,
-        borderWidth / 2,
-        canvas.width - borderWidth,
-        canvas.height - borderWidth,
-      );
-
-      ctx.drawImage(img, borderWidth, borderWidth, width, height);
-      resolve(canvas.toDataURL("image/png"));
-    };
-    img.onerror = (err) => {
-      console.error(`图片加载失败: ${imgUrl}`, err);
-      resolve("/xiangji1.png");
-    };
-    img.src = imgUrl;
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = src;
   });
+
+/** 自动检测 video.png 中心的透明镂空区 */
+const detectFrameHole = (
+  img: HTMLImageElement,
+): { x: number; y: number; w: number; h: number } | null => {
+  try {
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext("2d")!;
+    ctx.drawImage(img, 0, 0);
+    const data = ctx.getImageData(0, 0, c.width, c.height).data;
+    const alphaAt = (x: number, y: number) => data[(y * c.width + x) * 4 + 3];
+
+    const cx = Math.floor(c.width / 2);
+    const cy = Math.floor(c.height / 2);
+    if (alphaAt(cx, cy) > 20) return null;
+
+    let left = cx;
+    while (left > 0 && alphaAt(left - 1, cy) <= 20) left--;
+    let right = cx;
+    while (right < c.width - 1 && alphaAt(right + 1, cy) <= 20) right++;
+    let top = cy;
+    while (top > 0 && alphaAt(cx, top - 1) <= 20) top--;
+    let bottom = cy;
+    while (bottom < c.height - 1 && alphaAt(cx, bottom + 1) <= 20) bottom++;
+
+    const w = right - left;
+    const h = bottom - top;
+    if (w < c.width * 0.2 || h < c.height * 0.2) return null;
+    return { x: left, y: top, w, h };
+  } catch {
+    return null;
+  }
 };
+
+/**
+ * 生成「视频弹窗同款」缩略图（v3）：
+ * ① 缩略图 cover 填满镂空窗口（object-fit: cover）
+ * ② 发光挂在边框底图轮廓上（等价容器级 drop-shadow）
+ * ③ 画布四周留 padding，防止光晕被截断
+ * @returns image: 合成图 dataURL；scale: billboard 缩放值
+ */
+const preloadAndResizeImage = async (
+  imgUrl: string,
+  targetH = 100,
+): Promise<{ image: string; scale: number }> => {
+  // ---- 旧逻辑兜底：硬边框 ----
+  const legacyDraw = async (): Promise<{ image: string; scale: number }> => {
+    const thumb = await loadImg(imgUrl);
+    const canvas = document.createElement("canvas");
+    const borderWidth = 25;
+    const ratio = Math.min(800 / thumb.width, 400 / thumb.height, 1);
+    const width = Math.floor(thumb.width * ratio);
+    const height = Math.floor(thumb.height * ratio);
+    canvas.width = width + borderWidth * 2;
+    canvas.height = height + borderWidth * 2;
+    const ctx = canvas.getContext("2d")!;
+    ctx.strokeStyle = "#4ca8e2";
+    ctx.lineWidth = borderWidth;
+    ctx.strokeRect(borderWidth / 2, borderWidth / 2, canvas.width - borderWidth, canvas.height - borderWidth);
+    ctx.drawImage(thumb, borderWidth, borderWidth, width, height);
+    return { image: canvas.toDataURL("image/png"), scale: targetH / canvas.height };
+  };
+
+  try {
+    const [frame, thumb] = await Promise.all([
+      loadImg(videoFrameUrl),
+      loadImg(imgUrl),
+    ]);
+
+    const fw = frame.naturalWidth;
+    const fh = frame.naturalHeight;
+
+    // ✅ 关键1：四周留出光晕扩散空间（约短边 6%），避免发光被画布边缘切掉
+    const pad = Math.round(Math.min(fw, fh) * 0.06);
+    const canvas = document.createElement("canvas");
+    canvas.width = fw + pad * 2;
+    canvas.height = fh + pad * 2;
+    const ctx = canvas.getContext("2d")!;
+
+    // 镂空窗口（坐标加上 pad 偏移）
+    const holeRaw =
+      detectFrameHole(frame) ?? {
+        x: fw * 0.06, y: fh * 0.14, w: fw * 0.88, h: fh * 0.78,
+      };
+    const hole = {
+      x: holeRaw.x + pad,
+      y: holeRaw.y + pad,
+      w: holeRaw.w,
+      h: holeRaw.h,
+    };
+
+    // ✅ 关键2：cover 填充——取较大缩放比，铺满窗口，超出部分裁掉
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(hole.x, hole.y, hole.w, hole.h);
+    ctx.clip();
+    const cover = Math.max(hole.w / thumb.width, hole.h / thumb.height);
+    const w = thumb.width * cover;
+    const h = thumb.height * cover;
+    ctx.drawImage(
+      thumb,
+      hole.x + (hole.w - w) / 2, // 水平居中
+      hole.y + (hole.h - h) / 2, // 垂直居中
+      w, h,
+    );
+    ctx.restore();
+
+    // 提亮缩略图区域（等价 brightness(1.2)）
+    ctx.save();
+    ctx.globalAlpha = 0.1;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(hole.x, hole.y, hole.w, hole.h);
+    ctx.restore();
+
+    // 窗口内侧细描边：衔接图片与边框，避免生硬接缝
+    ctx.save();
+    ctx.strokeStyle = "rgba(0, 198, 255, 0.55)";
+    ctx.lineWidth = Math.max(2, fw * 0.003);
+    ctx.strokeRect(hole.x, hole.y, hole.w, hole.h);
+    ctx.restore();
+
+    // ✅ 关键3：发光挂在【边框底图】上——光晕沿边框最外轮廓向外发散
+    //   与 CSS「容器级 filter: drop-shadow(0 0 10px rgba(0,198,255,.8))」行为一致
+    ctx.save();
+    ctx.shadowColor = "rgba(0, 198, 255, 0.9)";
+    ctx.shadowBlur = Math.min(fw, fh) * 0.04; // 光晕半径
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    // 画两次：第一遍主要贡献外发光，第二遍保证边框本体清晰实色
+    ctx.drawImage(frame, pad, pad);
+    ctx.drawImage(frame, pad, pad);
+    ctx.restore();
+
+    // 边框提亮（等价容器的 brightness(1.2)）
+    ctx.save();
+    ctx.globalCompositeOperation = "source-atop"; // 只提亮已绘制的像素，不影响外部透明区
+    ctx.globalAlpha = 0.1;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    return {
+      image: canvas.toDataURL("image/png"),
+      scale: targetH / canvas.height, // 含 pad，billboard 按 canvas 总高适配
+    };
+  } catch (err) {
+    console.error("发光边框合成失败，回退硬边框:", err);
+    try {
+      return await legacyDraw();
+    } catch {
+      return { image: "/xiangji1.png", scale: 0.5 };
+    }
+  }
+};
+
 
 const addHotspots = async (hotspotList: HotspotEntity[]) => {
   if (!Array.isArray(hotspotList) || hotspotList.length === 0) {
@@ -1618,7 +1739,7 @@ const addHotspots = async (hotspotList: HotspotEntity[]) => {
       }
 
       const childEntityId = `hotspot_child_${id}`;
-      const resizedImgUrl = await preloadAndResizeImage(img, 800, 400);
+      const meta  = await preloadAndResizeImage(img, 100);
 
       // --- 主实体（相机图标） ---
       const mainEntity = viewer.entities.add({
@@ -1662,20 +1783,16 @@ const addHotspots = async (hotspotList: HotspotEntity[]) => {
           Number(height),
         ),
         billboard: {
-          image: resizedImgUrl,
-          pixelOffset: new Cesium.Cartesian2(0, -90),
+          image: meta.image,
+          scale: meta.scale,
+          pixelOffset: new Cesium.Cartesian3(0, -100, 100),
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          width: 200,
-          height: 100,
-          scale: 1,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
           show: false,
           heightReference: Cesium.HeightReference.ABSOLUTE,
           // 关键：将详情图片向前拉，确保在相机图标上方
           eyeOffset: new Cesium.Cartesian3(0, 0, 0), // 保持在最前
           zIndex: 9999, // 最高层级
-          // 额外保险：使用pixelOffset的Z分量
-          pixelOffset: new Cesium.Cartesian3(0, -90, 100),
         },
       });
 
@@ -3312,7 +3429,7 @@ onMounted(() => {
   initCesium();
   // QuanJing();
   loadModelById(1);
-  loadModelById(2);
+  // loadModelById(2);
   loadModelById(3);
   ld();
 });

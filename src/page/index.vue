@@ -933,8 +933,6 @@ const ButtonText = reactive({
 
 // 显示热点连接的相机名字
 const videoName = ref("");
-const isPlay = ref(false);
-const playerInfo = ref<any>(null);
 
 // 处理日期格式
 const parseTimeFromUrl = (url: string) => {
