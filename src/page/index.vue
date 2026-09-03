@@ -1245,17 +1245,22 @@ let changeMark = (e: any) => {
 // 报警信息
 let shijian = (e: any) => {
   if (ButtonText.shijian) {
-    showChainMsgPopup.value = false;
-    ButtonText.shijian = false;
-    searchAlarmParams.cameraName = "";
-    searchAlarmParams.beginTime = "";
-    searchAlarmParams.endTime = "";
-    closeHisVideo();
+    closeChainMsgPopup();
   } else {
     showChainMsgPopup.value = true;
     ButtonText.shijian = true;
     fetchChainMsgForPopup();
   }
+};
+
+// 报警信息弹窗关闭按钮（与顶部导航"报警信息"关闭逻辑一致）
+const closeChainMsgPopup = () => {
+  showChainMsgPopup.value = false;
+  ButtonText.shijian = false; // 同步导航按钮状态，保证下次点击"报警信息"能正常打开
+  searchAlarmParams.cameraName = "";
+  searchAlarmParams.beginTime = "";
+  searchAlarmParams.endTime = "";
+  closeHisVideo(); // 关闭可能正在播放的报警视频
 };
 
 let tingzhifeixing = ref(false);
@@ -1598,7 +1603,8 @@ const changXiao = function (e: MouseEvent): void {
           <div class="chain-msg-popup" v-show="showChainMsgPopup">
             <div class="popup-header">
               <h3 class="popup-title">报警信息</h3>
-              <!-- <button class="popup-close" @click="closeChainMsgPopup">×</button> -->
+              <!-- ✅ 新增：关闭按钮，样式同 video-container 的 __close（exit.png 贴图） -->
+              <div class="popup-close-btn" @click="closeChainMsgPopup()">关闭</div>
             </div>
 
             <!-- 搜索栏（固定在头部下方，不随列表滚动） -->
@@ -2466,10 +2472,10 @@ main {
 .chain-msg-popup1 {
   position: fixed;
   top: 7vw;
-  width: 25vw;
+  width: 26vw;
   max-height: 78vh;
   z-index: 99999;
-  padding: 8px 10px;
+  padding: 8px 10px 38px;
   /* ✅ 核心改动1：与 video-container 一致的背景图 */
   background-image: url("../assets/img/video.png");
   background-size: 100% 100%;
@@ -2514,49 +2520,54 @@ main {
       text-shadow: 0 0 10px rgba(0, 198, 255, 0.8);
       letter-spacing: 1px;
     }
+  }
 
-    .popup-close {
-      background: transparent;
-      border: none;
-      color: #ffffff;
-      font-size: 20px;
-      cursor: pointer;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      transition: all 0.2s;
+  /* ✅ 新增：关闭按钮 —— 与 .video-container__close 完全同款风格 */
+  .popup-close-btn {
+    width: 4.5vw; // 同视频弹窗关闭按钮尺寸
+    height: 2vw;
+    line-height: 2vw;
+    min-width: 56px; // 小屏兜底，防止贴图压缩变形
+    min-height: 24px;
+    flex-shrink: 0; // 防止被标题挤压
+    cursor: pointer;
+    display: flex;
+    padding-left: 0.1rem;
+    align-items: center;
+    justify-content: center;
+    background-image: url("../assets/img/exit.png");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    transition: all 0.2s ease;
 
-      &:hover {
-        color: #00e5ff;
-        text-shadow: 0 0 10px rgba(0, 229, 255, 0.9);
-        transform: scale(1.1);
-      }
+    // 与视频弹窗一致的发光提亮效果（hover 时更明显）
+    &:hover {
+      filter: drop-shadow(0 0 8px rgba(0, 198, 255, 0.9)) brightness(1.3);
+      transform: scale(1.02);
     }
   }
 
   /* ---------- 搜索栏（仅 chain-msg-popup 有） ---------- */
   .popup-search-bar {
     flex-shrink: 0;
-    padding: 8px 10px;
+    padding: 0.08rem 0.1rem;
     background: rgba(0, 30, 55, 0.55);
     border-bottom: 1px solid rgba(0, 198, 255, 0.35);
 
     .search-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 0.08rem;
 
       .search-input {
         flex: 1;
-        padding: 4px 8px;
+        height: 0.3rem; // 统一控件高度，视觉对齐
+        padding: 0 0.08rem;
         border: 1px solid rgba(0, 198, 255, 0.6);
         border-radius: 4px;
         background: rgba(0, 15, 30, 0.7);
         color: #fff;
-        font-size: 12px;
+        font-size: 0.15rem;
         transition: all 0.2s;
 
         &:focus {
@@ -2567,29 +2578,37 @@ main {
 
         &::placeholder {
           color: rgba(255, 255, 255, 0.45);
+          font-size: 0.14rem;
+        }
+
+        // datetime-local 的日历图标大小跟随字体
+        &::-webkit-calendar-picker-indicator {
+          filter: invert(1);
+          opacity: 0.7;
+          cursor: pointer;
         }
 
         &.time-input {
           flex: none;
-          width: 100px;
+          width: 1.4rem;
         }
 
         &.name-input {
-          width: 50px;
+          width: 0.9rem;
         }
       }
 
       /* 搜索按钮：与视频弹窗主题色呼应 */
       .alarm-search-btn {
         flex-shrink: 0;
-        height: 26px;
-        min-width: 40px;
-        padding: 0 10px !important;
+        height: 0.3rem;
+        min-width: 0.45rem;
+        padding: 0 0.1rem !important;
         margin: 0 !important;
         background-color: #00c6ff !important;
         border: 1px solid #00c6ff !important;
         color: #000 !important;
-        font-size: 12px !important;
+        font-size: 0.15rem !important;
         border-radius: 4px !important;
         display: flex;
         align-items: center;
@@ -2605,7 +2624,7 @@ main {
 
         :deep(.el-icon) {
           color: #000 !important;
-          font-size: 14px !important;
+          font-size: 0.16rem !important;
         }
       }
     }
@@ -2614,7 +2633,7 @@ main {
   /* ---------- 消息列表 ---------- */
   .popup-body {
     flex: 1;
-    padding: 16px;
+    padding: 8px;
     overflow-y: auto;
     max-height: calc(78vh - 50px);
 
@@ -2806,6 +2825,64 @@ main {
     }
   }
 
+  // 报警信息
+  .chain-msg-popup {
+    width: 20vw;
+    max-height: 60vh;
+    .popup-header {
+      padding: 12px 16px;
+
+      .popup-title {
+        font-size: 24px;
+        letter-spacing: 1px;
+      }
+
+      .popup-close-btn {
+        width: 2.3vw; // 同视频弹窗关闭按钮尺寸
+        height: 1.3vw;
+        font-size: 22px;
+        line-height: 1.3vw;
+        padding-left: 0.1rem;
+      }
+    }
+
+    .popup-search-bar {
+      padding: 0.1rem 0.14rem;
+
+      .search-row {
+        gap: 0.1rem;
+
+        .search-input {
+          height: 0.38rem;
+          font-size: 0.18rem;
+          border-radius: 5px;
+
+          &::placeholder {
+            font-size: 0.17rem;
+          }
+
+          &.time-input {
+            width: 2rem; // 时间输入框加宽，避免日期被截断
+          }
+
+          &.name-input {
+            width: 1.2rem;
+          }
+        }
+
+        .alarm-search-btn {
+          height: 0.38rem;
+          min-width: 0.55rem;
+          font-size: 0.18rem !important;
+
+          :deep(.el-icon) {
+            font-size: 0.2rem !important;
+          }
+        }
+      }
+    }
+  }
+
   .cruise-tip {
     top: 1.2vw;
     font-size: 0.3rem;
@@ -2874,7 +2951,7 @@ main {
     gap: 2vw; // 按钮之间的间距
   }
 
-// 方向按钮容器样式
+  // 方向按钮容器样式
   .direction-buttons-container {
     bottom: 1vw;
     right: 0.5vw;
@@ -2896,12 +2973,66 @@ main {
       // }
     }
   }
-  
+
   .chain-msg-popup {
     top: 5vw;
     // left: 1.5vw;
     width: 15vw;
     max-height: 60vh;
+
+    .popup-header {
+
+      // padding: 12px 16px;
+      .popup-close-btn {
+        width: 2vw; // 同视频弹窗关闭按钮尺寸
+        height: 1vw;
+        line-height: 1vw;
+        padding-left: 0.1rem;
+      }
+    }
+
+    .popup-search-bar {
+      padding: 0.06rem 0.08rem;
+
+      .search-row {
+        gap: 0.06rem;
+        flex-wrap: nowrap; // 强制一行，靠压缩宽度解决
+
+        .search-input {
+          height: 0.3rem;
+          font-size: 0.15rem; // 字号保持可读，不随弹窗缩小
+          border-radius: 4px;
+
+          &::placeholder {
+            font-size: 0.14rem;
+          }
+
+          &.time-input {
+            width: 1.5rem; // 比基础略窄但保留完整日期显示
+          }
+
+          &.name-input {
+            width: 0.8rem;
+          }
+        }
+
+        /* "至" 字号同步 */
+        span {
+          font-size: 0.15rem;
+        }
+
+        .alarm-search-btn {
+          height: 0.3rem;
+          min-width: 0.4rem;
+          padding: 0 0.08rem !important;
+          font-size: 0.15rem !important;
+
+          :deep(.el-icon) {
+            font-size: 0.16rem !important;
+          }
+        }
+      }
+    }
   }
 
   .cruise-tip {
@@ -3029,13 +3160,72 @@ main {
     }
   }
 
+  // 报警信息
   .chain-msg-popup {
     top: 5vw;
     // left: 1.5vw;
     width: 15vw;
     max-height: 60vh;
-  }
 
+    .popup-header {
+      // padding: 12px 16px;
+
+      .popup-title {
+        font-size: 24px;
+        letter-spacing: 1px;
+      }
+
+      .popup-close-btn {
+        width: 2vw; // 同视频弹窗关闭按钮尺寸
+        height: 1vw;
+        font-size: 22px;
+        line-height: 1vw;
+        padding-left: 0.1rem;
+      }
+    }
+
+    .popup-search-bar {
+      padding: 0.06rem 0.08rem;
+
+      .search-row {
+        gap: 0.06rem;
+        flex-wrap: nowrap;
+
+        .search-input {
+          height: 0.32rem;
+          font-size: 0.16rem;
+
+          &::placeholder {
+            font-size: 0.15rem;
+          }
+
+          &.time-input {
+            width: 1.55rem;
+          }
+
+          &.name-input {
+            width: 0.85rem;
+          }
+        }
+
+        span {
+          font-size: 0.16rem;
+        }
+
+        .alarm-search-btn {
+          height: 0.32rem;
+          min-width: 0.42rem;
+          padding: 0 0.08rem !important;
+          font-size: 0.16rem !important;
+
+          :deep(.el-icon) {
+            font-size: 0.17rem !important;
+          }
+        }
+      }
+    }
+  }
+  
   .cruise-tip {
     top: 0.6vw;
     font-size: 0.3rem;

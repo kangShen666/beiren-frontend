@@ -3429,7 +3429,7 @@ onMounted(() => {
   initCesium();
   // QuanJing();
   loadModelById(1);
-  // loadModelById(2);
+  loadModelById(2);
   loadModelById(3);
   ld();
 });
