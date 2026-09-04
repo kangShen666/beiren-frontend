@@ -1156,21 +1156,21 @@ const enableHotspotClick = () => {
           console.log("是否C馆:", isCgao);
 
           if (isCgao) {
-            try {
-              const payload = cgaoCameraList.map((code) => ({
-                cameraIndexCode: code,
-                presetIndex: 300,
-              }));
-              console.log("C馆复位请求:", payload);
-              await axios.post("/brBk/HKManage/batchPtz", payload, {
-                timeout: 30000,
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              });
-            } catch (error) {
-              console.error("C馆复位失败:", error);
-            }
+            // try {
+            //   const payload = cgaoCameraList.map((code) => ({
+            //     cameraIndexCode: code,
+            //     presetIndex: 300,
+            //   }));
+            //   console.log("C馆复位请求:", payload);
+            //   await axios.post("/brBk/HKManage/batchPtz", payload, {
+            //     timeout: 30000,
+            //     headers: {
+            //       "Content-Type": "application/json",
+            //     },
+            //   });
+            // } catch (error) {
+            //   console.error("C馆复位失败:", error);
+            // }
 
             const response = await axios({
               url: "/brBk/HKManage/selCGWsUrlByCode",
@@ -1180,11 +1180,10 @@ const enableHotspotClick = () => {
               },
               timeout: 10000,
             });
-            console.log("C馆接口返回----------------------：", response.data);
             // 直接赋值后端返回完整openUrl地址，无需额外拼接参数
             if (response.data.data) {
               hotspotData.wsUrl = response.data.data.url;
-              console.log("url返回----------------------：", hotspotData.wsUrl);
+              console.log("C馆url返回----------------------：", hotspotData.wsUrl);
             }
           } else {
             const response = await axios({
@@ -1198,6 +1197,7 @@ const enableHotspotClick = () => {
             });
             if (response.data.data) {
               hotspotData.wsUrl = response.data.data.url;
+               console.log("AB馆url返回----------------------：", hotspotData.wsUrl);
             }
           }
 

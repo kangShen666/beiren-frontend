@@ -56,13 +56,6 @@ export default defineConfig({
         rewrite: path => path.replace(/^\/api/, ""),
       },
 
-      // A馆 WebSocket 代理
-      "/a-guan-ws": {
-        target: "ws://172.160.120.2:559",
-        ws: true,
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/a-guan-ws/, ""),
-      },
       "/cghall-ws": {
         target: "ws://10.10.51.1:559",
         ws: true,

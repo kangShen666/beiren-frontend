@@ -392,6 +392,39 @@ const handleChainMsgAction = async (item: any, type: string) => {
   }
 };
 
+/**
+ * 根据当前浏览器访问地址，动态改写报警图片的访问地址
+ *
+ * 场景：
+ * 1. 内网环境：浏览器地址为 http://172.160.114.20/... 时，imageData 保持原样
+ *    http://172.160.114.20:8089/brBk/421_xxx.jpg
+ * 2. 外网环境：浏览器地址为 http://101.254.118.66:18081/... 时，改写为
+ *    http://101.254.118.66:18081/brBk/421_xxx.jpg
+ */
+const rewriteImageUrl = (url: string): string => {
+  if (!url) return url;
+
+  const { protocol, host } = window.location;cghall-ws
+
+  // 内网环境（10.245.118.11 访问）：保持原有数据不变
+  if (host.includes("172.160.114.20")) {
+    return url;
+  }
+
+  // 外网环境（101.254.118.66:18081 等访问）：将图片 host 替换为当前访问的 host
+  try {
+    const urlObj = new URL(url, window.location.origin);
+    // 相对路径（如 /brBk/xxx.jpg）直接拼当前 origin 即可
+    urlObj.protocol = protocol;
+    urlObj.host = host;
+    return urlObj.toString();
+  } catch {
+    // 兜底：正则替换协议+域名部分
+    return url.replace(/^https?:\/\/[^/]+/, `${protocol}//${host}`);
+  }
+};
+
+
 // 单独请求链消息接口（不修改原有fetchChainMessage）
 const fetchChainMsgForPopup = async () => {
   try {
@@ -1642,7 +1675,7 @@ const changXiao = function (e: MouseEvent): void {
                   </p>
                   <!-- <p><span class="label">图片事件</span>{{  }}</p> -->
                   <p>
-                    <span class="label">图片事件</span><img :src="item.imageData" alt="" width="100%" height="50%" />
+                    <span class="label">图片事件</span><img :src="rewriteImageUrl(item.imageData)" alt="" width="100%" height="50%" />
                   </p>
                 </div>
                 <div class="msg-actions">
