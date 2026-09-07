@@ -12,13 +12,13 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { ElMessage } from "element-plus";
 import {
-  nextTick,
-  onMounted,
-  onUnmounted,
-  reactive,
-  ref,
-  shallowRef,
-  useTemplateRef,
+    nextTick,
+    onMounted,
+    onUnmounted,
+    reactive,
+    ref,
+    shallowRef,
+    useTemplateRef,
 } from "vue";
 
 // 新增：标记是否为初始化加载全景
@@ -156,7 +156,7 @@ const searchAlarmParams = reactive({
 const handleAlarmSearch = async () => {
   const params = filterEmptyParams(searchAlarmParams);
   const response = await axios({
-    url: "brBk/api/alert/selList",
+    url: "/brBk/api/alert/selList",
     method: "GET",
     params,
     timeout: 10000,
@@ -334,7 +334,7 @@ const handleChainMsgAction = async (item: any, type: string) => {
       // 弹出对应视频流播放 code存在则弹窗
       if (cameraCode) {
         const response = await axios({
-          url: "brBk/HKManage/selWsUrlByCode",
+          url: "/brBk/HKManage/selWsUrlByCode",
           method: "POST",
           data: {
             cameraIndexCode: cameraCode,
@@ -373,7 +373,7 @@ const handleChainMsgAction = async (item: any, type: string) => {
       // 弹出对应视频流播放 code存在则弹窗
       if (playbackCode) {
         const response = await axios({
-          url: "brBk/HKManage/selPlayBackByCode",
+          url: "/brBk/HKManage/selPlayBackByCode",
           method: "POST",
           data: {
             cameraIndexCode: playbackCode,
@@ -404,7 +404,7 @@ const handleChainMsgAction = async (item: any, type: string) => {
 const rewriteImageUrl = (url: string): string => {
   if (!url) return url;
 
-  const { protocol, host } = window.location;cghall-ws
+  const { protocol, host } = window.location;
 
   // 内网环境（10.245.118.11 访问）：保持原有数据不变
   if (host.includes("172.160.114.20")) {
@@ -429,7 +429,7 @@ const rewriteImageUrl = (url: string): string => {
 const fetchChainMsgForPopup = async () => {
   try {
     const response = await axios({
-      url: "brBk/api/alert/selList",
+      url: "/brBk/api/alert/selList",
       method: "GET",
       timeout: 10000,
     });
@@ -990,58 +990,78 @@ const parseTimeFromUrl = (url: string) => {
   return { startTime, endTime };
 };
 
-// C馆服务器IP白名单（这些IP在开发环境中需要通过Vite代理转发）
-const CHALL_SERVER_IPS = ['10.10.51.1'];
-// Vite代理路径前缀
-const CHALL_PROXY_PREFIX = '/cghall-ws';
+
+/** 是否外网环境（内网页面 host 以 172.160. 开头） */
+const isExternalNetwork = () =>
+  !window.location.hostname.startsWith("172.160.");
+
+/** 从 playURL 中提取取流 token：/openUrl/<token> */
+const extractStreamToken = (url: string): string | null => {
+  const m = url.match(/\/openUrl\/([A-Za-z0-9]+)/);
+  return m ? m[1] : null;
+};
 
 /**
- * 将C馆的直连URL改写为通过Vite代理转发的URL
- * 解决浏览器与C馆视频服务器跨网段无法直连的问题
- * 
- * 转换规则：
- *   ws://10.10.51.1:559/openUrl/token -> ws://当前host:port/cghall-ws/openUrl/token
+ * WS 取流地址统一改写：
+ * - C馆(10.10.51.1)：内外网都改写为 当前入口 + /cghall-ws 前缀（nginx 直转，Host 已修正）
+ * - AB馆(172.160.120.x)：内网直连；外网换 host 为当前入口、path 保留，
+ *   h5player 会拿该 host:port 去连 /media，由 ws-router 按 token 转发
  */
-const rewriteCgaoUrl = (url: string): string => {
+const rewriteWsUrl = (url: string): string => {
   if (!url) return url;
 
-  // 检查是否是C馆的URL
-  const isCgaoUrl = CHALL_SERVER_IPS.some(ip => url.includes(ip));
-  if (!isCgaoUrl) return url;
+  const { hostname, port } = window.location;
+  const entry = `${hostname}:${port || "8081"}`;
 
-  // 获取当前页面的host和port（用于构造代理URL）
-  const currentUrl = new URL(window.location.href);
-  const host = currentUrl.hostname;
-  const port = currentUrl.port || '8081';
-
-  // 从原始URL中提取路径部分（/openUrl/xxx 或 /media?xxx）
-  // 原始URL格式：ws://10.10.51.1:559/openUrl/token
-  // 需要转换为：ws://当前host:port/cghall-ws/openUrl/token
-  let path = '';
   try {
-    const originalUrl = new URL(url);
-    path = originalUrl.pathname + originalUrl.search;
+    const u = new URL(url);
+
+    // —— C馆：内外网统一走 nginx 前缀代理 ——
+    if (url.includes("10.10.51.1")) {
+      const target = `ws://${entry}/cghall-ws${u.pathname}${u.search}`;
+      console.log("[WS改写] C馆:", url, "->", target);
+      return target;
+    }
+
+    // —— AB馆：外网才改写（内网可直达，保持原样） ——
+    if (url.includes("172.160.120.") && isExternalNetwork()) {
+      const target = `ws://${entry}${u.pathname}${u.search}`;
+      console.log("[WS改写] AB馆:", url, "->", target);
+      return target;
+    }
   } catch {
-    // 如果URL解析失败，尝试简单正则提取路径
-    const match = url.match(/\/(openUrl|media)[^\s]*/);
-    path = match ? match[0] : url.replace(/^wss?:\/\/[^\/]+/, '');
+    /* ignore */
   }
+  console.log("[WS改写] 保持原样:", url);
+  return url;
+};
 
-  const rewrittenUrl = `ws://${host}:${port}${CHALL_PROXY_PREFIX}${path}`;
-  console.log(`[C馆代理] URL改写: ${url} -> ${rewrittenUrl}`);
 
-  return rewrittenUrl;
+/** 外网播放 AB 馆前，向 ws-router 注册 token → 真实流服务器 的路由 */
+const registerStreamRoute = async (originWsUrl: string) => {
+  const token = extractStreamToken(originWsUrl);
+  if (!token) return;
+  const u = new URL(originWsUrl);
+  await axios.post(
+    "/ws-router/register",
+    { token, upstream: `${u.hostname}:${u.port || "559"}` },
+    { timeout: 5000 },
+  );
+  console.log(`[ws-router] 已注册路由: ${token} -> ${u.hostname}:${u.port}`);
 };
 
 
 // 播放热点连接的相机
 const playRTCVideoStream = async (params: HotspotEntity) => {
-  // console.log("1111111---------- 播放摄像头:", params.name, "URL:", params.wsUrl);
   videoName.value = params.name;
   isShow.isShowVideo = true;
 
-  // 关键：C馆URL需要通过代理转发，否则浏览器无法直连
-  const playUrl = rewriteCgaoUrl(params.wsUrl);
+  const playUrl = rewriteWsUrl(params.wsUrl);
+  // ★ C馆(内外网都走 ws-router)和 AB馆(外网走 ws-router)都需要提前注册路由
+  if (extractStreamToken(params.wsUrl)) {
+    try { await registerStreamRoute(params.wsUrl); }
+    catch (e) { console.error("[ws-router] 注册取流路由失败:", e); }
+  }
 
   // 先停止当前播放（关键：避免旧session未释放导致新连接失败）
   if (player.value) {

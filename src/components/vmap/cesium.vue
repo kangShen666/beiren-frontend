@@ -1197,7 +1197,7 @@ const enableHotspotClick = () => {
             });
             if (response.data.data) {
               hotspotData.wsUrl = response.data.data.url;
-               console.log("AB馆url返回----------------------：", hotspotData.wsUrl);
+              console.log("ab馆url返回----------------------：", hotspotData.wsUrl);
             }
           }
 
