@@ -65,22 +65,22 @@ const handleCruiseToggle = () => {
 // 新增：智能展示数据
 const showSmartDisplay = ref(false)
 const smartDisplayItems = ref([
-  { label: 'A馆北侧', value: ['q2'], image: '/src/assets/img/A馆北侧.png' },
-  { label: 'A馆南侧', value: ['q1'], image: '/src/assets/img/A馆南侧.png' },
-  { label: 'A馆序厅一楼', value: ['q30'], image: '/src/assets/img/序厅一楼.png' },
-  { label: 'A馆序厅二楼', value: ['q31'], image: '/src/assets/img/序厅二楼.png' },
-  { label: 'B馆北侧', value: ['q4', 'q6'], image: '/src/assets/img/B馆北侧.png' },
-  { label: 'B馆中间', value: ['q3', 'q9'], image: '/src/assets/img/B馆中间.png' },
-  { label: 'B馆南侧', value: ['q7', 'q5'], image: '/src/assets/img/B馆南侧.png' },
-  { label: 'C馆南侧', value: ['q41'], image: '/src/assets/img/C馆南侧.png' },
-  { label: 'C馆中间', value: ['q42'], image: '/src/assets/img/C馆中间.png' },
-  { label: 'C馆北侧', value: ['q43'], image: '/src/assets/img/C馆北侧.png' },
-  { label: '北会', value: ['q44'], image: '/src/assets/img/北会.png' },
-  { label: '生态连廊', value: ['q33'], image: '/src/assets/img/ST.png' },
-  { label: '报告厅', value: ['q38'], image: '/src/assets/img/报告厅.png' },
-  { label: '登录厅', value: ['q39'], image: '/src/assets/img/登录厅.png' },
-  { label: '西广场', value: ['q40'], image: '/src/assets/img/西广场.png' },
-  { label: 'AB馆连廊', value: ['q32'], image: '/src/assets/img/AB.png' },
+  { label: 'A馆北侧', value: ['q2'], image: '/img/A馆北侧.png' },
+  { label: 'A馆南侧', value: ['q1'], image: '/img/A馆南侧.png' },
+  { label: 'A馆序厅一楼', value: ['q30'], image: '/img/序厅一楼.png' },
+  { label: 'A馆序厅二楼', value: ['q31'], image: '/img/序厅二楼.png' },
+  { label: 'B馆北侧', value: ['q4', 'q6'], image: '/img/B馆北侧.png' },
+  { label: 'B馆中间', value: ['q3', 'q9'], image: '/img/B馆中间.png' },
+  { label: 'B馆南侧', value: ['q7', 'q5'], image: '/img/B馆南侧.png' },
+  { label: 'C馆南侧', value: ['q41'], image: '/img/C馆南侧.png' },
+  { label: 'C馆中间', value: ['q42'], image: '/img/C馆中间.png' },
+  { label: 'C馆北侧', value: ['q43'], image: '/img/C馆北侧.png' },
+  { label: '北会', value: ['q44'], image: '/img/北会.png' },
+  { label: '生态连廊', value: ['q33'], image: '/img/ST.png' },
+  { label: '报告厅', value: ['q38'], image: '/img/报告厅.png' },
+  { label: '登录厅', value: ['q39'], image: '/img/登录厅.png' },
+  { label: '西广场', value: ['q40'], image: '/img/西广场.png' },
+  { label: 'AB馆连廊', value: ['q32'], image: '/img/AB.png' },
 ])
 
 // 新增：智能展示切换
@@ -152,6 +152,17 @@ const searchAlarmParams = reactive({
   beginTime: "",
   endTime: "",
 })
+
+// 每批渲染条数 & 滚动加载步长
+const PAGE_SIZE = 10
+// 当前已渲染条数（只渲染前 visibleCount 条，DOM 数量可控）
+const visibleAlarmCount = ref(PAGE_SIZE)
+
+// 模板中实际渲染的列表（切片）
+const visibleChainMsgList = computed(() =>
+  chainMsgList.value.slice(0, visibleAlarmCount.value),
+)
+
 // 搜索按钮
 const handleAlarmSearch = async () => {
   const params = filterEmptyParams(searchAlarmParams)
@@ -161,13 +172,21 @@ const handleAlarmSearch = async () => {
     params,
     timeout: 10000,
   })
-  // console.log(searchAlarmParams.beginTime);
-  // console.log(searchAlarmParams.endTime);
-
-  // if (response.data) {
-  //   console.log(response.data);
-  // }
   chainMsgList.value = response.data
+  visibleAlarmCount.value = PAGE_SIZE // ✅ 重置
+}
+
+// 滚动到底部自动追加下一批
+const onAlarmListScroll = (e: Event) => {
+  const el = e.target as HTMLElement
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
+    if (visibleAlarmCount.value < chainMsgList.value.length) {
+      visibleAlarmCount.value = Math.min(
+        visibleAlarmCount.value + PAGE_SIZE,
+        chainMsgList.value.length,
+      )
+    }
+  }
 }
 
 const player = shallowRef(null) // 使用 shallowRef 优化性能
@@ -302,7 +321,7 @@ const convertAndAddOneHour = (inputStr: any) => {
 
 const handleChainMsgAction = async (item: any, type: string) => {
   switch (type) {
-    case "playback":{
+    case "playback": {
       // 飞到相机经纬度位置
       item.name = item.cameraName
       const cameraCode = cameraMap[item.cameraName]
@@ -1783,34 +1802,35 @@ const changXiao = function (e: MouseEvent): void {
               </div>
             </div>
 
-            <div class="popup-body">
-              <div v-for="(item, index) in chainMsgList" :key="item.id || item.msgId || item.index" class="msg-item">
+            <div class="popup-body" @scroll="onAlarmListScroll">
+              <!-- ✅ v-for 改为渲染切片后的 visibleChainMsgList -->
+              <div v-for="(item, index) in visibleChainMsgList" :key="item.id || item.msgId || item.index"
+                   class="msg-item"
+              >
                 <div class="msg-content">
                   <p><span class="label">消息ID：</span>{{ index + 1 }}</p>
+                  <p><span class="label">消息内容：</span>{{ item.prewarnContent || "无内容" }}</p>
                   <p>
-                    <span class="label">消息内容：</span>{{ item.prewarnContent || "无内容" }}
+                    <span class="label">创建时间：</span>
+                    {{ item.happenTime ? dayjs(item.happenTime).format("YYYY-MM-DD HH:mm:ss") : "未知时间" }}
                   </p>
+                  <p><span class="label">相机名称</span>{{ item.cameraName || "未知" }}</p>
+                  <!-- ✅ 懒加载 + 异步解码：视口外的图不加载不解码 -->
                   <p>
-                    <span class="label">创建时间：</span>{{
-                      item.happenTime
-                        ? dayjs(item.happenTime).format("YYYY-MM-DD HH: mm: ss")
-                        : "未知时间"
-                    }}
-                  </p>
-                  <p>
-                    <span class="label">相机名称</span>{{ item.cameraName || "未知" }}
-                  </p>
-                  <!-- <p><span class="label">图片事件</span>{{  }}</p> -->
-                  <p>
-                    <span class="label">图片事件</span><img :src="rewriteImageUrl(item.imageData)" alt="" width="100%" height="50%" />
+                    <span class="label">图片事件</span>
+                    <img :src="rewriteImageUrl(item.imageData)" alt="" width="100%" height="50%" loading="lazy"
+                         decoding="async"
+                    />
                   </p>
                 </div>
                 <div class="msg-actions">
-                  <button class="action-btn confirm" @click="handleChainMsgAction(item, 'confirm')">
-                    确认
-                  </button>
-                  <!-- <button class="action-btn reject" @click="handleChainMsgAction(item, 'reject')">关闭</button> -->
+                  <button class="action-btn confirm" @click="handleChainMsgAction(item, 'confirm')">确认</button>
                 </div>
+              </div>
+
+              <!-- 加载提示 -->
+              <div v-if="visibleAlarmCount < chainMsgList.length" class="load-more-tip">
+                上滑加载更多（{{ visibleAlarmCount }}/{{ chainMsgList.length }}）
               </div>
             </div>
           </div>
@@ -2645,6 +2665,13 @@ main {
   /* 左右弹窗仅定位不同 */
   &.chain-msg-popup {
     left: 1.5vw;
+
+    .load-more-tip {
+      text-align: center;
+      padding: 8px 0 14px;
+      color: rgba(0, 229, 255, 0.7);
+      font-size: 0.14rem;
+    }
   }
 
   &.chain-msg-popup1 {
@@ -2978,6 +3005,7 @@ main {
   .chain-msg-popup {
     width: 20vw;
     max-height: 60vh;
+
     .popup-header {
       padding: 12px 16px;
 

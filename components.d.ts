@@ -8,17 +8,14 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    '副本': typeof import('./src/components/vmap/index - 副本.vue')['default']
     Cesium: typeof import('./src/components/vmap/cesium.vue')['default']
     DataPanel: typeof import('./src/components/data-panel/index.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     Header: typeof import('./src/components/header/header.vue')['default']
     'Hik播放器': typeof import('./src/components/vmap/hik播放器.vue')['default']
-    Index0814: typeof import('./src/components/vmap/index0814.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TechButton: typeof import('./src/components/Button/TechButton.vue')['default']
     TreeMenu: typeof import('./src/components/TreeMenu/index.vue')['default']
-    Vmap: typeof import('./src/components/vmap/index.vue')['default']
   }
 }
