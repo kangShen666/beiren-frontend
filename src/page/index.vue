@@ -980,6 +980,33 @@ const toggleHallC = () => {
   vMapRef.value?.flyToView("Cguannei")
 }
 
+// ========== 新增：外部项目（智慧防汛）弹窗 ==========
+const showExternalProject = ref(false)
+
+const toggleExternalProject = () => {
+  showExternalProject.value = !showExternalProject.value
+  if (!showExternalProject.value) {
+    // 关闭时清空 src，彻底销毁 iframe 内页面（停止其内部视频流/轮询）
+    externalProjectUrl.value = ""
+  }
+}
+
+// 用 ref 保存地址，打开时再赋值，确保每次打开都是全新加载
+const externalProjectUrl = ref("")
+
+const openExternalProject = () => {
+  // 加时间戳防止缓存（可选，如果该项目需要登录态可去掉）
+  externalProjectUrl.value = `http://123.56.76.107:9527/?t=${Date.now()}`
+  showExternalProject.value = true
+}
+
+// ESC 键关闭弹窗（可选体验优化）
+const onExternalProjectKeydown = (e: KeyboardEvent) => {
+  if (e.key === "Escape" && showExternalProject.value) {
+    toggleExternalProject()
+  }
+}
+
 const resetHallC = async () => {
   try {
     // 使用axios读取json，自动携带token、baseURL
@@ -1612,6 +1639,7 @@ onMounted(() => {
     xutingerlou()
     Cgaodidianliandong()
   }, 2000)
+  window.addEventListener("keydown", onExternalProjectKeydown)
 })
 
 const handleCruisePointChange = (pointName) => {
@@ -1629,6 +1657,7 @@ onUnmounted(() => {
   // window.removeEventListener("resize", handleResize);
   // 增加安全清理（如果用户拖拽途中切走页面）
   stopDrag()
+  window.removeEventListener("keydown", onExternalProjectKeydown)
 })
 
 // 按下按钮效果
@@ -1664,7 +1693,6 @@ const changXiao = function (e: MouseEvent): void {
         <div class="child-menu" @click="shijian">报警信息</div>
         <div class="child-menu" @click="changeMark">路线图</div>
         <div class="child-menu" @click="toggleDynamicAreas">展位图</div>
-        <!-- <div class="child-menu" @click="resetHallC">C馆回位</div> -->
         <div class="child-menu" @click="toggleDataPanel">人流监控</div>
         <div class="child-menu" :class="{ 'menu-active': showSmartDisplay }" @click="toggleSmartDisplay">
           {{ showSmartDisplay ? "关闭巡航" : "漫游巡航" }}
@@ -1716,6 +1744,12 @@ const changXiao = function (e: MouseEvent): void {
       <!-- 方向按钮容器 -->
       <div class="direction-buttons-container">
         <ul class="direction-buttons-list">
+          <!-- ✅ 新增：智慧防汛系统按钮（位于 C馆复位 上方） -->
+          <li class="direction-button" data-tooltip="智慧防汛" :class="{ active: currentNum === 6 }"
+              @click="openExternalProject" @mousedown="changDa" @mouseup="changXiao"
+          >
+            <div class="direction-button-bg bg-flood-control"></div>
+          </li>
           <li class="direction-button" data-tooltip="C馆复位" :class="{ active: currentNum === 5 }"
               @click="handleDirectionClick(5)" @mousedown="changDa" @mouseup="changXiao"
           >
@@ -1874,6 +1908,24 @@ const changXiao = function (e: MouseEvent): void {
           <div v-if="currentCruiseName" class="cruise-tip">
             {{ currentCruise }}
           </div>
+
+          <!-- ✅ 新增：外部项目（智慧防汛）弹窗 -->
+          <div v-if="showExternalProject" class="external-project-popup">
+            <!-- 头部：标题 + 关闭按钮（复用 exit.png 风格） -->
+            <!-- <div class="popup-header"> -->
+            <!-- <h3 class="popup-title">智慧防汛系统</h3> -->
+            <div class="popup-close-btn" @click="toggleExternalProject">关闭</div>
+            <!-- </div> -->
+            <!-- 内容区：iframe 加载外部项目 -->
+            <div class="external-project-body">
+              <iframe v-if="externalProjectUrl" :src="externalProjectUrl" class="external-project-iframe"
+                      frameborder="0" allow="camera; microphone; autoplay; fullscreen" allowfullscreen
+              ></iframe>
+              <div v-else class="iframe-loading">正在加载...</div>
+            </div>
+          </div>
+          <!-- 遮罩层（点击也可关闭） -->
+          <div v-if="showExternalProject" class="external-project-mask" @click="toggleExternalProject"></div>
         </div>
       </div>
     </main>
@@ -2125,6 +2177,10 @@ const changXiao = function (e: MouseEvent): void {
     top: 0;
     left: 0;
     z-index: 1;
+  }
+
+  .bg-flood-control {
+    background-image: url('../assets/img/智慧防汛.png');
   }
 
   .bg-reset {
@@ -2406,6 +2462,101 @@ main {
   width: 100%;
   height: 100%;
   position: relative;
+
+  /* ==========================================================
+   新增：外部项目（智慧防汛）弹窗
+   ========================================================== */
+  .external-project-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 10, 20, 0.55);
+    z-index: 99998;
+  }
+
+  .external-project-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 75vw;
+    height: 80vh;
+    z-index: 99999;
+    padding: 10px;
+    background-image: url('../assets/img/video.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    filter: drop-shadow(0 0 10px rgba(0, 198, 255, 0.8)) brightness(1.1);
+    border-radius: 0.4vw;
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+
+    // .popup-header {
+    //   flex-shrink: 0;
+    //   display: flex;
+    //   justify-content: space-between;
+    //   align-items: center;
+    //   padding: 12px 16px;
+    //   background: linear-gradient(90deg, rgba(0, 60, 90, 0.75), rgba(0, 30, 50, 0.45));
+    //   border-bottom: 1px solid rgba(0, 198, 255, 0.45);
+
+    //   .popup-title {
+    //     color: #00e5ff;
+    //     font-size: 16px;
+    //     font-weight: 600;
+    //     margin: 0;
+    //     text-shadow: 0 0 10px rgba(0, 198, 255, 0.8);
+    //     letter-spacing: 1px;
+    //   }
+    // }
+
+    // 复用现有 exit.png 关闭按钮风格
+    .popup-close-btn {
+      position: absolute;
+      top: 2%;
+      right: 2%;
+      width: 4.5vw;
+      height: 2vw;
+      min-width: 56px;
+      min-height: 24px;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex;
+      padding-left: 0.1rem;
+      align-items: center;
+      justify-content: center;
+      background-image: url('../assets/img/exit.png');
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      transition: all 0.2s ease;
+
+      &:hover {
+        filter: drop-shadow(0 0 8px rgba(0, 198, 255, 0.9)) brightness(1.3);
+        transform: scale(1.02);
+      }
+    }
+
+    .external-project-body {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .external-project-iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: #000;
+      }
+
+      .iframe-loading {
+        color: #00c6ff;
+        font-size: 0.18rem;
+        text-shadow: 0 0 10px rgba(0, 198, 255, 0.8);
+      }
+    }
+  }
 }
 
 // 地图图表样式
@@ -2950,6 +3101,20 @@ main {
     top: 6vw;
   }
 
+  .map .external-project-popup {
+    width: 60vw;
+    height: 75vh;
+
+    .popup-close-btn {
+      top: 1.5%;
+      right: 1%;
+      font-size: 0.3rem;
+      padding-left: 0.2rem;
+      width: 3.2vw;
+      height: 1.5vw;
+    }
+  }
+
   // 底部巡航菜单
   .smart-display-item {
     width: 8vw; // 固定宽度
@@ -3077,6 +3242,21 @@ main {
   // 菜单高度
   .menu-container {
     top: 3vw;
+  }
+
+  .map .external-project-popup {
+    width: 60vw;
+    height: 75vh;
+
+    .popup-close-btn {
+      top: 1.5%;
+      right: 1%;
+      font-size: 0.3rem;
+      padding-left: 0.2rem;
+      width: 3.2vw;
+      height: 1.5vw;
+      line-height: 1.5vw;
+    }
   }
 
   // 底部巡航菜单
@@ -3257,6 +3437,21 @@ main {
 
     .child-menu {
       font-size: 0.4rem;
+    }
+  }
+
+  .map .external-project-popup {
+    width: 60vw;
+    height: 75vh;
+
+    .popup-close-btn {
+      top: 1.5%;
+      right: 1%;
+      font-size: 0.3rem;
+      padding-left: 0.2rem;
+      width: 3.2vw;
+      height: 1.5vw;
+      line-height: 1.5vw;
     }
   }
 
