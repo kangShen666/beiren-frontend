@@ -5,10 +5,8 @@ import * as Cesium from "cesium"
 import { defineEmits, onMounted, onUnmounted, ref } from "vue"
 // 引入底图
 import videoFrameUrl from "@/assets/img/video.png"
-import ModelCol from "@/assets/js/modelColCar.js"
-import ModelColCarbaogao from "@/assets/js/ModelColCarbaogao.js"
-import ModelColCarxuting from "@/assets/js/ModelColCarxuting.js"
-import ModelColQiao from "@/assets/js/ModelColQiao.js"
+// ===== 新增 =====
+import createModelCol from "@/assets/js/modelColUnified.js"
 import { useViewportStore } from '@/stores/module/viewportStore'
 import { useCameraFly } from '@/utils/cesiumFly' // 引入飞行
 import { CruiseController, REGION_META, SCENE_FLY_ONLY_CONFIG, SCENE_MODEL_TO_CRUISE_ID } from '@/utils/cruiseFly' // 巡航
@@ -34,15 +32,52 @@ const wsManager = new WsManager(() => viewer)
 
 // 28 外围 、 27 生态 、 24 序厅 、 26 报告厅连廊
 /** 场景动态目标 WebSocket 通道配置（url + 模型工厂，一处集中维护） */
+// const WS_CHANNEL_CONFIG: Record<string, WsChannelConfig> = {
+//   // 外围+C馆外+北会r6
+//   radar: { url: "ws://172.160.114.20:12328", createModel: (v) => new ModelCol(v) },
+//   // 生态连廊、会客厅 r9、西广场 r13  q33
+//   qiao: { url: "ws://172.160.114.20:12327", createModel: (v) => new ModelColQiao(v) },
+//   // 报告厅 r10、AB连廊  q34
+//   baogao: { url: "ws://172.160.114.20:12326", createModel: (v) => new ModelColCarbaogao(v) },
+//   // 序厅一楼、二楼  q30 q31
+//   xuting: { url: "ws://172.160.114.20:12324", createModel: (v) => new ModelColCarxuting(v) },
+// };
+
+/** 场景动态目标 WebSocket 通道配置 */
 const WS_CHANNEL_CONFIG: Record<string, WsChannelConfig> = {
-  // 外围+C馆外+北会r6
-  radar: { url: "ws://172.160.114.20:12328", createModel: v => new ModelCol(v) },
-  // 生态连廊、会客厅 r9、西广场 r13  q33
-  qiao: { url: "ws://172.160.114.20:12327", createModel: v => new ModelColQiao(v) },
-  // 报告厅 r10、AB连廊  q34
-  baogao: { url: "ws://172.160.114.20:12326", createModel: v => new ModelColCarbaogao(v) },
-  // 序厅一楼、二楼  q30 q31
-  xuting: { url: "ws://172.160.114.20:12324", createModel: v => new ModelColCarxuting(v) },
+  // 外围+C馆外+北会r6：帧率高（1s 3~4 帧全量）、含 float32 量化坐标（814/903 等）
+  radar: {
+    url: "ws://172.160.114.20:12328",
+    throttleMs: 300,
+    createModel: (v, key) =>
+      createModelCol(v, {
+        channelKey: key,
+        moveThreshold: 1.5,
+        maxJumpM: 40, // 相机间切换距离若更大（如 >80m），按实测调大
+        maxSpeedMps: 15,
+        carForwardOffsetDeg: 90, // ★ 按文末附录方法实测后填写
+        personForwardOffsetDeg: 90, // ★ 按文末附录方法实测后填写
+      }),
+  },
+  qiao: {
+    url: "ws://172.160.114.20:12327",
+    throttleMs: 400,
+    createModel: (v, key) => createModelCol(v, { channelKey: key }),
+  },
+  baogao: {
+    url: "ws://172.160.114.20:12326",
+    throttleMs: 400,
+    createModel: (v, key) => createModelCol(v, { channelKey: key }),
+  },
+  xuting: {
+    url: "ws://172.160.114.20:12324",
+    throttleMs: 400,
+    createModel: (v, key) =>
+      createModelCol(v, {
+        channelKey: key,
+        positionHeight: d => (d.scene === "序厅二楼" ? 5.85 : 1.65),
+      }),
+  },
 }
 
 // 四个业务入口退化为「一行配置调用」，对外 API 保持不变（父组件无需改动）

@@ -901,7 +901,6 @@ const togglePanorama = () => {
     // vMapRef.value?.loadModelById(3);
     // 缓慢降落
     vMapRef.value?.loadModelWithAnimation(3, { dropHeight: 65, duration: 2500 })
-    vMapRef.value?.closeAllWebSockets()
     buttonStatus.value.panorama = false
     SPkzq.value = false
     SPfx.value = ""
@@ -939,11 +938,6 @@ const togglePanorama = () => {
       "q43",
     ])
     buttonStatus.value.panorama = true
-    vMapRef.value?.closeAllWebSockets()
-    vMapRef.value?.getRadarDatarc()
-    vMapRef.value?.getshengtailianlang()
-    vMapRef.value?.getbaogaoting()
-    vMapRef.value?.getxuting()
     // 缓慢升高移除
     // 判断是否是初始化加载
     if (isInitialLoad.value) {
@@ -957,6 +951,21 @@ const togglePanorama = () => {
       vMapRef.value?.removeModelWithAnimation(3, { raiseHeight: 65, duration: 2500 })
     }
     buttonStatus.value.outer = false
+  }
+}
+
+// ===== ✅ 新增：重构（动态目标 WebSocket）独立开关 =====
+const reconActive = ref(false)
+const toggleReconstruct = () => {
+  reconActive.value = !reconActive.value
+  if (reconActive.value) {
+    vMapRef.value?.getRadarDatarc()
+    vMapRef.value?.getshengtailianlang()
+    vMapRef.value?.getbaogaoting()
+    vMapRef.value?.getxuting()
+  }
+  else {
+    vMapRef.value?.closeAllWebSockets()
   }
 }
 
@@ -1632,7 +1641,7 @@ onMounted(() => {
 
   setTimeout(() => {
     togglePanorama()
-    // buttonStatus.value.panorama = true;
+    toggleReconstruct()
     execMethodByUrl()
     addCesiumLabelss()
     outaddCesiumLabelss()
@@ -1689,9 +1698,9 @@ const changXiao = function (e: MouseEvent): void {
       <!-- 顶部导航栏 -->
       <div class="menu-container">
         <div class="child-menu" @click="togglePanorama">全景</div>
+        <div class="child-menu" @click="toggleReconstruct">三维重构</div>
         <div class="child-menu" @click="addCesiumLabel">实时监控</div>
         <div class="child-menu" @click="shijian">报警信息</div>
-        <div class="child-menu" @click="changeMark">路线图</div>
         <div class="child-menu" @click="toggleDynamicAreas">展位图</div>
         <div class="child-menu" @click="toggleDataPanel">人流监控</div>
         <div class="child-menu" :class="{ 'menu-active': showSmartDisplay }" @click="toggleSmartDisplay">
@@ -1744,7 +1753,11 @@ const changXiao = function (e: MouseEvent): void {
       <!-- 方向按钮容器 -->
       <div class="direction-buttons-container">
         <ul class="direction-buttons-list">
-          <!-- ✅ 新增：智慧防汛系统按钮（位于 C馆复位 上方） -->
+          <li class="direction-button" data-tooltip="路线图" :class="{ active: mtag }" @click="changeMark"
+              @mousedown="changDa" @mouseup="changXiao"
+          >
+            <div class="direction-button-bg bg-route"></div>
+          </li>
           <li class="direction-button" data-tooltip="智慧防汛" :class="{ active: currentNum === 6 }"
               @click="openExternalProject" @mousedown="changDa" @mouseup="changXiao"
           >
@@ -2179,6 +2192,10 @@ const changXiao = function (e: MouseEvent): void {
     z-index: 1;
   }
 
+  .bg-route {
+    background-image: url('../assets/img/智慧防汛.png');
+  }
+
   .bg-flood-control {
     background-image: url('../assets/img/智慧防汛.png');
   }
@@ -2475,11 +2492,11 @@ main {
 
   .external-project-popup {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 75vw;
-    height: 80vh;
+    top: 0;
+    left: 0;
+    // transform: translate(-50%, -50%);
+    width: 100vw;
+    height: 100vh;
     z-index: 99999;
     padding: 10px;
     background-image: url('../assets/img/video.png');

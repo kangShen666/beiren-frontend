@@ -26,8 +26,8 @@ let flowChartTimer: ReturnType<typeof setInterval> | null = null
 const BASE_API_URL = '/api'
 
 // 接口鉴权 key
-const SP_KEY =
-  'e27c3780e7069bda7082a23a489d77587ce309583ed99253f66e1d9833ed1a1d0b5ce86dc6714e9974cf258589139d7b1855e8c9fa2f2c1175ee123a95a23e9b0c23584b8b61f46a98ca0e38d5e58c985832712d6fb1cb56d247ed60d262da1d538a'
+const SP_KEY
+  = 'e27c3780e7069bda7082a23a489d77587ce309583ed99253f66e1d9833ed1a1d0b5ce86dc6714e9974cf258589139d7b1855e8c9fa2f2c1175ee123a95a23e9b0c23584b8b61f46a98ca0e38d5e58c985832712d6fb1cb56d247ed60d262da1d538a'
 
 // 公共请求头
 const SP_HEADERS = {
@@ -37,7 +37,7 @@ const SP_HEADERS = {
 // 计算图表字号：以 1920 宽为基准缩放，超宽屏下放大
 const chartFontSize = Math.min(
   Math.max(10, Math.round(window.innerWidth / 1920 * 10)),
-  22
+  22,
 )
 
 interface RealDataItem {
@@ -62,13 +62,14 @@ interface ApiResponse {
 const getRealTimeData = async (): Promise<ApiResponse['data'] | null> => {
   try {
     const response = await axios.get<ApiResponse>('/api/getRealTimeData', {
-      headers: SP_HEADERS
+      headers: SP_HEADERS,
     })
     if (response.data.code === 0 && response.data.data) {
       return response.data.data
     }
     return null
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取实时数据失败:', error)
     return null
   }
@@ -81,13 +82,14 @@ const getHourlyData = async (date?: string) => {
     const params = date ? { date } : {}
     const response = await axios.get(url, {
       params,
-      headers: SP_HEADERS, // 新增鉴权头 
+      headers: SP_HEADERS, // 新增鉴权头
     })
     if (response.data.code === 0 && response.data.data) {
       return response.data.data
     }
     return null
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取小时数据失败:', error)
     return null
   }
@@ -104,7 +106,8 @@ const getWeeklyData = async () => {
       return response.data.data
     }
     return null
-  } catch (error) {
+  }
+  catch (error) {
     console.error('获取近7天数据失败:', error)
     return null
   }
@@ -131,7 +134,7 @@ const updateFlowChart = async () => {
   // 聚合计算每个小时的总进入人数
   const hours = hourlyData.map((item: any) => `${item.hour}:00`)
   const totalEnters = hourlyData.map((item: any) =>
-    item.groups.reduce((sum: number, group: any) => sum + group.enter, 0)
+    item.groups.reduce((sum: number, group: any) => sum + group.enter, 0),
   )
 
   const option: echarts.EChartsOption = {
@@ -206,7 +209,7 @@ const updateBarChart = async () => {
   // 聚合计算每天的总进入人数，提取日期(MM-DD)
   const dates = weeklyData.map((item: any) => item.date.substring(5))
   const totalEnters = weeklyData.map((item: any) =>
-    item.groups.reduce((sum: number, group: any) => sum + group.enter, 0)
+    item.groups.reduce((sum: number, group: any) => sum + group.enter, 0),
   )
 
   const option: echarts.EChartsOption = {
@@ -264,6 +267,7 @@ const updateRankChart = async () => {
     return
   }
   const data = await getRealTimeData()
+  console.log(data)
   if (!data || !data.realdata) {
     return
   }
@@ -414,7 +418,8 @@ watch(showFlowChart, (val) => {
     nextTick(() => {
       initChart()
     })
-  } else {
+  }
+  else {
     chartInstance?.dispose()
     chartInstance = null
   }
@@ -425,7 +430,8 @@ watch(showBarChart, (val) => {
     nextTick(() => {
       initBarChart()
     })
-  } else {
+  }
+  else {
     barChartInstance?.dispose()
     barChartInstance = null
   }
@@ -436,7 +442,8 @@ watch(showRankChart, (val) => {
     nextTick(() => {
       initRankChart()
     })
-  } else {
+  }
+  else {
     rankChartInstance?.dispose()
     rankChartInstance = null
   }
@@ -1373,7 +1380,6 @@ onUnmounted(() => {
   }
 
   .toggle-switch {
-
     // width: 1vw;
     // height: 1vw;
     &::after {
