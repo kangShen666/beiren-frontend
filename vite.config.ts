@@ -1,6 +1,6 @@
+import { fileURLToPath, URL } from "node:url"
 import vue from "@vitejs/plugin-vue"
 import vueJsx from "@vitejs/plugin-vue-jsx"
-import { fileURLToPath, URL } from "node:url"
 import AutoImport from "unplugin-auto-import/vite"
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers"
 import Components from "unplugin-vue-components/vite"
@@ -34,7 +34,7 @@ export default defineConfig({
   },
   /* 项目启动 */
   server: {
-    port: 8081,
+    port: 8082,
     host: "0.0.0.0",
     open: true,
     proxy: {
@@ -60,7 +60,7 @@ export default defineConfig({
         target: "ws://10.10.51.1:559",
         ws: true,
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/cghall-ws/, ""),
+        rewrite: path => path.replace(/^\/cghall-ws/, ""),
       },
       // 注意：/media 代理仅影响通过 Vite 转发的请求（C馆）
       // 非C馆请求直接浏览器直连 ws://172.160.x.x，不经过Vite，不受影响

@@ -954,7 +954,7 @@ const togglePanorama = () => {
   }
 }
 
-// ===== ✅ 新增：重构（动态目标 WebSocket）独立开关 =====
+// ===== 重构（动态目标 WebSocket）独立开关 =====
 const reconActive = ref(false)
 const toggleReconstruct = () => {
   reconActive.value = !reconActive.value
@@ -967,6 +967,12 @@ const toggleReconstruct = () => {
   else {
     vMapRef.value?.closeAllWebSockets()
   }
+}
+
+// ===== 人数标签开关 =====
+const flowLabelsActive = ref(false)
+const toggleFlowLabels = () => {
+  flowLabelsActive.value = !!vMapRef.value?.toggleFlowLabels()
 }
 
 // 首页按钮
@@ -1697,7 +1703,7 @@ const changXiao = function (e: MouseEvent): void {
 
       <!-- 顶部导航栏 -->
       <div class="menu-container">
-        <div class="child-menu" @click="togglePanorama">全景</div>
+        <div class="child-menu" @click="togglePanorama">全景视频</div>
         <div class="child-menu" @click="toggleReconstruct">三维重构</div>
         <div class="child-menu" @click="addCesiumLabel">实时监控</div>
         <div class="child-menu" @click="shijian">报警信息</div>
@@ -1753,6 +1759,11 @@ const changXiao = function (e: MouseEvent): void {
       <!-- 方向按钮容器 -->
       <div class="direction-buttons-container">
         <ul class="direction-buttons-list">
+          <li class="direction-button" data-tooltip="人数标签" :class="{ active: flowLabelsActive }" @click="toggleFlowLabels"
+              @mousedown="changDa" @mouseup="changXiao"
+          >
+            <div class="direction-button-bg bg-people"></div>
+          </li>
           <li class="direction-button" data-tooltip="路线图" :class="{ active: mtag }" @click="changeMark"
               @mousedown="changDa" @mouseup="changXiao"
           >
@@ -2190,6 +2201,9 @@ const changXiao = function (e: MouseEvent): void {
     top: 0;
     left: 0;
     z-index: 1;
+  }
+  .bg-people {
+    background-image: url('../assets/img/智慧防汛.png');
   }
 
   .bg-route {

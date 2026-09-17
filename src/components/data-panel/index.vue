@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import axios from 'axios'
 import * as echarts from 'echarts'
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+// ✅ 改动点：引入共享实时人流数据源（与人流标签共用同一次轮询）
+import { FLOW_API_BASE, FLOW_API_HEADERS, useFlowData } from '@/composables/useFlowData'
 
 const chartRef = ref<HTMLElement | null>(null)
 const barChartRef = ref<HTMLElement | null>(null)
@@ -11,28 +13,19 @@ const showFlowChart = ref(true)
 const showBarChart = ref(true)
 const showRankChart = ref(true)
 
-const totalEnter = ref(0)
-const totalExit = ref(0)
+// ✅ 改动点：totalEnter / totalExit 改为从共享数据源读取（computed 响应式）
+const { snapshot, subscribe, unsubscribe } = useFlowData()
+const totalEnter = computed(() => snapshot.value.totalEnter)
+const totalExit = computed(() => snapshot.value.totalExit)
 
 let chartInstance: echarts.ECharts | null = null
 let barChartInstance: echarts.ECharts | null = null
 let rankChartInstance: echarts.ECharts | null = null
-
-let rankChartTimer: ReturnType<typeof setInterval> | null = null
 let flowChartTimer: ReturnType<typeof setInterval> | null = null
+// ✅ 删除：rankChartTimer（原 30s 轮询由共享数据源统一接管）
 
-// 客流接口基础地址
-// const BASE_API_URL = 'https://br.yziic.com:19563'
-const BASE_API_URL = '/api'
-
-// 接口鉴权 key
-const SP_KEY
-  = 'e27c3780e7069bda7082a23a489d77587ce309583ed99253f66e1d9833ed1a1d0b5ce86dc6714e9974cf258589139d7b1855e8c9fa2f2c1175ee123a95a23e9b0c23584b8b61f46a98ca0e38d5e58c985832712d6fb1cb56d247ed60d262da1d538a'
-
-// 公共请求头
-const SP_HEADERS = {
-  'sp-key': SP_KEY,
-}
+// ✅ 删除：本地 BASE_API_URL / SP_KEY / SP_HEADERS / getRealTimeData
+//    —— 鉴权头与实时数据统一由 useFlowData 提供；hourly / weekly 接口复用其常量
 
 // 计算图表字号：以 1920 宽为基准缩放，超宽屏下放大
 const chartFontSize = Math.min(
@@ -40,49 +33,14 @@ const chartFontSize = Math.min(
   22,
 )
 
-interface RealDataItem {
-  groupName: string
-  enter: number
-  exit: number
-  groupId: string
-  statisticsTime: string
-}
-
-interface ApiResponse {
-  code: number
-  msg: string
-  data: {
-    totalEnter: number
-    totalExit: number
-    realdata: RealDataItem[]
-  }
-}
-
-// --- 数据接口请求方法 ---
-const getRealTimeData = async (): Promise<ApiResponse['data'] | null> => {
-  try {
-    const response = await axios.get<ApiResponse>('/api/getRealTimeData', {
-      headers: SP_HEADERS,
-    })
-    if (response.data.code === 0 && response.data.data) {
-      return response.data.data
-    }
-    return null
-  }
-  catch (error) {
-    console.error('获取实时数据失败:', error)
-    return null
-  }
-}
-
+// --- 数据接口请求方法（小时 / 近7天：仍由本组件请求，鉴权头复用共享模块） ---
 // 获取某日各小时数据
 const getHourlyData = async (date?: string) => {
   try {
-    const url = `${BASE_API_URL}/getHourlyData`
     const params = date ? { date } : {}
-    const response = await axios.get(url, {
+    const response = await axios.get(`${FLOW_API_BASE}/getHourlyData`, {
       params,
-      headers: SP_HEADERS, // 新增鉴权头
+      headers: FLOW_API_HEADERS,
     })
     if (response.data.code === 0 && response.data.data) {
       return response.data.data
@@ -98,9 +56,8 @@ const getHourlyData = async (date?: string) => {
 // 获取近7天数据
 const getWeeklyData = async () => {
   try {
-    const url = `${BASE_API_URL}/getWeeklyData`
-    const response = await axios.get(url, {
-      headers: SP_HEADERS, // 新增鉴权头
+    const response = await axios.get(`${FLOW_API_BASE}/getWeeklyData`, {
+      headers: FLOW_API_HEADERS,
     })
     if (response.data.code === 0 && response.data.data) {
       return response.data.data
@@ -259,33 +216,24 @@ const initRankChart = async () => {
     return
   }
   rankChartInstance = echarts.init(rankChartRef.value)
-  await updateRankChart()
+  updateRankChart()
 }
 
-const updateRankChart = async () => {
+// ✅ 改动点：改为同步读取共享数据源 snapshot（数据已由 useFlowData 去重、清洗、30s 刷新）
+const updateRankChart = () => {
   if (!rankChartInstance) {
     return
   }
-  const data = await getRealTimeData()
-  console.log(data)
-  if (!data || !data.realdata) {
+  const data = snapshot.value
+  if (!data.areas.length) {
     return
   }
-  totalEnter.value = data.totalEnter
-  totalExit.value = data.totalExit
 
-  const uniqueData = data.realdata.reduce((acc, item) => {
-    const existing = acc.find(d => d.groupId === item.groupId)
-    if (!existing) {
-      acc.push(item)
-    }
-    return acc
-  }, [] as RealDataItem[])
-
-  uniqueData.sort((a, b) => b.enter - a.enter)
+  // 快照数据已去重，直接按进入人数排序
+  const uniqueData = [...data.areas].sort((a, b) => b.enter - a.enter)
 
   const names = uniqueData.map((item) => {
-    const name = item.groupName.replace('总客流统计组', '').replace('客流', '').replace('全局场馆', '')
+    const name = item.groupName
     return name.length > 8 ? `${name.substring(0, 8)}...` : name
   })
 
@@ -294,13 +242,12 @@ const updateRankChart = async () => {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
       formatter: (params: any) => {
-        const index = params[0].dataIndex
-        const item = uniqueData[index]
+        const item = uniqueData[params[0].dataIndex]
         return `<div style="padding: 8px;">
-          <div style="font-weight: bold; margin-bottom: 4px;">${item.groupName}</div>
+          <div style="font-weight: bold; margin-bottom: 4px;">${item.rawName}</div>
           <div>进入: <span style="color: #00d4ff;">${item.enter}</span> 人</div>
           <div>离开: <span style="color: #ff6b6b;">${item.exit}</span> 人</div>
-          <div>当前: <span style="color: #52c41a;">${item.enter - item.exit}</span> 人</div>
+          <div>当前: <span style="color: #52c41a;">${item.current}</span> 人</div>
         </div>`
       },
     },
@@ -386,6 +333,13 @@ const updateRankChart = async () => {
   rankChartInstance.setOption(option)
 }
 
+// ✅ 新增：共享数据源每次刷新（30s 一次）自动重绘排行图（替代原组件内定时器）
+watch(snapshot, () => {
+  if (showRankChart.value) {
+    updateRankChart()
+  }
+})
+
 const handleResize = () => {
   chartInstance?.resize()
   barChartInstance?.resize()
@@ -398,12 +352,8 @@ onMounted(() => {
   initRankChart()
   window.addEventListener('resize', handleResize)
 
-  // 每30秒刷新排行图
-  rankChartTimer = setInterval(() => {
-    if (showRankChart.value && rankChartInstance) {
-      updateRankChart()
-    }
-  }, 30000)
+  // ✅ 新增：订阅共享数据源（首个订阅者触发立即拉取 + 30s 轮询）
+  subscribe()
 
   // 每60秒刷新折线图(实时人流)
   flowChartTimer = setInterval(() => {
@@ -450,14 +400,12 @@ watch(showRankChart, (val) => {
 })
 
 onUnmounted(() => {
+  // ✅ 新增：退订共享数据源（引用计数归零后轮询自动停止；cesium 标签在用则不停）
+  unsubscribe()
   window.removeEventListener('resize', handleResize)
   chartInstance?.dispose()
   barChartInstance?.dispose()
   rankChartInstance?.dispose()
-  if (rankChartTimer) {
-    clearInterval(rankChartTimer)
-    rankChartTimer = null
-  }
   if (flowChartTimer) {
     clearInterval(flowChartTimer)
     flowChartTimer = null
@@ -539,6 +487,7 @@ onUnmounted(() => {
   z-index: 8;
   height: calc(100vh - 6vw);
   pointer-events: none;
+
   // 标题样式变量
   --title-font-size: 1.5vw;
   --title-top: 6%;
@@ -552,6 +501,7 @@ onUnmounted(() => {
   background-repeat: no-repeat;
   background-position: center;
   pointer-events: auto;
+
   // 每个模块独立控制大小的CSS变量
   --card-width: 26vw;
   --card-height: calc(38% - 0.5vw);
@@ -642,6 +592,7 @@ onUnmounted(() => {
   top: -2vw;
   align-items: flex-end;
   justify-content: space-evenly;
+
   // 请确保此处替换为不包含文字的纯背景图
   background-image: url('@/assets/1/左上.png');
 
@@ -785,6 +736,7 @@ onUnmounted(() => {
   --card-height: calc(38% - 0.5vw);
   left: 1vw;
   bottom: 2vw;
+
   // 请确保此处替换为不包含文字的纯背景图
   background-image: url('@/assets/1/右上.png');
 }
@@ -795,6 +747,7 @@ onUnmounted(() => {
   --card-height: calc(38% - 0.5vw);
   right: 1vw;
   top: 0;
+
   // 请确保此处替换为不包含文字的纯背景图
   background-image: url('@/assets/1/右上.png');
 }
@@ -805,6 +758,7 @@ onUnmounted(() => {
   --card-height: calc(38% - 0.5vw);
   right: 1vw;
   bottom: 2vw;
+
   // 请确保此处替换为不包含文字的纯背景图
   background-image: url('@/assets/1/右上.png');
 
@@ -882,6 +836,7 @@ onUnmounted(() => {
   .data-panel {
     top: 10vw;
     height: calc(100vh - 10vw);
+
     // 移动端使用固定像素
     --title-font-size: 14px;
     --title-top: 8px;
@@ -939,6 +894,7 @@ onUnmounted(() => {
   .data-panel {
     top: 4vw;
     height: calc(100vh - 4vw);
+
     // 宽屏下调小字号，防止文字过大
     --title-font-size: 0.8vw;
     --title-top: 6%;
@@ -984,17 +940,14 @@ onUnmounted(() => {
     --item1-height: 88%;
     --item1-label-size: 0.4vw;
     --item1-value-size: 0.85vw;
-
     --item2-width: 88%;
     --item2-height: 88%;
     --item2-label-size: 0.4vw;
     --item2-value-size: 0.85vw;
-
     --item3-width: 88%;
     --item3-height: 88%;
     --item3-label-size: 0.4vw;
     --item3-value-size: 0.85vw;
-
     --item4-width: 88%;
     --item4-height: 88%;
     --item4-label-size: 0.4vw;
@@ -1068,17 +1021,14 @@ onUnmounted(() => {
     --item1-height: 88%;
     --item1-label-size: 0.45vw;
     --item1-value-size: 0.95vw;
-
     --item2-width: 88%;
     --item2-height: 88%;
     --item2-label-size: 0.45vw;
     --item2-value-size: 0.95vw;
-
     --item3-width: 88%;
     --item3-height: 88%;
     --item3-label-size: 0.45vw;
     --item3-value-size: 0.95vw;
-
     --item4-width: 88%;
     --item4-height: 88%;
     --item4-label-size: 0.45vw;
@@ -1147,6 +1097,7 @@ onUnmounted(() => {
     --card-height: 52%;
     left: -2vw;
     top: 1vw;
+
     // data-grid缩小让4个小模块能完整显示
     --grid-width: 45%;
     --grid-height: 35%;
@@ -1158,17 +1109,14 @@ onUnmounted(() => {
     --item1-height: 85%;
     --item1-label-size: 0.42vw;
     --item1-value-size: 0.9vw;
-
     --item2-width: 85%;
     --item2-height: 85%;
     --item2-label-size: 0.42vw;
     --item2-value-size: 0.9vw;
-
     --item3-width: 85%;
     --item3-height: 85%;
     --item3-label-size: 0.42vw;
     --item3-value-size: 0.9vw;
-
     --item4-width: 85%;
     --item4-height: 85%;
     --item4-label-size: 0.42vw;
@@ -1237,17 +1185,14 @@ onUnmounted(() => {
     --item1-height: 85%;
     --item1-label-size: 0.35vw;
     --item1-value-size: 0.8vw;
-
     --item2-width: 85%;
     --item2-height: 85%;
     --item2-label-size: 0.35vw;
     --item2-value-size: 0.8vw;
-
     --item3-width: 85%;
     --item3-height: 85%;
     --item3-label-size: 0.35vw;
     --item3-value-size: 0.8vw;
-
     --item4-width: 85%;
     --item4-height: 85%;
     --item4-label-size: 0.35vw;
@@ -1353,17 +1298,14 @@ onUnmounted(() => {
     --item1-height: 85%;
     --item1-label-size: 0.42vw;
     --item1-value-size: 0.9vw;
-
     --item2-width: 85%;
     --item2-height: 85%;
     --item2-label-size: 0.42vw;
     --item2-value-size: 0.9vw;
-
     --item3-width: 85%;
     --item3-height: 85%;
     --item3-label-size: 0.42vw;
     --item3-value-size: 0.9vw;
-
     --item4-width: 85%;
     --item4-height: 85%;
     --item4-label-size: 0.42vw;
@@ -1498,17 +1440,14 @@ onUnmounted(() => {
     --item1-height: 85%;
     --item1-label-size: 0.38vw;
     --item1-value-size: 0.75vw;
-
     --item2-width: 85%;
     --item2-height: 85%;
     --item2-label-size: 0.38vw;
     --item2-value-size: 0.75vw;
-
     --item3-width: 85%;
     --item3-height: 85%;
     --item3-label-size: 0.38vw;
     --item3-value-size: 0.75vw;
-
     --item4-width: 85%;
     --item4-height: 85%;
     --item4-label-size: 0.38vw;

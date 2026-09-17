@@ -2,17 +2,21 @@
 import type { HotspotEntity, TreePoint } from "@/type/vMap"
 import axios from "axios"
 import * as Cesium from "cesium"
-import { defineEmits, onMounted, onUnmounted, ref } from "vue"
+import { computed, defineEmits, onMounted, onUnmounted, ref, watch } from "vue"
 // 引入底图
 import videoFrameUrl from "@/assets/img/video.png"
 // ===== 新增 =====
 import createModelCol from "@/assets/js/modelColUnified.js"
+// ✅ 新增：共享实时人流数据源 + 标签坐标配置
+import { type FlowSnapshot, useFlowData } from "@/composables/useFlowData"
+import { FLOW_LABEL_CONFIG, FLOW_LABEL_SCALE } from "@/config/flowLabelConfig"
 import { useViewportStore } from '@/stores/module/viewportStore'
 import { useCameraFly } from '@/utils/cesiumFly' // 引入飞行
 import { CruiseController, REGION_META, SCENE_FLY_ONLY_CONFIG, SCENE_MODEL_TO_CRUISE_ID } from '@/utils/cruiseFly' // 巡航
 import { createModelAnimator } from "@/utils/modelAnimation.ts" // 模型动画
 // ============ WebSocket 统一管理（新增） ============
 import { type WsChannelConfig, WsManager } from "@/utils/wsManager"
+
 // 子传父
 const emits = defineEmits([
   "playVideoFusion",
@@ -2205,6 +2209,194 @@ const ld = (option = null) => {
   }
 }
 
+// ==================================================================
+// ✅ 新增：实时人流标签（与 DataPanel 共用 useFlowData，30s 自动刷新）
+// ==================================================================
+const flowStore = useFlowData()
+const flowLabelEntities: Record<string, Cesium.Entity> = {}
+let flowLabelsVisible = false
+let flowStopWatch: (() => void) | null = null
+
+/** 绘制发光卡片式标签贴图（✅ 字体整体放大：名称32 / 主数值64 / 人26 / 进出30） */
+const drawFlowLabelImage = (
+  name: string,
+  current: number | string,
+  enter: number,
+  exit: number,
+  hasData: boolean,
+): string => {
+  const W = 380; const H = 170; const R = 24 // ✅ 画布 340×150 → 380×170，容纳更大字体
+  const canvas = document.createElement("canvas")
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext("2d")!
+
+  const roundRect = (x: number, y: number, w: number, h: number) => {
+    ctx.beginPath()
+    ctx.moveTo(x + R, y)
+    ctx.arcTo(x + w, y, x + w, y + h, R)
+    ctx.arcTo(x + w, y + h, x, y + h, R)
+    ctx.arcTo(x, y + h, x, y, R)
+    ctx.arcTo(x, y, x + w, y, R)
+    ctx.closePath()
+  }
+
+  // 1. 卡片底（深色渐变半透明）
+  roundRect(2, 2, W - 4, H - 4)
+  const grad = ctx.createLinearGradient(0, 0, 0, H)
+  grad.addColorStop(0, "rgba(2, 36, 64, 0.94)")
+  grad.addColorStop(1, "rgba(0, 12, 28, 0.94)")
+  ctx.fillStyle = grad
+  ctx.fill()
+
+  // 2. 青色发光描边
+  ctx.shadowColor = "rgba(0, 198, 255, 0.9)"
+  ctx.shadowBlur = 16
+  ctx.strokeStyle = "rgba(0, 198, 255, 0.95)"
+  ctx.lineWidth = 4
+  roundRect(2, 2, W - 4, H - 4)
+  ctx.stroke()
+  ctx.shadowBlur = 0
+
+  ctx.textBaseline = "middle"
+
+  // 3. 顶部名称条（✅ 24px → 32px）
+  ctx.fillStyle = "rgba(0, 198, 255, 0.22)"
+  roundRect(2, 2, W - 4, 52)
+  ctx.fill()
+  ctx.font = "bold 36px 'Microsoft YaHei', sans-serif"
+  ctx.fillStyle = "#00e5ff"
+  let label = name
+  while (label.length > 2 && ctx.measureText(label).width > W - 60) {
+    label = label.slice(0, -1)
+  }
+  if (label !== name) { label += "…" }
+  ctx.fillText(label, 18, 28)
+
+  // 4. 主数值（✅ 44px → 64px，保留自动缩字号防溢出）
+  const curStr = hasData ? String(current) : "--"
+  let numSize = 64
+  ctx.font = `bold ${numSize}px 'DIN Alternate', sans-serif`
+  while (numSize > 32 && ctx.measureText(curStr).width > 190) {
+    numSize -= 2
+    ctx.font = `bold ${numSize}px 'DIN Alternate', sans-serif`
+  }
+  ctx.fillStyle = hasData ? "#ffffff" : "rgba(255, 255, 255, 0.45)"
+  ctx.fillText(curStr, 18, 118)
+  const nw = ctx.measureText(curStr).width
+  ctx.font = "26px sans-serif" // ✅ 18px → 26px
+  ctx.fillStyle = "rgba(255, 255, 255, 0.8)"
+  ctx.fillText("人", 18 + nw + 8, 124)
+
+  // 5. 进 / 出（✅ 22px → 30px，竖排右对齐）
+  ctx.textAlign = "right"
+  ctx.font = "bold 30px sans-serif"
+  ctx.fillStyle = "#00d4ff"
+  ctx.fillText(`进 ${enter}`, W - 16, 88)
+  ctx.fillStyle = "#ff6b6b"
+  ctx.fillText(`出 ${exit}`, W - 16, 132)
+  ctx.textAlign = "left"
+
+  return canvas.toDataURL("image/png")
+}
+
+/** 创建/更新单个标签实体（存在则只换贴图；被 removeAll 清掉过则自动重建） */
+const ensureFlowEntity = (
+  key: string,
+  lon: number,
+  lat: number,
+  height: number,
+  image: string,
+) => {
+  if (!viewer) { return }
+  const exist = flowLabelEntities[key]
+  if (exist && viewer.entities.contains(exist)) {
+    if (exist.billboard) { exist.billboard.image = image }
+    return
+  }
+  if (exist) { delete flowLabelEntities[key] }
+  flowLabelEntities[key] = viewer.entities.add({
+    id: `flow_label_${key}`,
+    position: Cesium.Cartesian3.fromDegrees(lon, lat, height),
+    billboard: {
+      image,
+      scale: FLOW_LABEL_SCALE,
+      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      scaleByDistance: new Cesium.NearFarScalar(2.0e2, 1.1, 3.0e4, 0.45),
+    },
+    properties: { isFlowLabel: true, flowKey: key },
+  })
+}
+
+/** 按最新数据重绘所有标签 */
+const renderFlowLabels = (snap: FlowSnapshot) => {
+  if (!flowLabelsVisible || !viewer) { return }
+  const used = new Set<string>()
+
+  // ① 配置点位：命中多个区域时人数求和
+  FLOW_LABEL_CONFIG.forEach((cfg) => {
+    const matched = snap.areas.filter(
+      a => !used.has(a.groupId)
+        && cfg.match.some(m => a.groupName.includes(m) || a.rawName.includes(m)),
+    )
+    matched.forEach(a => used.add(a.groupId))
+    const enter = matched.reduce((s, a) => s + a.enter, 0)
+    const exit = matched.reduce((s, a) => s + a.exit, 0)
+    const hasData = matched.length > 0
+    ensureFlowEntity(
+      cfg.key,
+      cfg.lon,
+      cfg.lat,
+      cfg.height,
+      drawFlowLabelImage(cfg.label, hasData ? Math.max(0, enter - exit) : "--", enter, exit, hasData),
+    )
+  })
+
+  // ② 兜底：接口新增、未配置坐标的区域 → 自动排布展示（可扩展）
+  // snap.areas
+  //   .filter(a => !used.has(a.groupId))
+  //   .forEach((area, i) => {
+  //     const row = Math.floor(i / FLOW_AUTO_LAYOUT.perRow);
+  //     const col = i % FLOW_AUTO_LAYOUT.perRow;
+  //     ensureFlowEntity(
+  //       `auto_${area.groupId}`,
+  //       FLOW_AUTO_LAYOUT.startLon + col * FLOW_AUTO_LAYOUT.dLon,
+  //       FLOW_AUTO_LAYOUT.startLat + row * FLOW_AUTO_LAYOUT.dLat,
+  //       14,
+  //       drawFlowLabelImage(area.groupName, area.current, area.enter, area.exit, true),
+  //     );
+  //   });
+}
+
+const showFlowLabels = () => {
+  if (flowLabelsVisible || !viewer) { return }
+  flowLabelsVisible = true
+  flowStore.subscribe() // 首个订阅者触发立即拉取 + 30s 轮询
+  renderFlowLabels(flowStore.snapshot.value) // 立即渲染（无数据先显示 --）
+  flowStopWatch = watch(flowStore.snapshot, s => renderFlowLabels(s)) // 人数动态刷新
+}
+
+const removeFlowLabels = () => {
+  flowLabelsVisible = false
+  flowStopWatch?.()
+  flowStopWatch = null
+  flowStore.unsubscribe() // 引用计数归零自动停轮询（DataPanel 在用则不停）
+  Object.keys(flowLabelEntities).forEach((key) => {
+    viewer?.entities.remove(flowLabelEntities[key])
+    delete flowLabelEntities[key]
+  })
+}
+
+const toggleFlowLabels = (): boolean => {
+  if (flowLabelsVisible) {
+    removeFlowLabels()
+    return false
+  }
+  showFlowLabels()
+  return flowLabelsVisible
+}
+
 // 点击获取经纬度（包含3D模型高度）
 const clickHandlers = (event: any) => {
   // 使用 pickPosition 可以获取包括3D模型在内的准确位置
@@ -3404,10 +3596,12 @@ onMounted(() => {
   loadModelById(2)
   loadModelById(3)
   ld()
+  showFlowLabels()
 })
 
 // 组件卸载时清理资源
 onUnmounted(() => {
+  removeFlowLabels() // ✅ 新增：退订共享数据源 + 清理标签
   if (viewer) {
     viewer.destroy()
     // viewer = null
@@ -3472,6 +3666,9 @@ defineExpose({
   cruiseResume,
   cruiseToggle,
   cruiseStop,
+  toggleFlowLabels, // ✅ 开关标签
+  showFlowLabels,
+  removeFlowLabels,
 })
 </script>
 
